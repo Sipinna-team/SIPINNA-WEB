@@ -26,9 +26,6 @@ export type SessionResponse = {
   zone_name: string;
 };
 
-// La forma exacta del reporte la define el backend en POST /report.
-export type CrearReportePayload = Record<string, unknown>;
-
 // Detalle que devuelve GET /report/:zone_id (solo admin).
 export type Report = {
   folio: string;
@@ -105,13 +102,6 @@ export const api = {
     return request<unknown>('/auth/citizen', {
       method: 'POST',
       body: JSON.stringify(payload),
-    });
-  },
-
-  crearReporte(data: CrearReportePayload) {
-    return request<unknown>('/report', {
-      method: 'POST',
-      body: JSON.stringify(data),
     });
   },
 

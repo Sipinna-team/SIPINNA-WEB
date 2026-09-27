@@ -21,6 +21,7 @@ import {
   HorizontalBarChart,
   LineChart,
 } from '../components/DashboardCharts';
+import { KpiCarousel } from '../components/KpiCarousel';
 
 const USER_PHOTO = '/src/assets/manu.jpeg';
 const USER_TYPE_LABELS: Record<UserType, string> = {
@@ -117,12 +118,14 @@ function Dashboard() {
   const todayTrend =
     stats.dailyAverage > 0 ? Math.round(((stats.today - stats.dailyAverage) / stats.dailyAverage) * 100) : null;
   const zonesSplit = stats.byZone.length > ZONE_LIST_SIZE;
+  // Solo los administradores ven todas las zonas; un alimentador solo tiene la suya.
+  const showZones = user?.userType === 'administrador';
 
   return (
     <main className="dashboard-page" aria-label="Panel de control">
       {error && <p className="dashboard-error" role="alert">{error}</p>}
-      <div className="dashboard-grid">
-        <section className="dashboard-kpis" aria-label="Indicadores">
+      <div className={`dashboard-grid${showZones ? '' : ' dashboard-grid--no-zones'}`}>
+        <KpiCarousel className="dashboard-kpis" label="Indicadores">
           <KpiTile
             title="Reportes de hoy"
             value={loading ? placeholder : <AnimatedNumber value={stats.today} />}
@@ -170,7 +173,7 @@ function Dashboard() {
             value={loading ? placeholder : <AnimatedNumber value={stats.total} />}
             hint={user?.zoneName ? `Zona ${user.zoneName}` : 'Todas las zonas'}
           />
-        </section>
+        </KpiCarousel>
 
         <section className="dashboard-panel dashboard-profile" aria-label="Usuario">
           <img
@@ -189,11 +192,16 @@ function Dashboard() {
               {user?.zoneName || 'Sin zona asignada'}
             </span>
           </div>
-          <button className="dashboard-logout" type="button" onClick={handleLogout}>
+          <button
+            className="dashboard-logout"
+            type="button"
+            onClick={handleLogout}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h12" />
             </svg>
-            Cerrar sesión
           </button>
         </section>
 
@@ -236,22 +244,24 @@ function Dashboard() {
           <HorizontalBarChart items={loading ? [] : stats.byAge} />
         </section>
 
-        <section className="dashboard-panel dashboard-panel--zones" aria-labelledby="kpi-zones">
-          <h2 id="kpi-zones" className="dashboard-subtitle">Zonas con más y menos reportes</h2>
-          {!loading && stats.byZone.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
-          <div className="dashboard-zones">
-            <div>
-              {zonesSplit && <h3 className="dashboard-muted">Más reportes</h3>}
-              <HorizontalBarChart items={toBars(stats.byZone.slice(0, ZONE_LIST_SIZE))} />
-            </div>
-            {zonesSplit && (
+        {showZones && (
+          <section className="dashboard-panel dashboard-panel--zones" aria-labelledby="kpi-zones">
+            <h2 id="kpi-zones" className="dashboard-subtitle">Zonas con más y menos reportes</h2>
+            {!loading && stats.byZone.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
+            <div className="dashboard-zones">
               <div>
-                <h3 className="dashboard-muted">Menos reportes</h3>
-                <HorizontalBarChart items={toBars(stats.byZone.slice(-ZONE_LIST_SIZE).reverse())} />
+                {zonesSplit && <h3 className="dashboard-muted">Más reportes</h3>}
+                <HorizontalBarChart items={toBars(stats.byZone.slice(0, ZONE_LIST_SIZE))} />
               </div>
-            )}
-          </div>
-        </section>
+              {zonesSplit && (
+                <div>
+                  <h3 className="dashboard-muted">Menos reportes</h3>
+                  <HorizontalBarChart items={toBars(stats.byZone.slice(-ZONE_LIST_SIZE).reverse())} />
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="dashboard-panel dashboard-panel--recent" aria-labelledby="kpi-recent">
           <div className="dashboard-panel-header">

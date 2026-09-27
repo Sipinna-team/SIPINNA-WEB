@@ -28,10 +28,10 @@ export const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', '
 
 // suspicius_level >= este valor se cuenta como reporte falso. El backend
 // devuelve 0 cuando el LLM aún no analiza el reporte, así que esos cuentan como verídicos.
-export const FALSE_REPORT_THRESHOLD = 0.5;
+const FALSE_REPORT_THRESHOLD = 0.5;
 
 // Modalidades de trabajo infantil acordadas con SIPINNA
-export const WORK_MODALITIES = [
+const WORK_MODALITIES = [
   { label: 'Mendicidad forzada', match: 'mendicidad' },
   { label: 'Explotación sexual', match: 'sexual' },
   { label: 'Trata de personas', match: 'trata' },
@@ -41,7 +41,7 @@ export const WORK_MODALITIES = [
 ];
 
 // Mismas opciones que la pantalla "Información del niño" de la app.
-export const AGE_RANGES = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
+const AGE_RANGES = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
 
 const UNATTENDED_AFTER_MS = 48 * 3_600_000;
 const DAY_MS = 86_400_000;
@@ -49,7 +49,7 @@ const DAY_MS = 86_400_000;
 const BASELINE_DAYS = 30;
 
 export type ZoneCount = { zone: string; count: number };
-export type LabelCount = { label: string; value: number };
+type LabelCount = { label: string; value: number };
 
 export type DashboardStats = {
   total: number;
@@ -111,7 +111,7 @@ function sameText(a: string, b: string | null | undefined) {
 }
 
 // Agrupa el texto libre en la modalidad correspondiente o lo deja tal cual.
-export function workTypeLabel(type: string) {
+function workTypeLabel(type: string) {
   const text = simplify(type);
   if (!text) return null;
   const modality = WORK_MODALITIES.find((m) => text.includes(m.match));
