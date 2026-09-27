@@ -44,6 +44,7 @@ export type Report = {
   citizen_name: string;
   last_state: string;
   state_changed_at: string;
+  first_attention_at?: string | null;
 };
 
 const DEFAULT_TIMEOUT_MS = 8000;

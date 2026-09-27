@@ -1,17 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import type { Report, UserType } from '../lib/api';
+import type { ZoneCount } from '../lib/dashboardStats';
 import {
   MONTHS,
   STATES,
   computeDashboardStats,
   formatCoordinates,
+  formatDuration,
   formatRelativeDate,
 } from '../lib/dashboardStats';
 import {
+  AnimatedNumber,
   ColumnChart,
   DonutChart,
   HorizontalBarChart,
@@ -29,6 +33,32 @@ const MONTH_NUMBERS = MONTHS.map((_, i) => String(i + 1));
 const MAP_PREVIEW_URL =
   'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/-99.2734,19.5645,11.5,0/400x200@2x' +
   `?access_token=${import.meta.env.VITE_MAP_BOX_TOKEN}`;
+
+const ZONE_LIST_SIZE = 5;
+
+const toBars = (zones: ZoneCount[]) =>
+  zones.map((z) => ({ label: z.zone, value: z.count }));
+
+type KpiTileProps = {
+  title: string;
+  value: ReactNode;
+  hint: string;
+  tone?: 'good' | 'warn';
+  badge?: { text: string; tone: 'up' | 'down' };
+};
+
+function KpiTile({ title, value, hint, tone, badge }: KpiTileProps) {
+  return (
+    <article className={`dashboard-panel dashboard-tile${tone ? ` dashboard-tile--${tone}` : ''}`}>
+      <h2 className="dashboard-tile-title">{title}</h2>
+      <p className="dashboard-tile-value">
+        {value}
+        {badge && <span className={`dashboard-tile-badge dashboard-tile-badge--${badge.tone}`}>{badge.text}</span>}
+      </p>
+      <p className="dashboard-muted dashboard-tile-hint">{hint}</p>
+    </article>
+  );
+}
 
 function initials(name: string) {
   return name
@@ -78,47 +108,69 @@ function Dashboard() {
     } catch (err) {
       console.error('Error al cerrar sesión', err);
     } finally {
-      navigate('/login', { replace: true });
+      navigate('/login', { replace: true, viewTransition: true });
     }
   }
+
+  const pctTile = (value: number | null) =>
+    value === null ? placeholder : <><AnimatedNumber value={Math.round(value)} />%</>;
+  const todayTrend =
+    stats.dailyAverage > 0 ? Math.round(((stats.today - stats.dailyAverage) / stats.dailyAverage) * 100) : null;
+  const zonesSplit = stats.byZone.length > ZONE_LIST_SIZE;
 
   return (
     <main className="dashboard-page" aria-label="Panel de control">
       {error && <p className="dashboard-error" role="alert">{error}</p>}
       <div className="dashboard-grid">
-        <section className="dashboard-panel dashboard-panel--overview" aria-labelledby="kpi-states">
-          <h2 id="kpi-states" className="dashboard-title">Reportes por estado</h2>
-          <DonutChart
-            segments={STATES.map((state) => ({
-              label: state.label,
-              value: stats.byState[state.key],
-              color: state.color,
-            }))}
-            centerValue={stats.byState.concluido}
-            centerLabel="concluidos"
+        <section className="dashboard-kpis" aria-label="Indicadores">
+          <KpiTile
+            title="Reportes de hoy"
+            value={loading ? placeholder : <AnimatedNumber value={stats.today} />}
+            hint={`Promedio diario: ${stats.dailyAverage.toFixed(1)}`}
+            badge={
+              !loading && todayTrend !== null
+                ? { text: `${todayTrend > 0 ? '+' : ''}${todayTrend}%`, tone: todayTrend > 0 ? 'up' : 'down' }
+                : undefined
+            }
+          />
+          <KpiTile
+            title="Sin atender +48 h"
+            value={loading ? placeholder : <AnimatedNumber value={stats.unattended} />}
+            hint="Siguen en registrado"
+            tone={stats.unattended > 0 ? 'warn' : undefined}
+          />
+          <KpiTile
+            title="Primera atención"
+            value={loading ? placeholder : formatDuration(stats.avgFirstAttentionMs)}
+            hint={stats.avgFirstAttentionMs === null ? 'Pendiente: requiere historial en la API' : 'Promedio hasta empezar a revisar'}
+          />
+          <KpiTile
+            title="Tiempo de resolución"
+            value={loading ? placeholder : formatDuration(stats.avgResolutionMs)}
+            hint="Promedio hasta concluir o canalizar"
+          />
+          <KpiTile
+            title="Atendidos"
+            value={loading ? placeholder : pctTile(stats.attendedPct)}
+            hint={`${stats.byState.concluido + stats.byState.canalizado} de ${stats.total} concluidos o canalizados`}
+            tone="good"
+          />
+          <KpiTile
+            title="Reportes falsos"
+            value={loading ? placeholder : pctTile(stats.falsePct)}
+            hint="Nivel de sospecha de 50% o más"
+          />
+          <KpiTile
+            title="Reportes repetidos"
+            value={loading ? placeholder : pctTile(stats.repeatPct)}
+            hint={`${stats.byState.reincidente} marcados como reincidentes`}
+          />
+          <KpiTile
+            title="Total de reportes"
+            value={loading ? placeholder : <AnimatedNumber value={stats.total} />}
+            hint={user?.zoneName ? `Zona ${user.zoneName}` : 'Todas las zonas'}
           />
         </section>
-
-        <section className="dashboard-panel dashboard-panel--kpi" aria-labelledby="kpi-today">
-          <h2 id="kpi-today" className="dashboard-subtitle">Hoy</h2>
-          <p className="dashboard-stat">
-            <span className="dashboard-stat-value">{loading ? placeholder : stats.today}</span>
-            <span>reportes</span>
-          </p>
-        </section>
-
-        <Link
-          to="/map"
-          className="dashboard-panel dashboard-panel--shortcut dashboard-map-link"
-          style={{ backgroundImage: `url(${MAP_PREVIEW_URL})` }}
-        >
-          <span>
-            Mapa
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" />
-            </svg>
-          </span>
-        </Link>
 
         <section className="dashboard-panel dashboard-profile" aria-label="Usuario">
           <img
@@ -145,21 +197,59 @@ function Dashboard() {
           </button>
         </section>
 
-        <section className="dashboard-panel dashboard-panel--summary" aria-labelledby="kpi-top-zone">
-          <h2 id="kpi-top-zone" className="dashboard-subtitle">Zona con más reportes</h2>
-          <div className="dashboard-top-zone">
+        <Link
+          to="/map"
+          viewTransition
+          className="dashboard-panel dashboard-panel--shortcut dashboard-map-link"
+          style={{ backgroundImage: `url(${MAP_PREVIEW_URL})` }}
+        >
+          <span>
+            Mapa
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6" />
+            </svg>
+          </span>
+        </Link>
+
+        <section className="dashboard-panel dashboard-panel--overview" aria-labelledby="kpi-states">
+          <h2 id="kpi-states" className="dashboard-title">Reportes por estado</h2>
+          <DonutChart
+            segments={STATES.map((state) => ({
+              label: state.label,
+              value: stats.byState[state.key],
+              color: state.color,
+            }))}
+            centerValue={stats.byState.concluido}
+            centerLabel="concluidos"
+          />
+        </section>
+
+        <section className="dashboard-panel dashboard-panel--types" aria-labelledby="kpi-types">
+          <h2 id="kpi-types" className="dashboard-subtitle">Reportes por tipo</h2>
+          <span className="dashboard-muted">Un reporte puede tener varias modalidades</span>
+          {!loading && stats.byType.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
+          <HorizontalBarChart items={stats.byType.slice(0, 6)} />
+        </section>
+
+        <section className="dashboard-panel dashboard-panel--ages" aria-labelledby="kpi-ages">
+          <h2 id="kpi-ages" className="dashboard-subtitle">Edades de niñas, niños y adolescentes</h2>
+          <HorizontalBarChart items={loading ? [] : stats.byAge} />
+        </section>
+
+        <section className="dashboard-panel dashboard-panel--zones" aria-labelledby="kpi-zones">
+          <h2 id="kpi-zones" className="dashboard-subtitle">Zonas con más y menos reportes</h2>
+          {!loading && stats.byZone.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
+          <div className="dashboard-zones">
             <div>
-              <strong className="dashboard-zone-name">{stats.topZone?.zone ?? placeholder}</strong>
-              {stats.topZone && (
-                <span className="dashboard-muted">
-                  {formatCoordinates(stats.topZone.latitude, stats.topZone.longitude)}
-                </span>
-              )}
+              {zonesSplit && <h3 className="dashboard-muted">Más reportes</h3>}
+              <HorizontalBarChart items={toBars(stats.byZone.slice(0, ZONE_LIST_SIZE))} />
             </div>
-            <p className="dashboard-stat">
-              <span className="dashboard-stat-value">{stats.topZone?.count ?? placeholder}</span>
-              <span>reportes</span>
-            </p>
+            {zonesSplit && (
+              <div>
+                <h3 className="dashboard-muted">Menos reportes</h3>
+                <HorizontalBarChart items={toBars(stats.byZone.slice(-ZONE_LIST_SIZE).reverse())} />
+              </div>
+            )}
           </div>
         </section>
 
@@ -186,13 +276,6 @@ function Dashboard() {
               </li>
             ))}
           </ul>
-        </section>
-
-        <section className="dashboard-panel dashboard-panel--chart" aria-labelledby="kpi-zones">
-          <h2 id="kpi-zones" className="dashboard-subtitle">Reportes por zona</h2>
-          <HorizontalBarChart
-            items={stats.byZone.slice(0, 5).map((z) => ({ label: z.zone, value: z.count }))}
-          />
         </section>
 
         <section className="dashboard-panel dashboard-panel--featured dashboard-charts" aria-label="Tendencias del año">

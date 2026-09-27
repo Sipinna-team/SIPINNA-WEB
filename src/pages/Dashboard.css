@@ -25,15 +25,14 @@ html:has(.dashboard-page) body {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr 1.85fr;
-  grid-template-rows: minmax(122px, auto) 164px minmax(320px, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.15fr);
+  grid-template-rows: auto auto minmax(300px, auto) minmax(280px, auto);
   grid-template-areas:
-    'overview kpi shortcut profile'
-    'overview summary summary featured'
-    'recent chart chart featured';
+    'kpis kpis kpis profile'
+    'kpis kpis kpis shortcut'
+    'overview types ages featured'
+    'zones zones recent featured';
   gap: 14px 16px;
-  min-height: calc(100vh - 30px);
-  min-height: calc(100dvh - 30px);
   max-width: 1600px;
   margin: 0 auto;
 }
@@ -48,14 +47,16 @@ html:has(.dashboard-page) body {
   backdrop-filter: blur(16px);
 }
 
+.dashboard-kpis { grid-area: kpis; }
 .dashboard-panel--overview { grid-area: overview; }
-.dashboard-panel--kpi { grid-area: kpi; }
 .dashboard-panel--shortcut {
   grid-area: shortcut;
+  min-height: 96px;
 }
-.dashboard-panel--summary { grid-area: summary; }
+.dashboard-panel--types { grid-area: types; }
+.dashboard-panel--ages { grid-area: ages; }
+.dashboard-panel--zones { grid-area: zones; }
 .dashboard-panel--recent { grid-area: recent; }
-.dashboard-panel--chart { grid-area: chart; }
 .dashboard-panel--featured {
   grid-area: featured;
 }
@@ -145,12 +146,69 @@ html:has(.dashboard-page) body {
   border-radius: 4px;
 }
 
-/* ---------- KPIs ---------- */
+/* ---------- Indicadores (tarjetas pequeñas) ---------- */
+.dashboard-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.dashboard-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 104px;
+  padding: 14px 18px;
+}
+
+.dashboard-tile-title {
+  margin: 0;
+  color: #3d4c5c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dashboard-tile-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: auto 0 0;
+  color: #17212d;
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 2.2vw, 32px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-tile--good .dashboard-tile-value { color: #1f7a3f; }
+.dashboard-tile--warn .dashboard-tile-value { color: #c2410c; }
+
+.dashboard-tile-badge {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Más reportes que un día normal es una alerta, no una buena noticia. */
+.dashboard-tile-badge--up { background: rgba(194, 65, 12, 0.12); color: #c2410c; }
+.dashboard-tile-badge--down { background: rgba(31, 122, 63, 0.12); color: #1f7a3f; }
+
+.dashboard-tile-hint {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Paneles ---------- */
 .dashboard-panel--overview,
-.dashboard-panel--kpi,
-.dashboard-panel--summary,
+.dashboard-panel--types,
+.dashboard-panel--ages,
+.dashboard-panel--zones,
 .dashboard-panel--recent,
-.dashboard-panel--chart,
 .dashboard-panel--featured {
   display: flex;
   flex-direction: column;
@@ -182,26 +240,9 @@ html:has(.dashboard-page) body {
   font-size: 13px;
 }
 
-.dashboard-stat {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin: auto 0 0;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.dashboard-panel--kpi .dashboard-stat { margin: auto 0; justify-content: center; }
-
-.dashboard-stat-value {
-  color: #1f9d4c;
-  font-size: clamp(36px, 3.4vw, 50px);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
 /* Atajo al mapa */
 .dashboard-map-link {
+  view-transition-name: map-hero;
   position: relative;
   display: grid;
   place-items: center;
@@ -229,28 +270,19 @@ html:has(.dashboard-page) body {
 .dashboard-map-link:hover span { transform: scale(1.05); }
 .dashboard-map-link:focus-visible { outline: 2px solid #1495ed; outline-offset: 3px; }
 
-/* Zona con más reportes */
-.dashboard-top-zone {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+/* Zonas con más y menos reportes */
+.dashboard-zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 28px;
 }
 
-.dashboard-top-zone > div {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
+.dashboard-zones h3 {
+  margin: 14px 0 0;
+  font-weight: 600;
 }
 
-.dashboard-zone-name {
-  font-size: clamp(18px, 1.6vw, 24px);
-  line-height: 1.2;
-}
-
-.dashboard-top-zone .dashboard-stat { margin: 0; }
+.dashboard-zones .hbar-list { margin-top: 10px; gap: 10px; }
 
 /* Reportes recientes */
 .dashboard-panel-header {
@@ -258,14 +290,6 @@ html:has(.dashboard-page) body {
   align-items: center;
   justify-content: space-between;
 }
-
-.dashboard-link {
-  color: #2563eb;
-  font-size: 13px;
-  text-decoration: none;
-}
-
-.dashboard-link:hover { text-decoration: underline; }
 
 .dashboard-recent {
   display: flex;
@@ -455,30 +479,7 @@ html:has(.dashboard-page) body {
   font-variant-numeric: tabular-nums;
 }
 
-/* En escritorio el dashboard ocupa exactamente la ventana: sin scroll vertical.
-   Las filas flexibles se encogen y las gráficas se ajustan al alto disponible. */
 @media (min-width: 1001px) {
-  .dashboard-grid {
-    grid-template-rows: minmax(104px, auto) 136px minmax(0, 1fr);
-    gap: 12px 14px;
-    height: calc(100vh - 30px);
-    height: calc(100dvh - 30px);
-    min-height: 600px;
-  }
-
-  .dashboard-panel--overview,
-  .dashboard-panel--kpi,
-  .dashboard-panel--summary,
-  .dashboard-panel--recent,
-  .dashboard-panel--chart,
-  .dashboard-panel--featured {
-    padding: 14px 20px;
-    min-height: 0;
-  }
-
-  .dashboard-charts { gap: 8px; }
-  .donut-legend { gap: 5px; }
-
   .dashboard-charts .chart {
     display: flex;
     flex: 1;
@@ -491,36 +492,106 @@ html:has(.dashboard-page) body {
     min-height: 0;
     height: 100%;
   }
-
-  .hbar-list { margin-top: 16px; gap: 12px; }
-  .dashboard-recent { gap: 8px; margin-top: 10px; }
 }
 
 @media (max-width: 1000px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: minmax(122px, auto) 150px 300px 360px auto;
+    grid-template-rows: none;
     grid-template-areas:
-      'profile profile'
-      'kpi shortcut'
-      'overview summary'
-      'recent chart'
-      'featured featured';
+      'profile shortcut'
+      'kpis kpis'
+      'overview overview'
+      'types ages'
+      'featured featured'
+      'zones zones'
+      'recent recent';
   }
+
+  .dashboard-charts { min-height: 520px; }
 }
 
 @media (max-width: 540px) {
   .dashboard-page { padding: 16px; }
   .dashboard-grid {
     gap: 14px;
-    grid-template-rows: minmax(122px, auto) 120px auto auto auto auto auto;
     grid-template-areas:
       'profile profile'
-      'kpi shortcut'
+      'shortcut shortcut'
+      'kpis kpis'
       'overview overview'
-      'summary summary'
-      'recent recent'
-      'chart chart'
-      'featured featured';
+      'types types'
+      'ages ages'
+      'featured featured'
+      'zones zones'
+      'recent recent';
+  }
+
+  .dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .dashboard-tile { min-height: 96px; padding: 12px 14px; }
+  .dashboard-tile-hint { white-space: normal; }
+}
+
+/* Entrada escalonada de los paneles. El atajo al mapa queda fuera porque ese
+   elemento se anima como transición compartida con la pantalla del mapa. */
+.dashboard-grid > :not(.dashboard-map-link) {
+  animation: page-rise 560ms var(--ease-out-soft) both;
+}
+
+.dashboard-profile { animation-delay: 60ms; }
+.dashboard-panel--overview { animation-delay: 180ms; }
+.dashboard-panel--types { animation-delay: 210ms; }
+.dashboard-panel--ages { animation-delay: 240ms; }
+.dashboard-panel--featured { animation-delay: 200ms; }
+.dashboard-panel--zones { animation-delay: 270ms; }
+.dashboard-panel--recent { animation-delay: 300ms; }
+
+/* Animaciones de las gráficas. Se disparan cuando los datos llegan (los elementos
+   se montan en ese momento) y solo usan transform u offsets de trazos SVG. */
+.donut-sweep {
+  stroke-dasharray: 1;
+  animation: chart-draw 1100ms var(--ease-out-soft) 200ms both;
+}
+
+.hbar-fill {
+  transform-origin: left center;
+  animation: hbar-grow 800ms var(--ease-out-soft) both;
+  animation-delay: calc(200ms + var(--i, 0) * 70ms);
+}
+
+.chart-column {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: column-grow 700ms var(--ease-out-soft) both;
+  animation-delay: calc(200ms + var(--i, 0) * 35ms);
+  transition: opacity 0.15s ease;
+}
+
+.chart g:hover .chart-column { opacity: 0.8; }
+
+.chart-line {
+  stroke-dasharray: 1;
+  animation: chart-draw 1200ms var(--ease-in-out-soft) 250ms both;
+}
+
+@keyframes chart-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes hbar-grow {
+  from { transform: scaleX(0); }
+}
+
+@keyframes column-grow {
+  from { transform: scaleY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donut-sweep,
+  .hbar-fill,
+  .chart-column,
+  .chart-line {
+    animation: none;
   }
 }

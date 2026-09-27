@@ -58,7 +58,7 @@ function Register() {
         number: correo ? null : phone.trim(),
         password,
       });
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard', { replace: true, viewTransition: true });
     } catch (error) {
       console.error('Error al iniciar sesión tras el registro:', error);
       setErrorMessage(
@@ -311,7 +311,7 @@ function Register() {
 
           <p className="back-login">
             ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="back-login-link">
+            <Link to="/login" viewTransition className="back-login-link">
               Inicia sesión
             </Link>
           </p>

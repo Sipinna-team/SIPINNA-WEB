@@ -79,6 +79,7 @@
 }
 
 .map-panel {
+  view-transition-name: map-hero;
   position: relative;
   min-width: 0;
   height: 100%;

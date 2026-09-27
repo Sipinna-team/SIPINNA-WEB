@@ -30,13 +30,44 @@ export const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', '
 // devuelve 0 cuando el LLM aún no analiza el reporte, así que esos cuentan como verídicos.
 export const FALSE_REPORT_THRESHOLD = 0.5;
 
+// Modalidades de trabajo infantil acordadas con SIPINNA
+export const WORK_MODALITIES = [
+  { label: 'Mendicidad forzada', match: 'mendicidad' },
+  { label: 'Explotación sexual', match: 'sexual' },
+  { label: 'Trata de personas', match: 'trata' },
+  { label: 'Utilización para actividades ilícitas', match: 'ilicit' },
+  { label: 'Trabajo peligroso', match: 'peligros' },
+  { label: 'Otra situación de explotación y/o vulneración', match: 'otra situacion' },
+];
+
+// Mismas opciones que la pantalla "Información del niño" de la app.
+export const AGE_RANGES = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
+
+const UNATTENDED_AFTER_MS = 48 * 3_600_000;
+const DAY_MS = 86_400_000;
+// Días previos a hoy que se promedian para decir si hoy es un día normal.
+const BASELINE_DAYS = 30;
+
 export type ZoneCount = { zone: string; count: number };
+export type LabelCount = { label: string; value: number };
 
 export type DashboardStats = {
   total: number;
   today: number;
+  // Promedio de reportes por día en los BASELINE_DAYS anteriores a hoy.
+  dailyAverage: number;
+  // Siguen en "registrado" después de 48 h.
+  unattended: number;
+  // Promedios en milisegundos; null si no hay reportes con qué calcularlos.
+  avgFirstAttentionMs: number | null;
+  avgResolutionMs: number | null;
+  // Porcentajes 0-100; null si no hay reportes.
+  attendedPct: number | null;
+  falsePct: number | null;
+  repeatPct: number | null;
+  byType: LabelCount[];
+  byAge: LabelCount[];
   byState: Record<StateKey, number>;
-  topZone: (ZoneCount & { latitude: number; longitude: number }) | null;
   byZone: ZoneCount[];
   recent: Report[];
   perMonth: number[];
@@ -49,10 +80,7 @@ export type DashboardStats = {
 // historial_estados.estado es texto libre; se normaliza para agrupar variantes
 // como "En revisión", "en_revision" o "REVISION".
 export function normalizeState(state: string | null | undefined): StateKey {
-  const s = (state ?? '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase();
+  const s = simplify(state);
 
   if (s.includes('reincid')) return 'reincidente';
   if (s.includes('cancel')) return 'cancelado';
@@ -67,6 +95,32 @@ export function normalizeState(state: string | null | undefined): StateKey {
 export function stateLabel(state: string | null | undefined): string {
   const key = normalizeState(state);
   return STATES.find((s) => s.key === key)!.label;
+}
+
+function simplify(text: string | null | undefined) {
+  return (text ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sameText(a: string, b: string | null | undefined) {
+  return simplify(a).replace(/ /g, '') === simplify(b).replace(/ /g, '');
+}
+
+// Agrupa el texto libre en la modalidad correspondiente o lo deja tal cual.
+export function workTypeLabel(type: string) {
+  const text = simplify(type);
+  if (!text) return null;
+  const modality = WORK_MODALITIES.find((m) => text.includes(m.match));
+  return modality?.label ?? type.trim();
+}
+
+function average(values: number[]) {
+  const valid = values.filter((v) => Number.isFinite(v) && v >= 0);
+  return valid.length > 0 ? valid.reduce((sum, v) => sum + v, 0) / valid.length : null;
 }
 
 function isSameDay(a: Date, b: Date) {
@@ -88,7 +142,7 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
     cancelado: 0,
     reincidente: 0,
   };
-  const zones = new Map<string, { count: number; lat: number; lng: number }>();
+  const zones = new Map<string, number>();
   const emptyYear = () => Array<number>(12).fill(0);
   const perMonth = emptyYear();
   const truthfulPerMonth = emptyYear();
@@ -96,20 +150,46 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
   const inReviewPerMonth = emptyYear();
   const completedPerMonth = emptyYear();
   let today = 0;
+  let baseline = 0;
+  let unattended = 0;
+  let falseCount = 0;
+  const firstAttention: number[] = [];
+  const resolution: number[] = [];
+  const types = new Map<string, number>();
+  const ages = new Map<string, number>(AGE_RANGES.map((range) => [range, 0]));
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
 
   for (const report of reports) {
     const state = normalizeState(report.last_state);
     byState[state] += 1;
 
     const zoneName = report.zone_name || 'Sin zona';
-    const zone = zones.get(zoneName) ?? { count: 0, lat: 0, lng: 0 };
-    zone.count += 1;
-    zone.lat += report.latitude;
-    zone.lng += report.longitude;
-    zones.set(zoneName, zone);
+    zones.set(zoneName, (zones.get(zoneName) ?? 0) + 1);
 
     const createdAt = new Date(report.created_at);
+    const createdMs = createdAt.getTime();
     if (isSameDay(createdAt, now)) today += 1;
+    else if (createdMs < startOfToday && createdMs >= startOfToday - BASELINE_DAYS * DAY_MS) baseline += 1;
+
+    if (state === 'registrado' && now.getTime() - createdMs > UNATTENDED_AFTER_MS) unattended += 1;
+    if (report.suspicius_level >= FALSE_REPORT_THRESHOLD) falseCount += 1;
+
+    if (report.first_attention_at) {
+      firstAttention.push(Date.parse(report.first_attention_at) - createdMs);
+    }
+    // El último cambio de estado de un reporte concluido o canalizado es cuando se cerró.
+    if (state === 'concluido' || state === 'canalizado') {
+      resolution.push(Date.parse(report.state_changed_at) - createdMs);
+    }
+
+    // La app manda varias opciones separadas por coma; cada una cuenta por separado.
+    for (const type of (report.work_type ?? '').split(',')) {
+      const label = workTypeLabel(type);
+      if (label) types.set(label, (types.get(label) ?? 0) + 1);
+    }
+
+    const age = AGE_RANGES.find((range) => sameText(range, report.children_age)) ?? 'Sin especificar';
+    ages.set(age, (ages.get(age) ?? 0) + 1);
 
     // Las gráficas mensuales solo muestran el año en curso.
     if (createdAt.getFullYear() !== now.getFullYear()) continue;
@@ -122,25 +202,28 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
   }
 
   const byZone = [...zones.entries()]
-    .map(([zone, { count }]) => ({ zone, count }))
+    .map(([zone, count]) => ({ zone, count }))
     .sort((a, b) => b.count - a.count);
 
-  const topName = byZone[0]?.zone;
-  const top = topName ? zones.get(topName) : undefined;
+  const pct = (count: number) => (reports.length > 0 ? (count / reports.length) * 100 : null);
 
   return {
     total: reports.length,
     today,
+    dailyAverage: baseline / BASELINE_DAYS,
+    unattended,
+    avgFirstAttentionMs: average(firstAttention),
+    avgResolutionMs: average(resolution),
+    attendedPct: pct(byState.concluido + byState.canalizado),
+    falsePct: pct(falseCount),
+    repeatPct: pct(byState.reincidente),
+    byType: [...types.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value),
+    byAge: [...ages.entries()]
+      .filter(([label, value]) => label !== 'Sin especificar' || value > 0)
+      .map(([label, value]) => ({ label, value })),
     byState,
-    topZone: top
-      ? {
-          zone: topName!,
-          count: top.count,
-          // Centroide simple de los reportes de la zona.
-          latitude: top.lat / top.count,
-          longitude: top.lng / top.count,
-        }
-      : null,
     byZone,
     recent: [...reports]
       .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
@@ -169,4 +252,12 @@ export function formatRelativeDate(value: string, now = new Date()) {
   if (days === 1) return `Ayer, ${time}`;
   if (days === 2) return `Antier, ${time}`;
   return `${date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}, ${time}`;
+}
+
+export function formatDuration(ms: number | null) {
+  if (ms === null) return '—';
+  const hours = ms / 3_600_000;
+  if (hours < 1) return `${Math.max(1, Math.round(ms / 60_000))} min`;
+  if (hours < 48) return `${hours.toFixed(1)} h`;
+  return `${(hours / 24).toFixed(1)} días`;
 }

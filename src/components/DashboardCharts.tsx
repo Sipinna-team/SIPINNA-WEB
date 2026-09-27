@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import type { MouseEvent, ReactNode } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 
 type Tip = { x: number; y: number; content: ReactNode } | null;
 
@@ -31,6 +31,42 @@ function niceMax(value: number) {
   return step * magnitude * 4;
 }
 
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Cuenta desde el valor anterior hasta el nuevo. Solo se re-renderiza este número.
+export function AnimatedNumber({ value, duration = 900 }: { value: number; duration?: number }) {
+  const [display, setDisplay] = useState(0);
+  const fromRef = useRef(0);
+
+  useEffect(() => {
+    const from = fromRef.current;
+    if (from === value || prefersReducedMotion()) {
+      fromRef.current = value;
+      setDisplay(value);
+      return;
+    }
+
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - (1 - t) ** 4;
+      const current = Math.round(from + (value - from) * eased);
+      fromRef.current = current;
+      setDisplay(current);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, duration]);
+
+  return <>{display}</>;
+}
+
+// Retraso escalonado para animaciones CSS que leen --i.
+const staggerStyle = (i: number) => ({ '--i': i }) as CSSProperties;
+
 export type Series = { label: string; color: string; values: number[] };
 
 function Legend({ series }: { series: Series[] }) {
@@ -60,6 +96,7 @@ export function DonutChart({
   centerLabel: string;
 }) {
   const { containerRef, show, hide, node } = useTooltip();
+  const maskId = useId();
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
@@ -71,6 +108,23 @@ export function DonutChart({
     <div className="donut" ref={containerRef}>
       <svg viewBox="0 0 120 120" className="donut-svg" role="img" aria-label={`${centerValue} ${centerLabel}`}>
         <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(23,33,45,0.08)" strokeWidth="16" />
+        {total > 0 && (
+          // La máscara se monta junto con los datos y "barre" la dona en una sola pasada.
+          <mask id={maskId}>
+            <circle
+              className="donut-sweep"
+              cx="60"
+              cy="60"
+              r={radius}
+              fill="none"
+              stroke="#fff"
+              strokeWidth="18"
+              pathLength="1"
+              transform="rotate(-90 60 60)"
+            />
+          </mask>
+        )}
+        <g mask={total > 0 ? `url(#${CSS.escape(maskId)})` : undefined}>
         {total > 0 &&
           segments.map((s) => {
             const length = (s.value / total) * circumference;
@@ -94,7 +148,8 @@ export function DonutChart({
             offset += length;
             return s.value > 0 ? circle : null;
           })}
-        <text x="60" y="60" textAnchor="middle" className="donut-value">{centerValue}</text>
+        </g>
+        <text x="60" y="60" textAnchor="middle" className="donut-value"><AnimatedNumber value={centerValue} /></text>
         <text x="60" y="74" textAnchor="middle" className="donut-label">{centerLabel}</text>
       </svg>
 
@@ -118,11 +173,11 @@ export function HorizontalBarChart({ items }: { items: { label: string; value: n
 
   return (
     <ul className="hbar-list">
-      {items.map((item) => (
+      {items.map((item, i) => (
         <li key={item.label} className="hbar-row" title={`${item.label}: ${item.value}`}>
           <span className="hbar-label">{item.label}</span>
           <span className="hbar-track">
-            <span className="hbar-fill" style={{ width: `${(item.value / max) * 100}%` }} />
+            <span className="hbar-fill" style={{ width: `${(item.value / max) * 100}%`, ...staggerStyle(i) }} />
           </span>
           <strong className="hbar-value">{item.value}</strong>
         </li>
@@ -205,6 +260,8 @@ export function ColumnChart({ series, categories, label }: { series: Series[]; c
                 return h > 0 ? (
                   <path
                     key={s.label}
+                    className="chart-column"
+                    style={staggerStyle(i)}
                     fill={s.color}
                     d={`M${x},${PAD.top + PLOT_H} V${y + r} Q${x},${y} ${x + r},${y} H${x + barWidth - r} Q${x + barWidth},${y} ${x + barWidth},${y + r} V${PAD.top + PLOT_H} Z`}
                   />
@@ -239,6 +296,10 @@ export function LineChart({ series, categories, label }: { series: Series[]; cat
         {series.map((s) => (
           <g key={s.label}>
             <polyline
+              // La key cambia con los datos para que el trazo se vuelva a dibujar al llegar.
+              key={s.values.join(',')}
+              className="chart-line"
+              pathLength="1"
               fill="none"
               stroke={s.color}
               strokeWidth="2"

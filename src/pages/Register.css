@@ -26,25 +26,7 @@
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15);
-  animation: openRegister 0.7s ease;
-}
-
-@keyframes openRegister {
-  from {
-    opacity: 0;
-
-    transform:
-      scaleX(0.45)
-      rotateY(15deg);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      scaleX(1)
-      rotateY(0);
-  }
+  animation: page-rise 600ms var(--ease-out-soft) both;
 }
 
 /* Lado Izquierdo */
@@ -66,6 +48,7 @@
 }
 
 .register-logo {
+  view-transition-name: auth-logo;
   width: 180px;
   margin-bottom: 35px;
 }

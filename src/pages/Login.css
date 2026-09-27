@@ -10,18 +10,6 @@
   background-position: center;
 }
 
-@keyframes openLogin {
-  from {
-    opacity: 0;
-    transform: scaleX(0.45) rotateY(15deg);
-  }
-
-  to {
-    opacity: 1;
-    transform: scaleX(1) rotateY(0);
-  }
-}
-
 /* Recuadro de login */
 .login-card {
   width: min(380px, 100%);
@@ -33,7 +21,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   color: #000;
-  animation: openLogin 0.7s ease;
+  animation: page-rise 600ms var(--ease-out-soft) both;
 }
 
 .login-card h1 {
@@ -45,6 +33,7 @@
 
 /* Logo de SIPINNA */
 .login-logo {
+  view-transition-name: auth-logo;
   display: block;
   margin: 0 auto 16px;
   max-width: 180px;

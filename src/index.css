@@ -1,0 +1,59 @@
+/* Transiciones entre pantallas*/
+:root {
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 220ms ease-out both;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 360ms var(--ease-out-soft) both;
+}
+
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+}
+
+::view-transition-group(auth-logo),
+::view-transition-group(map-hero) {
+  animation-duration: 560ms;
+  animation-timing-function: var(--ease-in-out-soft);
+}
+
+::view-transition-image-pair(map-hero) {
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+::view-transition-old(map-hero),
+::view-transition-new(map-hero) {
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .login-card,
+  .register-card,
+  .dashboard-grid > * {
+    animation: none !important;
+  }
+}

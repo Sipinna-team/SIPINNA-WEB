@@ -31,7 +31,7 @@ function Login() {
         number: esCorreo ? null : identificador,
         password,
       });
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard', { replace: true, viewTransition: true });
     } catch (error) {
       console.error('Credenciales incorrectas:', error);
       // fetch lanza TypeError cuando no hay respuesta del servidor
@@ -110,7 +110,7 @@ function Login() {
 
         <p>
           ¿No tienes cuenta?{' '}
-          <Link to="/register" className="register-link">
+          <Link to="/register" viewTransition className="register-link">
             Regístrate
           </Link>
         </p>
