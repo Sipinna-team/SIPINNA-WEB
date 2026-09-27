@@ -46,22 +46,42 @@ export type Report = {
   state_changed_at: string;
 };
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    // La sesión vive en la cookie httpOnly "session_token"; el navegador
-    // solo la manda/recibe si todas las peticiones incluyen credenciales.
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-  });
+const DEFAULT_TIMEOUT_MS = 8000;
+type RequestOptions = RequestInit & { timeoutMs?: number };
 
-  const data = await response.json().catch(() => null);
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { timeoutMs = DEFAULT_TIMEOUT_MS, signal: externalSignal, ...fetchOptions } = options;
 
-  if (!response.ok) {
-    throw new Error(data?.error ?? data?.message ?? `Error ${response.status}`);
+  // Aborta si la API no responde a tiempo
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const onExternalAbort = () => controller.abort();
+  externalSignal?.addEventListener('abort', onExternalAbort);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      ...fetchOptions,
+      signal: controller.signal,
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...fetchOptions.headers },
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(data?.error ?? data?.message ?? `Error ${response.status}`);
+    }
+
+    return data as T;
+  } catch (error) {
+    if (controller.signal.aborted && !externalSignal?.aborted) {
+      throw new Error('El servidor no respondió a tiempo. Intenta de nuevo más tarde.');
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+    externalSignal?.removeEventListener('abort', onExternalAbort);
   }
-
-  return data as T;
 }
 
 export const api = {
