@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import sipinnaLogo from '../assets/sipinna.svg';
 import { useAuth } from '../context/AuthContext';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 function Login() {
   const navigate = useNavigate();
@@ -12,6 +12,8 @@ function Login() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const location = useLocation();
+  const passwordReset = (location.state as { passwordReset?: boolean } | null)?.passwordReset
 
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
@@ -54,7 +56,9 @@ function Login() {
         />
 
         <h2>Iniciar sesión</h2>
-
+        {passwordReset && (
+          <p role="status">Tu contraseña se actualizó. Ya puedes iniciar sesión.</p>
+        )}
         <form onSubmit={handleSubmit}>
           <label htmlFor="correoOTelefono">
             Correo o número
@@ -85,9 +89,9 @@ function Login() {
           />
 
           <div className="login-options">
-            <a href="#">
+            <Link to="/forgot-password" viewTransition>
               ¿Olvidaste tu contraseña?
-            </a>
+            </Link>
           </div>
 
           {errorMessage && (

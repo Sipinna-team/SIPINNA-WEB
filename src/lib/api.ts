@@ -16,6 +16,17 @@ export type RegisterCitizenPayload = {
   password: string;
 };
 
+// Igual que en login: solo uno de email/number va lleno, el otro en null.
+export type ForgotPasswordPayload = {
+  email: string | null;
+  number: string | null;
+};
+
+export type ResetPasswordPayload = ForgotPasswordPayload & {
+  code: string;
+  new_password: string;
+};
+
 // user_type viene del rol en la tabla admins; si el usuario no es staff es 'citizen'.
 export type UserType = 'administrador' | 'alimentador' | 'citizen';
 
@@ -138,5 +149,21 @@ export const api = {
 
   deleteReport(folio: string) {
     return request<unknown>(`/report/${encodeURIComponent(folio)}`, { method: 'DELETE' });
+  },
+
+    forgotPassword(payload: ForgotPasswordPayload) {
+    return request<{ message: string }>('/auth/password/forgot', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      // enviar el correo puede tardar más que el timeout por defecto de 8 s
+      timeoutMs: 15000,
+    });
+  },
+
+  resetPassword(payload: ResetPasswordPayload) {
+    return request<{ message: string }>('/auth/password/reset', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 };
