@@ -1,7 +1,7 @@
 .dashboard-page {
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 15px clamp(20px, 5.5vw, 80px);
+  padding: clamp(14px, 1.6vw, 24px) clamp(16px, 2vw, 32px);
   background:
     radial-gradient(ellipse at 52% -15%, rgba(79, 113, 160, 0.65), transparent 57%),
     radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.95), transparent 70%),
@@ -25,24 +25,24 @@ html:has(.dashboard-page) body {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.15fr);
-  grid-template-rows: auto auto minmax(300px, auto) minmax(280px, auto);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: auto minmax(300px, auto) minmax(280px, auto);
+  /* El mapa ocupa una celda propia en la fila inferior, del mismo tamaño que
+     los demás paneles, en lugar de una franja bajo el perfil. */
   grid-template-areas:
     'kpis kpis kpis profile'
-    'kpis kpis kpis shortcut'
     'overview types ages featured'
-    'zones zones recent featured';
-  gap: 14px 16px;
-  max-width: 1600px;
+    'zones shortcut recent featured';
+  gap: 16px;
+  max-width: 2400px;
   margin: 0 auto;
 }
 
 .dashboard-grid--no-zones {
   grid-template-areas:
     'kpis kpis kpis profile'
-    'kpis kpis kpis shortcut'
     'overview types ages featured'
-    'recent recent recent featured';
+    'shortcut recent recent featured';
 }
 
 .dashboard-panel {
@@ -59,7 +59,7 @@ html:has(.dashboard-page) body {
 .dashboard-panel--overview { grid-area: overview; }
 .dashboard-panel--shortcut {
   grid-area: shortcut;
-  min-height: 72px;
+  min-height: 160px;
 }
 .dashboard-panel--types { grid-area: types; }
 .dashboard-panel--ages { grid-area: ages; }
@@ -164,7 +164,8 @@ html:has(.dashboard-page) body {
 
 /* ---------- Indicadores (tarjetas pequeñas) ---------- */
 /* Carrusel de una sola fila: se avanza con flechas, puntos o deslizando,
-   en lugar de apilar las tarjetas en varias filas. */
+   en lugar de apilar las tarjetas en varias filas. Las flechas van junto a los
+   puntos, debajo, para que las tarjetas queden alineadas con los paneles. */
 .kpi-carousel {
   --kpi-per-view: 4;
   --kpi-gap: 12px;
@@ -175,13 +176,13 @@ html:has(.dashboard-page) body {
 }
 
 .kpi-carousel--paged {
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
-    'prev track next'
-    '.    dots  .';
+    'track track track'
+    'prev  dots  next';
   align-items: center;
-  gap: 8px 10px;
+  gap: 8px 12px;
 }
 
 .kpi-carousel-track {
@@ -208,8 +209,8 @@ html:has(.dashboard-page) body {
 .kpi-carousel-arrow {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 50%;
@@ -221,12 +222,12 @@ html:has(.dashboard-page) body {
   transition: background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
 }
 
-.kpi-carousel-arrow--prev { grid-area: prev; }
-.kpi-carousel-arrow--next { grid-area: next; }
+.kpi-carousel-arrow--prev { grid-area: prev; justify-self: end; }
+.kpi-carousel-arrow--next { grid-area: next; justify-self: start; }
 
 .kpi-carousel-arrow svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2.2;
@@ -348,7 +349,7 @@ html:has(.dashboard-page) body {
 }
 
 .dashboard-error {
-  max-width: 1600px;
+  max-width: 2400px;
   margin: 0 auto 10px;
   padding: 8px 14px;
   border-radius: 10px;
@@ -608,12 +609,15 @@ html:has(.dashboard-page) body {
     flex: 1;
     width: 100%;
     min-height: 0;
-    grid-template-rows: auto auto minmax(0, 1fr) minmax(0, 1fr);
-    gap: 12px 14px;
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
   }
 
   .dashboard-grid > .dashboard-panel { overflow: hidden; }
   .dashboard-panel .hbar-list { min-height: 0; margin-top: 10px; gap: 6px; overflow-y: auto; }
+  /* Con el panel de zonas en una sola columna, las dos listas se desplazan juntas. */
+  .dashboard-zones { min-height: 0; overflow-y: auto; }
+  .dashboard-zones .hbar-list { overflow: visible; }
   .hbar-track { height: 12px; }
   .donut {
     flex-direction: column;
@@ -718,8 +722,7 @@ html:has(.dashboard-page) body {
   }
 
   .kpi-carousel { --kpi-per-view: 2; --kpi-gap: 10px; }
-  .kpi-carousel--paged { gap: 8px 6px; }
-  .kpi-carousel-arrow { width: 28px; height: 28px; }
+  .kpi-carousel--paged { gap: 8px 10px; }
   .dashboard-tile { min-height: 88px; }
   .dashboard-tile-hint { white-space: normal; }
 }
