@@ -163,26 +163,24 @@ html:has(.dashboard-page) body {
 }
 
 /* ---------- Indicadores (tarjetas pequeñas) ---------- */
-/* Carrusel de una sola fila: se avanza con flechas, puntos o deslizando,
-   en lugar de apilar las tarjetas en varias filas. Las flechas van junto a los
-   puntos, debajo, para que las tarjetas queden alineadas con los paneles. */
+/* Carrusel de una sola fila: se avanza arrastrando (mouse o dedo) o con las
+   flechas del teclado. La siguiente tarjeta se asoma cortada en el borde para
+   dejar ver que hay más, sin flechas ni puntos. */
 .kpi-carousel {
-  --kpi-per-view: 4;
+  /* Fracción de más = cuánto se asoma la siguiente tarjeta. */
+  --kpi-per-view: 4.35;
   --kpi-gap: 12px;
+  --kpi-fade: 28px;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas: 'track';
   min-width: 0;
+  border-radius: 16px;
 }
 
-.kpi-carousel--paged {
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas:
-    'track track track'
-    'prev  dots  next';
-  align-items: center;
-  gap: 8px 12px;
+.kpi-carousel:has(.kpi-carousel-track:focus-visible) {
+  outline: 2px solid #1495ed;
+  outline-offset: 4px;
 }
 
 .kpi-carousel-track {
@@ -206,67 +204,36 @@ html:has(.dashboard-page) body {
   scroll-snap-align: start;
 }
 
-.kpi-carousel-arrow {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.45);
-  color: #17212d;
-  cursor: pointer;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  transition: background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+.kpi-carousel--paged .kpi-carousel-track { cursor: grab; }
+.kpi-carousel-track:focus-visible { outline: none; }
+
+/* Desvanece el borde por donde hay más tarjetas, para que el corte se lea
+   como "continúa" y no como un error de diseño. */
+.kpi-carousel-track.has-next {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--kpi-fade)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--kpi-fade)), transparent);
 }
 
-.kpi-carousel-arrow--prev { grid-area: prev; justify-self: end; }
-.kpi-carousel-arrow--next { grid-area: next; justify-self: start; }
-
-.kpi-carousel-arrow svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.kpi-carousel-track.has-prev {
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - var(--kpi-fade)), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - var(--kpi-fade)), transparent);
 }
 
-.kpi-carousel-arrow:hover:not(:disabled) { background: rgba(255, 255, 255, 0.8); }
-.kpi-carousel-arrow:active:not(:disabled) { transform: scale(0.94); }
-.kpi-carousel-arrow:disabled { opacity: 0.35; cursor: default; }
-
-.kpi-carousel-arrow:focus-visible,
-.kpi-carousel-dot:focus-visible {
-  outline: 2px solid #1495ed;
-  outline-offset: 2px;
+.kpi-carousel-track.has-prev.has-next {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--kpi-fade), #000 calc(100% - var(--kpi-fade)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--kpi-fade), #000 calc(100% - var(--kpi-fade)), transparent);
 }
 
-.kpi-carousel-dots {
-  grid-area: dots;
-  display: flex;
-  justify-content: center;
-  gap: 6px;
+/* Mientras se arrastra con el mouse se sigue el puntero sin "saltos". */
+.kpi-carousel-track.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
 }
 
-.kpi-carousel-dot {
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(23, 33, 45, 0.22);
-  cursor: pointer;
-  transition: width 200ms ease, background-color 200ms ease;
-}
-
-.kpi-carousel-dot.is-active {
-  width: 20px;
-  background: #1495ed;
-}
+/* Durante la pista el carrusel se mueve solo; sin snap para que el
+   movimiento sea continuo (ver KpiCarousel). */
+.kpi-carousel-track.is-hinting { scroll-snap-type: none; }
 
 .dashboard-tile {
   display: flex;
@@ -690,7 +657,7 @@ html:has(.dashboard-page) body {
   }
 
   .dashboard-charts { min-height: 520px; }
-  .kpi-carousel { --kpi-per-view: 3; }
+  .kpi-carousel { --kpi-per-view: 3.35; }
 }
 
 @media (max-width: 540px) {
@@ -721,8 +688,7 @@ html:has(.dashboard-page) body {
       'recent recent';
   }
 
-  .kpi-carousel { --kpi-per-view: 2; --kpi-gap: 10px; }
-  .kpi-carousel--paged { gap: 8px 10px; }
+  .kpi-carousel { --kpi-per-view: 2.3; --kpi-gap: 10px; }
   .dashboard-tile { min-height: 88px; }
   .dashboard-tile-hint { white-space: normal; }
 }
