@@ -44,6 +44,11 @@ export type Report = {
   first_attention_at?: string | null;
 };
 
+export type ReportDetail = Report & {
+  sighting_time: string;
+  images: string[];
+};
+
 const DEFAULT_TIMEOUT_MS = 8000;
 type RequestOptions = RequestInit & { timeoutMs?: number };
 
@@ -116,11 +121,22 @@ export const api = {
     );
   },
 
-  // zone acepta el UUID de la zona o el nombre del municipio.
+    // zone acepta el UUID de la zona o el nombre del municipio.
   getReportsByZone(zone: string, signal?: AbortSignal) {
     return request<{ reports: Report[] | null }>(
-      `/report/${encodeURIComponent(zone)}`,
+      `/report/zone/${encodeURIComponent(zone)}`,
       { signal },
     );
+  },
+
+  getReportByFolio(folio: string, signal?: AbortSignal) {
+    return request<{ report: ReportDetail }>(
+      `/report/${encodeURIComponent(folio)}`,
+      { signal },
+    );
+  },
+
+  deleteReport(folio: string) {
+    return request<unknown>(`/report/${encodeURIComponent(folio)}`, { method: 'DELETE' });
   },
 };

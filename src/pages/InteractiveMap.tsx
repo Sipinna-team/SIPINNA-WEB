@@ -4,7 +4,7 @@ import * as mapboxgl from 'mapbox-gl/esm'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './InteractiveMap.css'
 import { api } from '../lib/api'
-import type { Report } from '../lib/api'
+import type { Report, ReportDetail } from '../lib/api'
 import { STATES, normalizeState, stateLabel } from '../lib/dashboardStats'
 
 type CoordinatePair = [number, number]
@@ -20,7 +20,9 @@ type StatusFormProps = {
   onUpdated: (folio: string, estado: string, stateChangedAt: string) => void
 }
 
-type ReportDetailsProps = StatusFormProps
+type ReportDetailsProps = StatusFormProps & {
+  onDeleted: (folio: string) => void
+}
 
 type SidePanelProps = {
   reports: Report[]
@@ -29,6 +31,8 @@ type SidePanelProps = {
   error: string | null
   onSelectReport: (folio: string) => void
   onStatusUpdated: StatusFormProps['onUpdated']
+  onDeleted: ReportDetailsProps['onDeleted']
+  onSearch: (folio: string) => Promise<void>
 }
 
 const INITIAL_CENTER: CoordinatePair = [-99.2734, 19.5645]
@@ -317,10 +321,53 @@ function formatDate(value: string) {
   return Number.isNaN(date.getTime()) ? value || '—' : dateFormatter.format(date)
 }
 
-function ReportDetails({ report, onUpdated }: ReportDetailsProps) {
+function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
+  const [detail, setDetail] = useState<ReportDetail | null>(null)
+  const [detailError, setDetailError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  // El listado por zona no trae el horario ni las fotos; se piden al abrir el reporte.
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    api
+      .getReportByFolio(report.folio, abortController.signal)
+      .then((data) => setDetail(data.report))
+      .catch((requestError) => {
+        if (abortController.signal.aborted) return
+        setDetailError(
+          requestError instanceof Error ? requestError.message : 'No se pudo cargar el detalle',
+        )
+      })
+
+    return () => abortController.abort()
+  }, [report.folio])
+
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      `¿Eliminar el reporte ${report.folio}? Esta acción no se puede deshacer.`,
+    )
+    if (!confirmed) return
+
+    setDeleting(true)
+    setDeleteError(null)
+
+    try {
+      await api.deleteReport(report.folio)
+      onDeleted(report.folio)
+    } catch (requestError) {
+      setDeleteError(
+        requestError instanceof Error ? requestError.message : 'No se pudo eliminar el reporte',
+      )
+      setDeleting(false)
+    }
+  }
+
   const details: [string, string | number][] = [
     ['Reportado por', report.citizen_name || '—'],
     ['Fecha del reporte', formatDate(report.created_at)],
+    ['Horario de avistamiento', detail?.sighting_time || '—'],
     ['Tipo de trabajo', report.work_type || '—'],
     ['Zona', report.zone_name || 'Zona sin especificar'],
     ['Niñas, niños o adolescentes', report.children_quantity],
@@ -340,7 +387,29 @@ function ReportDetails({ report, onUpdated }: ReportDetailsProps) {
           </div>
         ))}
       </dl>
+
+      {detailError && <p className="status-form__error">{detailError}</p>}
+      {detail && detail.images.length > 0 && (
+        <div className="report-details__images">
+          {detail.images.map((url) => (
+            <a key={url} href={url} target="_blank" rel="noreferrer">
+              <img src={url} alt={`Foto del reporte ${report.folio}`} />
+            </a>
+          ))}
+        </div>
+      )}
+
       <StatusForm key={report.last_state} report={report} onUpdated={onUpdated} />
+
+      {deleteError && <p className="status-form__error">{deleteError}</p>}
+      <button
+        type="button"
+        className="report-delete-button"
+        disabled={deleting}
+        onClick={handleDelete}
+      >
+        {deleting ? 'Eliminando...' : 'Eliminar reporte'}
+      </button>
     </div>
   )
 }
@@ -352,13 +421,38 @@ function SidePanel({
   error,
   onSelectReport,
   onStatusUpdated,
+  onDeleted,
+  onSearch,
 }: SidePanelProps) {
   const selectedCardRef = useRef<HTMLDivElement | null>(null)
+  const [search, setSearch] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
 
   // Cuando el reporte se elige desde el mapa, lo traemos a la vista en la lista.
   useEffect(() => {
     selectedCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [selectedReportId])
+
+  async function handleSearch(event: React.FormEvent) {
+    event.preventDefault()
+    const folio = search.trim().toUpperCase()
+    if (!folio) return
+
+    setSearching(true)
+    setSearchError(null)
+
+    try {
+      await onSearch(folio)
+      setSearch('')
+    } catch (requestError) {
+      setSearchError(
+        requestError instanceof Error ? requestError.message : 'No se encontró el reporte',
+      )
+    } finally {
+      setSearching(false)
+    }
+  }
 
   return (
     <div className="reports-panel">
@@ -366,6 +460,19 @@ function SidePanel({
         <h1>Reportes</h1>
         <span className="report-count">{reports.length}</span>
       </div>
+
+      <form className="report-search" onSubmit={handleSearch}>
+        <input
+          type="search"
+          placeholder="Buscar por folio"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <button type="submit" disabled={searching || search.trim() === ''}>
+          {searching ? 'Buscando...' : 'Buscar'}
+        </button>
+      </form>
+      {searchError && <p className="panel-message panel-message--error">{searchError}</p>}
 
       {loading && <p className="panel-message">Cargando reportes...</p>}
       {error && <p className="panel-message panel-message--error">{error}</p>}
@@ -400,7 +507,11 @@ function SidePanel({
               </span>
             </button>
             {report.folio === selectedReportId && (
-              <ReportDetails report={report} onUpdated={onStatusUpdated} />
+              <ReportDetails
+                report={report}
+                onUpdated={onStatusUpdated}
+                onDeleted={onDeleted}
+              />
             )}
           </div>
         ))}
@@ -459,6 +570,27 @@ export default function InteractiveMap() {
     )
   }
 
+  function handleDeleted(folio: string) {
+    setReports((current) => current.filter((report) => report.folio !== folio))
+    setSelectedReportId((current) => (current === folio ? null : current))
+  }
+
+  // Si el folio ya está en la lista solo se selecciona; si no (p. ej. otra zona, para
+  // un administrador) se pide al backend y se agrega a la lista.
+  async function handleSearch(folio: string) {
+    const existing = reports.find((report) => report.folio === folio)
+    if (existing) {
+      setSelectedReportId(existing.folio)
+      return
+    }
+
+    const { report } = await api.getReportByFolio(folio)
+    setReports((current) =>
+      current.some((r) => r.folio === report.folio) ? current : [report, ...current],
+    )
+    setSelectedReportId(report.folio)
+  }
+
   return (
     <main className="interactive-map-layout">
       <section className="map-panel">
@@ -479,6 +611,8 @@ export default function InteractiveMap() {
             setSelectedReportId((current) => (current === folio ? null : folio))
           }
           onStatusUpdated={handleStatusUpdated}
+          onDeleted={handleDeleted}
+          onSearch={handleSearch}
         />
       </aside>
     </main>
