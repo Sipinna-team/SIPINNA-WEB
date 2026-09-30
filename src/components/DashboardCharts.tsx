@@ -107,7 +107,7 @@ export function DonutChart({
   return (
     <div className="donut" ref={containerRef}>
       <svg viewBox="0 0 120 120" className="donut-svg" role="img" aria-label={`${centerValue} ${centerLabel}`}>
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(23,33,45,0.08)" strokeWidth="16" />
+        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(22,26,29,0.08)" strokeWidth="16" />
         {total > 0 && (
           // La máscara se monta junto con los datos y "barre" la dona en una sola pasada.
           <mask id={maskId}>

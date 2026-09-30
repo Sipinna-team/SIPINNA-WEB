@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 import sipinnaLogo from '../assets/sipinna.svg';
 import { api } from '../lib/api';
+import { OtpInput, type OtpStatus } from '@/components/ui/otp-input';
 
 type Step = 'request' | 'reset';
 
@@ -12,6 +13,7 @@ function ForgotPassword() {
   const [step, setStep] = useState<Step>('request');
   const [correoOTelefono, setCorreoOTelefono] = useState('');
   const [code, setCode] = useState('');
+  const [codeStatus, setCodeStatus] = useState<OtpStatus>('idle');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,6 +66,7 @@ function ForgotPassword() {
 
     if (!/^\d{6}$/.test(code)) {
       setErrorMessage('El código debe tener 6 dígitos.');
+      setCodeStatus('error');
       return;
     }
     if (password.length < 6) {
@@ -125,16 +128,22 @@ function ForgotPassword() {
           <form onSubmit={handleReset}>
             {infoMessage && <p>{infoMessage}</p>}
 
-            <label htmlFor="code">Código</label>
-            <input
-              id="code"
-              type="text"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder="Código de 6 dígitos"
+            <label id="code-label">Código</label>
+            <OtpInput
+              role="group"
+              aria-labelledby="code-label"
+              className="self-center"
+              length={6}
+              type="numbers"
+              size="sm"
+              autoFocus
               value={code}
-              onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
+              status={codeStatus}
+              onChange={(value) => {
+                setCode(value);
+                setCodeStatus('idle');
+              }}
+              onComplete={() => document.getElementById('password')?.focus()}
             />
 
             <label htmlFor="password">Nueva contraseña</label>
