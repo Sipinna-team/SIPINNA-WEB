@@ -23,7 +23,6 @@ import {
 } from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
 
-const USER_PHOTO = '/src/assets/manu.jpeg';
 const USER_TYPE_LABELS: Record<UserType, string> = {
   administrador: 'Administrador',
   alimentador: 'Alimentador',
@@ -176,11 +175,16 @@ function Dashboard() {
         </KpiCarousel>
 
         <section className="dashboard-panel dashboard-profile" aria-label="Usuario">
-          <img
-            src={USER_PHOTO}
-            alt={`Foto de ${user?.name || 'usuario'}`}
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
             className="dashboard-avatar"
-          />
+            role="img"
+            aria-label={`Foto de ${user?.name || 'usuario'}`}
+          >
+            <circle cx="12" cy="9" r="4" />
+            <path d="M4 21a8 8 0 0 1 16 0Z" />
+          </svg>
           <div className="dashboard-user-info">
             <span className="dashboard-user-type">{userTypeLabel}</span>
             <strong>{user?.name}</strong>
