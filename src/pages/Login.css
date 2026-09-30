@@ -5,9 +5,7 @@
   align-items: center;
   padding: 20px;
   box-sizing: border-box;
-  background-image: url('../assets/background.png');
-  background-size: cover;
-  background-position: center;
+  background: var(--sip-page-bg);
 }
 
 /* Recuadro de login */
@@ -16,11 +14,12 @@
   max-width: 100%;
   padding: clamp(24px, 5vw, 40px);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.42);
+  -webkit-backdrop-filter: blur(15px);
   backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-  color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 8px 32px rgba(97, 18, 50, 0.12);
+  color: var(--sip-text);
   animation: page-rise 600ms var(--ease-out-soft) both;
 }
 
@@ -29,6 +28,7 @@
   font-size: 28px;
   font-family: var(--font-heading);
   text-align: center;
+  color: var(--sip-primary);
 }
 
 /* Logo de SIPINNA */
@@ -48,7 +48,7 @@
   font-family: var(--font-heading);
   font-weight: 400;
   text-align: center;
-  opacity: 0.9;
+  color: var(--sip-primary-dark);
 }
 
 /* Contenedor del formulario */
@@ -65,25 +65,33 @@
   font-family: var(--font-body);
 }
 
-/* Inputs de correo y contraseña */
-.login-card input[type='text'],
-.login-card input[type='password'] {
+/* Inputs de correo y contraseña (el OtpInput trae sus propios estilos) */
+.login-card input[type='text']:not([data-slot='otp-input-slot']),
+.login-card input[type='password']:not([data-slot='otp-input-slot']) {
   width: 100%;
   box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 15px;
-  border: 1.2px solid rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.15);
-  color: #000;
+  border: 1.2px solid var(--sip-border);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--sip-text);
   outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
   font-size: 15px;
   font-family: var(--font-body);
+}
+
+/* Foco en los inputs */
+.login-card input[type='text']:not([data-slot='otp-input-slot']):focus,
+.login-card input[type='password']:not([data-slot='otp-input-slot']):focus {
+  border-color: var(--sip-primary);
+  box-shadow: var(--sip-focus);
 }
 
 /* Texto del placeholder */
 .login-card input[type='text']::placeholder,
 .login-card input[type='password']::placeholder {
-  color: #000;
+  color: var(--sip-text-muted);
   font-size: 13px;
   font-family: var(--font-body);
 }
@@ -95,8 +103,8 @@
   border-radius: 10px;
   cursor: pointer;
   transition: transform 0.2s, background 0.2s;
-  background: #2563eb;
-  color: #fff;
+  background: var(--sip-primary);
+  color: var(--sip-white);
   font-size: 16px;
   font-family: var(--font-body);
   font-weight: bold;
@@ -105,7 +113,7 @@
 /* Hover en el botón */
 .login-card button:hover {
   transform: translateY(2px);
-  background: #1d4ed8;
+  background: var(--sip-primary-dark);
 }
 
 /* Botón deshabilitado mientras se inicia sesión */
@@ -113,7 +121,7 @@
   cursor: not-allowed;
   opacity: 0.8;
   transform: none;
-  background: #2563eb;
+  background: var(--sip-primary);
 }
 
 .login-loading {
@@ -170,7 +178,7 @@
 /* Enlaces del login */
 .login-options a,
 .login-card p a {
-  color: #93c5fd;
+  color: var(--sip-primary);
   text-decoration: none;
 }
 
@@ -192,7 +200,7 @@
   border: none;
   background: none;
 
-  color: #2563eb;
+  color: var(--sip-primary);
 
   padding: 0;
 
@@ -202,6 +210,7 @@
 }
 
 .register-link:hover {
+  color: var(--sip-primary-dark);
   text-decoration: underline;
 }
 

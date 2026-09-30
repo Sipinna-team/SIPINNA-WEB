@@ -2,11 +2,8 @@
   min-height: 100vh;
   min-height: 100dvh;
   padding: clamp(14px, 1.6vw, 24px) clamp(16px, 2vw, 32px);
-  background:
-    radial-gradient(ellipse at 52% -15%, rgba(79, 113, 160, 0.65), transparent 57%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.95), transparent 70%),
-    #dceff7;
-  color: #17212d;
+  background: var(--sip-page-bg);
+  color: var(--sip-text);
   font-family: var(--font-body);
 }
 
@@ -14,7 +11,7 @@
    el fondo del documento toma el color del dashboard y se desactiva el rebote. */
 html:has(.dashboard-page),
 html:has(.dashboard-page) body {
-  background-color: #dceff7;
+  background-color: var(--sip-cream);
   overscroll-behavior-y: none;
 }
 
@@ -47,10 +44,12 @@ html:has(.dashboard-page) body {
 
 .dashboard-panel {
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.19);
-  box-shadow: inset 0 1px 12px rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1px 12px rgba(255, 255, 255, 0.35),
+    0 4px 18px rgba(97, 18, 50, 0.06);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
@@ -84,10 +83,10 @@ html:has(.dashboard-page) body {
   width: 48px;
   height: 48px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 2px solid var(--sip-gold);
   border-radius: 50%;
-  background: #d3e3f0;
-  color: #54718f;
+  background: var(--sip-gray);
+  color: var(--sip-text-muted);
   object-fit: cover;
 }
 
@@ -102,7 +101,7 @@ html:has(.dashboard-page) body {
 }
 
 .dashboard-user-type {
-  color: #54667a;
+  color: var(--sip-primary);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.3;
@@ -123,13 +122,14 @@ html:has(.dashboard-page) body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #54667a;
+  color: var(--sip-text-muted);
   font-size: 13px;
   line-height: 1.3;
 }
 
 .dashboard-user-zone svg {
   flex-shrink: 0;
+  color: var(--sip-gold);
   width: 16px;
   height: 16px;
 }
@@ -146,7 +146,7 @@ html:has(.dashboard-page) body {
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #db284b;
+  color: var(--sip-primary);
   cursor: pointer;
   transition: background-color 160ms ease;
 }
@@ -156,9 +156,9 @@ html:has(.dashboard-page) body {
   height: 20px;
 }
 
-.dashboard-logout:hover { background: rgba(219, 40, 75, 0.1); color: #a71937; }
+.dashboard-logout:hover { background: var(--sip-primary-soft); color: var(--sip-primary-dark); }
 .dashboard-logout:focus-visible {
-  outline: 2px solid #1495ed;
+  outline: 2px solid var(--sip-primary);
   outline-offset: 2px;
 }
 
@@ -179,7 +179,7 @@ html:has(.dashboard-page) body {
 }
 
 .kpi-carousel:has(.kpi-carousel-track:focus-visible) {
-  outline: 2px solid #1495ed;
+  outline: 2px solid var(--sip-primary);
   outline-offset: 4px;
 }
 
@@ -246,7 +246,7 @@ html:has(.dashboard-page) body {
 
 .dashboard-tile-title {
   margin: 0;
-  color: #3d4c5c;
+  color: var(--sip-text-muted);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.25;
@@ -257,7 +257,7 @@ html:has(.dashboard-page) body {
   align-items: baseline;
   gap: 8px;
   margin: auto 0;
-  color: #17212d;
+  color: var(--sip-text);
   font-family: var(--font-heading);
   font-size: clamp(20px, 1.8vw, 28px);
   font-weight: 700;
@@ -265,8 +265,8 @@ html:has(.dashboard-page) body {
   font-variant-numeric: tabular-nums;
 }
 
-.dashboard-tile--good .dashboard-tile-value { color: #1f7a3f; }
-.dashboard-tile--warn .dashboard-tile-value { color: #c2410c; }
+.dashboard-tile--good .dashboard-tile-value { color: var(--sip-success); }
+.dashboard-tile--warn .dashboard-tile-value { color: var(--sip-primary); }
 
 .dashboard-tile-badge {
   padding: 2px 7px;
@@ -277,8 +277,8 @@ html:has(.dashboard-page) body {
 }
 
 /* Más reportes que un día normal es una alerta, no una buena noticia. */
-.dashboard-tile-badge--up { background: rgba(194, 65, 12, 0.12); color: #c2410c; }
-.dashboard-tile-badge--down { background: rgba(31, 122, 63, 0.12); color: #1f7a3f; }
+.dashboard-tile-badge--up { background: var(--sip-primary-soft); color: var(--sip-primary); }
+.dashboard-tile-badge--down { background: rgba(30, 91, 79, 0.12); color: var(--sip-success); }
 
 .dashboard-tile-hint {
   margin: 0;
@@ -303,7 +303,7 @@ html:has(.dashboard-page) body {
 .dashboard-title,
 .dashboard-subtitle {
   margin: 0;
-  color: #17212d;
+  color: var(--sip-primary-dark);
   font-size: 14px;
   font-weight: 700;
 }
@@ -311,7 +311,7 @@ html:has(.dashboard-page) body {
 .dashboard-subtitle { font-weight: 600; }
 
 .dashboard-muted {
-  color: #54667a;
+  color: var(--sip-text-muted);
   font-size: 12px;
 }
 
@@ -320,8 +320,8 @@ html:has(.dashboard-page) body {
   margin: 0 auto 10px;
   padding: 8px 14px;
   border-radius: 10px;
-  background: rgba(219, 40, 75, 0.1);
-  color: #a71937;
+  background: var(--sip-primary-soft);
+  color: var(--sip-primary-dark);
   font-size: 13px;
 }
 
@@ -332,10 +332,10 @@ html:has(.dashboard-page) body {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background-color: #cfe0ea;
+  background-color: var(--sip-gray);
   background-position: center;
   background-size: cover;
-  color: #17212d;
+  color: var(--sip-primary-dark);
   text-decoration: none;
 }
 
@@ -345,15 +345,15 @@ html:has(.dashboard-page) body {
   gap: 6px;
   padding: 4px 12px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.8);
   font-size: 22px;
   font-weight: 700;
   transition: transform 0.15s ease;
 }
 
-.dashboard-map-link svg { width: 20px; height: 20px; }
+.dashboard-map-link svg { width: 20px; height: 20px; color: var(--sip-gold); }
 .dashboard-map-link:hover span { transform: scale(1.05); }
-.dashboard-map-link:focus-visible { outline: 2px solid #1495ed; outline-offset: 3px; }
+.dashboard-map-link:focus-visible { outline: 2px solid var(--sip-primary); outline-offset: 3px; }
 
 /* Zonas con más y menos reportes */
 .dashboard-zones {
@@ -399,8 +399,8 @@ html:has(.dashboard-page) body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #fff;
-  color: #2f4bc4;
+  background: var(--sip-white);
+  color: var(--sip-primary);
   font-size: 12px;
   font-weight: 700;
 }
@@ -434,12 +434,12 @@ html:has(.dashboard-page) body {
 .chart svg { display: block; width: 100%; height: auto; }
 
 .chart-axes text {
-  fill: #6b7c8f;
+  fill: var(--sip-text-muted);
   font-size: 7px;
 }
 
-.chart-grid { stroke: rgba(23, 33, 45, 0.08); stroke-width: 0.6; }
-.chart-crosshair { stroke: rgba(23, 33, 45, 0.35); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.chart-grid { stroke: rgba(22, 26, 29, 0.08); stroke-width: 0.6; }
+.chart-crosshair { stroke: rgba(22, 26, 29, 0.35); stroke-width: 0.8; stroke-dasharray: 2 2; }
 
 .chart-legend {
   display: flex;
@@ -447,7 +447,7 @@ html:has(.dashboard-page) body {
   margin: 2px 0 0;
   padding: 0;
   list-style: none;
-  color: #54667a;
+  color: var(--sip-text-muted);
   font-size: 11px;
 }
 
@@ -475,8 +475,8 @@ html:has(.dashboard-page) body {
   gap: 2px;
   padding: 6px 9px;
   border-radius: 8px;
-  background: #17212d;
-  color: #fff;
+  background: var(--sip-text);
+  color: var(--sip-white);
   font-size: 11px;
   white-space: nowrap;
   pointer-events: none;
@@ -496,8 +496,8 @@ html:has(.dashboard-page) body {
 .donut-svg { width: min(150px, 42%); height: auto; }
 .donut-svg circle { transition: opacity 0.15s ease; }
 .donut-svg circle[stroke-dasharray]:hover { opacity: 0.8; }
-.donut-value { fill: #17212d; font-size: 20px; font-weight: 700; }
-.donut-label { fill: #54667a; font-size: 8px; }
+.donut-value { fill: var(--sip-text); font-size: 20px; font-weight: 700; }
+.donut-label { fill: var(--sip-text-muted); font-size: 8px; }
 
 .donut-legend {
   display: flex;
@@ -515,7 +515,7 @@ html:has(.dashboard-page) body {
   align-items: center;
   gap: 8px;
   min-width: 150px;
-  color: #3d4c5c;
+  color: var(--sip-text);
 }
 
 .donut-legend strong { font-variant-numeric: tabular-nums; }
@@ -545,7 +545,7 @@ html:has(.dashboard-page) body {
 .hbar-track {
   height: 16px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.6);
   overflow: hidden;
 }
 
@@ -553,10 +553,10 @@ html:has(.dashboard-page) body {
   display: block;
   height: 100%;
   border-radius: 0 6px 6px 0;
-  background: #2563eb;
+  background: var(--sip-primary);
 }
 
-.hbar-row:not(:first-child) .hbar-fill { background: #5a9be8; }
+.hbar-row:not(:first-child) .hbar-fill { background: color-mix(in srgb, var(--sip-primary) 55%, var(--sip-white)); }
 
 .hbar-value {
   font-size: 15px;
