@@ -37,7 +37,7 @@ export type SessionResponse = {
   zone_name: string;
 };
 
-// Detalle que devuelve GET /report/:zone_id (solo admin).
+// Reporte que devuelven GET /report/all y GET /report/zone/:zone_id (solo staff).
 export type Report = {
   folio: string;
   description: string;
@@ -53,6 +53,15 @@ export type Report = {
   last_state: string;
   state_changed_at: string;
   first_attention_at?: string | null;
+};
+
+// latitude/longitude son "null" si la zona no tiene coordenadas en la BD.
+export type Zone = {
+  id: string;
+  name: string;
+  municipio: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type ReportDetail = Report & {
@@ -132,7 +141,17 @@ export const api = {
     );
   },
 
-    // zone acepta el UUID de la zona o el nombre del municipio.
+  // Administrador recibe todas las zonas y el alimentador solo la suya
+  getZones(signal?: AbortSignal) {
+    return request<{ zones: Zone[] | null }>('/zones', { signal });
+  },
+
+  // Administrador recibe todas las zonas y el alimentador solo la suya.
+  getAllReports(signal?: AbortSignal) {
+    return request<{ reports: Report[] | null }>('/report/all', { signal });
+  },
+
+  // "ZONE" acepta el UUID de la zona o el nombre del municipio
   getReportsByZone(zone: string, signal?: AbortSignal) {
     return request<{ reports: Report[] | null }>(
       `/report/zone/${encodeURIComponent(zone)}`,
@@ -151,7 +170,7 @@ export const api = {
     return request<unknown>(`/report/${encodeURIComponent(folio)}`, { method: 'DELETE' });
   },
 
-    forgotPassword(payload: ForgotPasswordPayload) {
+  forgotPassword(payload: ForgotPasswordPayload) {
     return request<{ message: string }>('/auth/password/forgot', {
       method: 'POST',
       body: JSON.stringify(payload),

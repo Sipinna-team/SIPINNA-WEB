@@ -28,8 +28,9 @@ const USER_TYPE_LABELS: Record<UserType, string> = {
   alimentador: 'Alimentador',
   citizen: 'Ciudadano',
 };
-const REPORTS_ZONE: string | undefined = import.meta.env.VITE_REPORTS_ZONE;
-const MONTH_NUMBERS = MONTHS.map((_, i) => String(i + 1));
+// Nombre del municipio o UUID de la zona. Vite solo la lee al arrancar.
+const REPORTS_ZONE: string | undefined = import.meta.env.VITE_REPORTS_ZONE?.trim() || undefined;
+const MONTH_NUMBERS =MONTHS.map((_, i) => String(i + 1));
 const MAP_PREVIEW_URL =
   'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/-99.2734,19.5645,11.5,0/400x200@2x' +
   `?access_token=${import.meta.env.VITE_MAP_BOX_TOKEN}`;
@@ -74,17 +75,18 @@ function Dashboard() {
   const { user, logout } = useAuth();
   const userTypeLabel = user ? USER_TYPE_LABELS[user.userType] ?? user.userType : '';
   const [reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoading] = useState(Boolean(REPORTS_ZONE));
-  const [error, setError] = useState<string | null>(
-    REPORTS_ZONE ? null : 'Falta configurar VITE_REPORTS_ZONE',
-  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!REPORTS_ZONE) return;
     const abortController = new AbortController();
 
-    api
-      .getReportsByZone(REPORTS_ZONE, abortController.signal)
+    // VITE_REPORTS_ZONE se piden todas las zonas se usa el endpoint GET /report/all
+    const request = REPORTS_ZONE
+      ? api.getReportsByZone(REPORTS_ZONE, abortController.signal)
+      : api.getAllReports(abortController.signal);
+
+    request
       // Go serializa un slice vacío como null.
       .then((data) => setReports(data.reports ?? []))
       .catch((err) => {
@@ -117,8 +119,9 @@ function Dashboard() {
   const todayTrend =
     stats.dailyAverage > 0 ? Math.round(((stats.today - stats.dailyAverage) / stats.dailyAverage) * 100) : null;
   const zonesSplit = stats.byZone.length > ZONE_LIST_SIZE;
-  // Solo los administradores ven todas las zonas; un alimentador solo tiene la suya.
-  const showZones = user?.userType === 'administrador';
+  // Solo los administradores ven todas las zonas un alimentador solo tiene la suya.
+  const isAdmin = user?.userType === 'administrador';
+  const showZones = isAdmin;
 
   return (
     <main className="dashboard-page" aria-label="Panel de control">
@@ -170,7 +173,13 @@ function Dashboard() {
           <KpiTile
             title="Total de reportes"
             value={loading ? placeholder : <AnimatedNumber value={stats.total} />}
-            hint={user?.zoneName ? `Zona ${user.zoneName}` : 'Todas las zonas'}
+            hint={
+              REPORTS_ZONE
+                ? `Zona ${REPORTS_ZONE}`
+                : !isAdmin && user?.zoneName
+                  ? `Zona ${user.zoneName}`
+                  : 'Todas las zonas'
+            }
           />
         </KpiCarousel>
 
@@ -188,13 +197,16 @@ function Dashboard() {
           <div className="dashboard-user-info">
             <span className="dashboard-user-type">{userTypeLabel}</span>
             <strong>{user?.name}</strong>
-            <span className="dashboard-user-zone">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
-                <circle cx="12" cy="9.5" r="2.5" />
-              </svg>
-              {user?.zoneName || 'Sin zona asignada'}
-            </span>
+            {/* El administrador ve todas las zonas, el alimentador ve solo su zona asignada. */}
+            {!isAdmin && (
+              <span className="dashboard-user-zone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
+                  <circle cx="12" cy="9.5" r="2.5" />
+                </svg>
+                {user?.zoneName || 'Sin zona asignada'}
+              </span>
+            )}
           </div>
           <button
             className="dashboard-logout"

@@ -51,6 +51,45 @@
   outline-offset: 2px;
 }
 
+.map-zone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 6px 4px 14px;
+  border-radius: 999px;
+  background: var(--sip-white);
+  box-shadow: 0 2px 8px rgb(22 26 29 / 20%);
+  color: var(--sip-primary-dark);
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Alimentador tiene zona fija, sin selector */
+.map-zone--fixed {
+  padding-right: 14px;
+}
+
+.map-zone select {
+  min-width: 0;
+  max-width: 240px;
+  padding: 3px 8px;
+  border: 1px solid var(--sip-border);
+  border-radius: 999px;
+  background: var(--sip-cream);
+  color: var(--sip-text);
+  font: inherit;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.map-zone select:focus-visible {
+  outline: 3px solid rgb(155 34 71 / 40%);
+  outline-offset: 2px;
+}
+
 .map-status {
   min-width: 0;
   padding: 7px 14px;

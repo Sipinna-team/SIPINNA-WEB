@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import * as mapboxgl from 'mapbox-gl/esm'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './InteractiveMap.css'
+import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
-import type { Report, ReportDetail } from '../lib/api'
+import type { Report, ReportDetail, Zone } from '../lib/api'
 import { STATES, normalizeState, stateLabel } from '../lib/dashboardStats'
+import { boundaryBounds, getBoundary } from '../lib/zoneBoundary'
 
 type CoordinatePair = [number, number]
 
@@ -13,6 +16,9 @@ type MapContainerProps = {
   reports: Report[]
   selectedReport: Report | null
   onSelectReport: (folio: string) => void
+  // null = todo el estado; undefined = las zonas aún no cargan.
+  zone: Zone | null | undefined
+  zoneControl: ReactNode
 }
 
 type StatusFormProps = {
@@ -40,6 +46,14 @@ const INITIAL_ZOOM = 12.5
 const REPORTS_SOURCE_ID = 'reports'
 const REPORTS_HEATMAP_LAYER_ID = 'report-heat-zones'
 const REPORTS_POINT_LAYER_ID = 'report-points'
+const ZONE_SOURCE_ID = 'zone-boundary'
+const EMPTY_COLLECTION = { type: 'FeatureCollection' as const, features: [] }
+
+function zoneLabel(zone: Zone) {
+  return zone.municipio && zone.municipio !== zone.name
+    ? `${zone.municipio} (${zone.name})`
+    : zone.name
+}
 
 function reportsToGeoJSON(reports: Report[]) {
   return {
@@ -61,7 +75,13 @@ function reportsToGeoJSON(reports: Report[]) {
   }
 }
 
-function MapContainer({ reports, selectedReport, onSelectReport }: MapContainerProps) {
+function MapContainer({
+  reports,
+  selectedReport,
+  onSelectReport,
+  zone,
+  zoneControl,
+}: MapContainerProps) {
   const [center, setCenter] = useState<CoordinatePair>(INITIAL_CENTER)
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [mapLoaded, setMapLoaded] = useState(false)
@@ -76,7 +96,6 @@ function MapContainer({ reports, selectedReport, onSelectReport }: MapContainerP
   useEffect(() => {
     if (!mapContainerRef.current) return
 
-    const abortController = new AbortController()
     const map = new mapboxgl.Map({
       accessToken: import.meta.env.VITE_MAP_BOX_TOKEN,
       container: mapContainerRef.current,
@@ -87,7 +106,22 @@ function MapContainer({ reports, selectedReport, onSelectReport }: MapContainerP
     mapRef.current = map
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-    map.on('load', async () => {
+    map.on('load', () => {
+      // El contorno va debajo de los reportes; se llena cuando se elige la zona.
+      map.addSource(ZONE_SOURCE_ID, { type: 'geojson', data: EMPTY_COLLECTION })
+      map.addLayer({
+        id: 'zone-boundary-fill',
+        type: 'fill',
+        source: ZONE_SOURCE_ID,
+        paint: { 'fill-color': '#a57f2c', 'fill-opacity': 0.12 },
+      })
+      map.addLayer({
+        id: 'zone-boundary-line',
+        type: 'line',
+        source: ZONE_SOURCE_ID,
+        paint: { 'line-color': '#611232', 'line-width': 2, 'line-opacity': 0.7 },
+      })
+
       map.addSource(REPORTS_SOURCE_ID, {
         type: 'geojson',
         data: reportsToGeoJSON([]),
@@ -149,40 +183,6 @@ function MapContainer({ reports, selectedReport, onSelectReport }: MapContainerP
       })
 
       setMapLoaded(true)
-
-      try {
-        const response = await fetch(
-          'https://gaia.inegi.org.mx/wscatgeo/v2/geo/mgem/15013',
-          { signal: abortController.signal },
-        )
-
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`)
-
-        const data = await response.json()
-        const feature = data.features?.[0]
-
-        if (!feature || feature.geometry?.type !== 'MultiPolygon') {
-          throw new Error('Atizapan MultiPolygon was not found')
-        }
-
-        map.addSource('atizapan-boundary', { type: 'geojson', data: feature })
-        map.addLayer(
-          {
-            id: 'atizapan-boundary',
-            type: 'fill',
-            source: 'atizapan-boundary',
-            paint: {
-              'fill-color': '#a57f2c',
-              'fill-opacity': 0.12,
-              'fill-outline-color': '#611232',
-            },
-          },
-          REPORTS_HEATMAP_LAYER_ID,
-        )
-      } catch (error) {
-        if (error instanceof DOMException && error.name === 'AbortError') return
-        console.error('Error fetching Atizapan data:', error)
-      }
     })
 
     map.on('move', () => {
@@ -192,11 +192,43 @@ function MapContainer({ reports, selectedReport, onSelectReport }: MapContainerP
     })
 
     return () => {
-      abortController.abort()
       map.remove()
       mapRef.current = null
     }
   }, [])
+
+  // Dibuja el contorno de la zona (o del estado) y encuadra el mapa en él.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!mapLoaded || !map || zone === undefined) return
+
+    let cancelled = false
+    const source = map.getSource(ZONE_SOURCE_ID) as mapboxgl.GeoJSONSource
+    source.setData(EMPTY_COLLECTION)
+
+    // Una zona sin municipio no tiene contorno; se usa solo su coordenada.
+    const boundaryRequest = zone && !zone.municipio ? Promise.resolve(null) : getBoundary(zone?.municipio)
+
+    boundaryRequest
+      .catch((error) => {
+        console.error('No se pudo cargar el contorno de la zona:', error)
+        return null
+      })
+      .then((boundary) => {
+        if (cancelled) return
+
+        if (boundary) {
+          source.setData(boundary)
+          map.fitBounds(boundaryBounds(boundary), { padding: 40, duration: 1200 })
+        } else if (zone?.latitude != null && zone.longitude != null) {
+          map.flyTo({ center: [zone.longitude, zone.latitude], zoom: INITIAL_ZOOM, duration: 1200 })
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [mapLoaded, zone])
 
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return
@@ -241,6 +273,7 @@ function MapContainer({ reports, selectedReport, onSelectReport }: MapContainerP
           </svg>
           Dashboard
         </Link>
+        {zoneControl}
         <div className="map-status">
           Longitud: {center[0].toFixed(4)} · Latitud: {center[1].toFixed(4)} · Zoom:{' '}
           {zoom.toFixed(2)}
@@ -525,8 +558,37 @@ export default function InteractiveMap() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
+  const isAdmin = user?.userType === 'administrador'
+  const [zones, setZones] = useState<Zone[]>([])
+  const [zonesLoaded, setZonesLoaded] = useState(false)
+  // '' = todas las zonas (solo administrador).
+  const [selectedZoneId, setSelectedZoneId] = useState('')
+
+  // El backend devuelve todas las zonas al administrador y solo la suya al alimentador.
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    api
+      .getZones(abortController.signal)
+      .then((data) => {
+        const list = data.zones ?? []
+        setZones(list)
+        if (!isAdmin) setSelectedZoneId(list[0]?.id ?? '')
+      })
+      .catch((requestError) => {
+        if (!abortController.signal.aborted) console.error('No se pudieron cargar las zonas:', requestError)
+      })
+      .finally(() => {
+        if (!abortController.signal.aborted) setZonesLoaded(true)
+      })
+
+    return () => abortController.abort()
+  }, [isAdmin])
 
   useEffect(() => {
+    // Se espera a las zonas para no pedir todo y luego volver a pedir la zona del alimentador.
+    if (!zonesLoaded) return
     const abortController = new AbortController()
 
     async function loadReports() {
@@ -534,10 +596,9 @@ export default function InteractiveMap() {
       setError(null)
 
       try {
-        const zone = import.meta.env.VITE_REPORTS_ZONE
-        if (!zone) throw new Error('Falta configurar VITE_REPORTS_ZONE')
-
-        const data = await api.getReportsByZone(zone, abortController.signal)
+        const data = selectedZoneId
+          ? await api.getReportsByZone(selectedZoneId, abortController.signal)
+          : await api.getAllReports(abortController.signal)
         // Go serializa un slice vacío como null.
         setReports(data.reports ?? [])
       } catch (requestError) {
@@ -555,10 +616,39 @@ export default function InteractiveMap() {
 
     void loadReports()
     return () => abortController.abort()
-  }, [])
+  }, [zonesLoaded, selectedZoneId])
 
   const selectedReport =
     reports.find((report) => report.folio === selectedReportId) ?? null
+  const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? null
+
+  function handleZoneChange(zoneId: string) {
+    setSelectedZoneId(zoneId)
+    setSelectedReportId(null)
+  }
+
+  let zoneControl: ReactNode = null
+  if (isAdmin) {
+    zoneControl = (
+      <label className="map-zone">
+        Zona
+        <select
+          value={selectedZoneId}
+          disabled={!zonesLoaded}
+          onChange={(event) => handleZoneChange(event.target.value)}
+        >
+          <option value="">Todas las zonas</option>
+          {zones.map((zone) => (
+            <option key={zone.id} value={zone.id}>
+              {zoneLabel(zone)}
+            </option>
+          ))}
+        </select>
+      </label>
+    )
+  } else if (selectedZone) {
+    zoneControl = <span className="map-zone map-zone--fixed">{zoneLabel(selectedZone)}</span>
+  }
 
   function handleStatusUpdated(folio: string, estado: string, stateChangedAt: string) {
     setReports((current) =>
@@ -598,6 +688,8 @@ export default function InteractiveMap() {
           reports={reports}
           selectedReport={selectedReport}
           onSelectReport={setSelectedReportId}
+          zone={zonesLoaded ? selectedZone : undefined}
+          zoneControl={zoneControl}
         />
       </section>
 
