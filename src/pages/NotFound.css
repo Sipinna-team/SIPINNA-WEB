@@ -1,0 +1,73 @@
+/* Página 404: reutiliza .login-page y .login-card de Login.css */
+.not-found-card {
+  width: min(560px, 100%);
+  padding: clamp(28px, 6vw, 52px);
+  text-align: center;
+}
+
+.not-found-card .login-logo {
+  max-width: 220px;
+  margin-bottom: 8px;
+}
+
+/* Número "404" grande en guinda con degradado hacia el dorado */
+.not-found-code {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-size: clamp(104px, 32vw, 176px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  background: linear-gradient(135deg, var(--sip-primary) 0%, var(--sip-primary-dark) 50%, var(--sip-gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Sombra guinda para que el número se despegue del fondo translúcido */
+  filter: drop-shadow(0 6px 14px rgba(155, 34, 71, 0.3));
+}
+
+.not-found-card h2 {
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.not-found-card .not-found-text {
+  margin: 0 0 28px;
+  color: var(--sip-text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Botón principal: mismo estilo que el botón de login, pero como enlace */
+.not-found-button {
+  display: block;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--sip-primary);
+  color: var(--sip-white);
+  font-size: 17px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.not-found-button:hover {
+  transform: translateY(2px);
+  background: var(--sip-primary-dark);
+}
+
+.not-found-button:focus-visible {
+  outline: none;
+  box-shadow: var(--sip-focus);
+}
+
+.not-found-card p:last-child {
+  margin-top: 24px;
+  font-size: 15px;
+}
+
+@media (max-width: 480px) {
+  .not-found-card h2 {
+    font-size: 18px;
+  }
+}
