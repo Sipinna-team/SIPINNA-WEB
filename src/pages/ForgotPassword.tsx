@@ -6,7 +6,7 @@ import sipinnaLogo from '../assets/sipinna.svg';
 import { api } from '../lib/api';
 import { OtpInput, type OtpStatus } from '@/components/ui/otp-input';
 
-type Step = 'request' | 'reset';
+type Step = 'request' | 'code' | 'password';
 
 function ForgotPassword() {
   const navigate = useNavigate();
@@ -43,7 +43,9 @@ function ForgotPassword() {
     try {
       const { message } = await api.forgotPassword(contacto());
       setInfoMessage(message);
-      setStep('reset');
+      setCode('');
+      setCodeStatus('idle');
+      setStep('code');
     } catch (error) {
       setErrorMessage(toMessage(error));
     } finally {
@@ -60,15 +62,21 @@ function ForgotPassword() {
     void sendCode();
   };
 
-  const handleReset = async (event: FormEvent<HTMLFormElement>) => {
+  const handleCode = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
-
     if (!/^\d{6}$/.test(code)) {
       setErrorMessage('El código debe tener 6 dígitos.');
       setCodeStatus('error');
       return;
     }
+    setCodeStatus('success');
+    setStep('password');
+  };
+
+  const handlePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage(null);
     if (password.length < 6) {
       setErrorMessage('La contraseña debe tener al menos 6 caracteres.');
       return;
@@ -89,10 +97,54 @@ function ForgotPassword() {
     } catch (error) {
       setErrorMessage(toMessage(error));
       setIsSubmitting(false);
+      if (!(error instanceof TypeError)) {
+        setCodeStatus('error');
+        setStep('code');
+      }
     }
   };
 
-  const submitLabel = step === 'request' ? 'Enviar código' : 'Cambiar contraseña';
+  const goBack = (to: Step) => {
+    setErrorMessage(null);
+    setStep(to);
+  };
+
+  const submitLabel = {
+    request: 'Enviar código',
+    code: 'Validar código',
+    password: 'Cambiar contraseña',
+  }[step];
+
+  const errorAndSubmit = (
+    <>
+      {errorMessage && (
+        <div className="login-error" role="alert">{errorMessage}</div>
+      )}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <span className="login-loading">
+            <span className="spinner" aria-hidden="true" />
+            Cargando...
+          </span>
+        ) : submitLabel}
+      </button>
+    </>
+  );
+
+  const backLink = (to: Step, label: string) => (
+    <div className="login-options">
+      <a
+        href="#"
+        onClick={(event) => {
+          event.preventDefault();
+          if (!isSubmitting) goBack(to);
+        }}
+      >
+        {label}
+      </a>
+    </div>
+  );
 
   return (
     <main className="login-page">
@@ -100,7 +152,7 @@ function ForgotPassword() {
         <img src={sipinnaLogo} alt="Sipinna" className="login-logo" />
         <h2>Recuperar contraseña</h2>
 
-        {step === 'request' ? (
+        {step === 'request' && (
           <form onSubmit={handleRequest}>
             <label htmlFor="correoOTelefono">Correo o número</label>
             <input
@@ -111,21 +163,12 @@ function ForgotPassword() {
               onChange={(event) => setCorreoOTelefono(event.target.value)}
             />
 
-            {errorMessage && (
-              <div className="login-error" role="alert">{errorMessage}</div>
-            )}
-
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <span className="login-loading">
-                  <span className="spinner" aria-hidden="true" />
-                  Cargando...
-                </span>
-              ) : submitLabel}
-            </button>
+            {errorAndSubmit}
           </form>
-        ) : (
-          <form onSubmit={handleReset}>
+        )}
+
+        {step === 'code' && (
+          <form onSubmit={handleCode}>
             {infoMessage && <p>{infoMessage}</p>}
 
             <label id="code-label">Código</label>
@@ -143,25 +186,6 @@ function ForgotPassword() {
                 setCode(value);
                 setCodeStatus('idle');
               }}
-              onComplete={() => document.getElementById('password')?.focus()}
-            />
-
-            <label htmlFor="password">Nueva contraseña</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Mínimo 6 caracteres"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-
-            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              placeholder="Repite tu contraseña"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
             />
 
             <div className="login-options">
@@ -176,18 +200,33 @@ function ForgotPassword() {
               </a>
             </div>
 
-            {errorMessage && (
-              <div className="login-error" role="alert">{errorMessage}</div>
-            )}
+            {errorAndSubmit}
+          </form>
+        )}
 
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <span className="login-loading">
-                  <span className="spinner" aria-hidden="true" />
-                  Cargando...
-                </span>
-              ) : submitLabel}
-            </button>
+        {step === 'password' && (
+          <form onSubmit={handlePassword}>
+            <label htmlFor="password">Nueva contraseña</label>
+            <input
+              id="password"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              autoFocus
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+
+            <label htmlFor="confirmPassword">Confirmar contraseña</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              placeholder="Repite tu contraseña"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+            />
+
+            {backLink('code', 'Cambiar código')}
+            {errorAndSubmit}
           </form>
         )}
 
