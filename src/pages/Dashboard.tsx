@@ -10,7 +10,6 @@ import {
   MONTHS,
   STATES,
   computeDashboardStats,
-  formatCoordinates,
   formatDuration,
   formatRelativeDate,
 } from '../lib/dashboardStats';
@@ -22,6 +21,7 @@ import {
   LineChart,
 } from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
+import { ReportMapLink } from '../components/ReportAddress';
 import { ZoomablePanel } from '../components/ZoomablePanel';
 
 const USER_TYPE_LABELS: Record<UserType, string> = {
@@ -297,9 +297,11 @@ function Dashboard() {
                   <strong>{report.citizen_name || 'Anónimo'}</strong>
                   <span className="dashboard-muted">{formatRelativeDate(report.created_at)}</span>
                 </span>
-                <span className="dashboard-recent-coords">
-                  {formatCoordinates(report.latitude, report.longitude)}
-                </span>
+                <ReportMapLink
+                  className="dashboard-recent-coords"
+                  latitude={report.latitude}
+                  longitude={report.longitude}
+                />
               </li>
             ))}
           </ul>

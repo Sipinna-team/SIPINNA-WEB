@@ -205,3 +205,24 @@
     @apply font-sans;
   }
 }
+/* Dirección del reporte como enlace a Google Maps */
+.report-address {
+  color: var(--sip-primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--sip-primary) 35%, transparent);
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 160ms ease, text-decoration-color 160ms ease;
+  font-size: bold;
+}
+
+.report-address:hover {
+  color: var(--sip-primary-dark);
+  text-decoration-color: currentColor;
+}
+
+.report-address:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--sip-primary);
+  outline-offset: 2px;
+}

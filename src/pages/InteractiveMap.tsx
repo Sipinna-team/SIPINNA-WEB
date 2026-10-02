@@ -9,6 +9,7 @@ import { api } from '../lib/api'
 import type { Report, ReportDetail, Zone } from '../lib/api'
 import { STATES, normalizeState, stateLabel } from '../lib/dashboardStats'
 import { boundaryBounds, getBoundary } from '../lib/zoneBoundary'
+import { ReportAddress } from '../components/ReportAddress'
 
 type CoordinatePair = [number, number]
 
@@ -397,7 +398,7 @@ function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
     }
   }
 
-  const details: [string, string | number][] = [
+  const details: [string, ReactNode][] = [
     ['Reportado por', report.citizen_name || '—'],
     ['Fecha del reporte', formatDate(report.created_at)],
     ['Horario de avistamiento', detail?.sighting_time || '—'],
@@ -407,7 +408,14 @@ function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
     ['Edades', report.children_age || '—'],
     ['Nivel de sospecha', report.suspicius_level],
     ['Último cambio de estado', formatDate(report.state_changed_at)],
-    ['Ubicación', `${report.latitude.toFixed(5)}, ${report.longitude.toFixed(5)}`],
+    [
+      'Ubicación',
+      <ReportAddress
+        latitude={report.latitude}
+        longitude={report.longitude}
+        fallback={`${report.latitude.toFixed(5)}, ${report.longitude.toFixed(5)}`}
+      />,
+    ],
   ]
 
   return (

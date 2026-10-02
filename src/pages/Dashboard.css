@@ -388,7 +388,7 @@ html:has(.dashboard-page) body {
 
 .dashboard-recent li {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) auto;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.2fr);
   align-items: center;
   gap: 12px;
 }
@@ -418,9 +418,31 @@ html:has(.dashboard-page) body {
   white-space: nowrap;
 }
 
+.dashboard-recent-place {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dashboard-recent-zone {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .dashboard-recent-coords {
+  flex-shrink: 0;
+  overflow: hidden;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Tendencias (columna derecha) */
@@ -909,10 +931,13 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-zoom-panel .donut-legend li { min-width: 220px; gap: 10px; }
 
 .dashboard-zoom-panel .dashboard-recent { gap: 14px; margin-top: 18px; overflow: visible; }
-.dashboard-zoom-panel .dashboard-recent li { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 16px; }
+.dashboard-zoom-panel .dashboard-recent li { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; }
+/* En grande hay espacio para la dirección completa. */
+.dashboard-zoom-panel .dashboard-recent-coords { white-space: normal; }
 .dashboard-zoom-panel .dashboard-recent-avatar { width: 44px; height: 44px; font-size: 15px; }
 .dashboard-zoom-panel .dashboard-recent-who { font-size: 16px; }
 .dashboard-zoom-panel .dashboard-recent-coords { font-size: 15px; }
+.dashboard-zoom-panel .dashboard-recent-zone { font-size: 15px; white-space: normal; }
 
 /* Tendencias: la gráfica mensual ocupa todo el ancho y las otras dos van
    lado a lado debajo. El ancho se limita por el alto de la pantalla para que
