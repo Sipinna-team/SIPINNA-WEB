@@ -756,3 +756,202 @@ html:has(.dashboard-page) body {
     animation: none;
   }
 }
+
+/* ----------Paneles ampliables---------- */
+.dashboard-panel--zoomable {
+  position: relative;
+  cursor: zoom-in;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.dashboard-panel--zoomable:hover {
+  border-color: rgba(155, 34, 71, 0.25);
+  box-shadow:
+    inset 0 1px 12px rgba(255, 255, 255, 0.35),
+    0 8px 26px rgba(97, 18, 50, 0.12);
+}
+
+/* Espacio para el botón de ampliar junto al primer título del panel. */
+.dashboard-panel--zoomable > h2:first-child,
+.dashboard-panel--zoomable > :first-child > h2:first-child,
+.dashboard-zoom-panel > h2:first-child,
+.dashboard-zoom-panel > :first-child > h2:first-child {
+  padding-right: 32px;
+}
+
+.dashboard-zoom-button,
+.dashboard-zoom-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sip-primary);
+  cursor: pointer;
+  transition: background-color 160ms ease, opacity 160ms ease;
+}
+
+.dashboard-zoom-button svg { width: 16px; height: 16px; }
+.dashboard-zoom-close svg { width: 20px; height: 20px; }
+
+.dashboard-zoom-button { opacity: 0.45; }
+.dashboard-panel--zoomable:hover .dashboard-zoom-button,
+.dashboard-zoom-button:focus-visible { opacity: 1; }
+
+.dashboard-zoom-button:hover,
+.dashboard-zoom-close:hover { background: var(--sip-primary-soft); color: var(--sip-primary-dark); }
+
+.dashboard-zoom-button:focus-visible,
+.dashboard-zoom-close:focus-visible {
+  outline: 2px solid var(--sip-primary);
+  outline-offset: 2px;
+}
+
+/* El diálogo cubre toda la pantalla y centra el panel ampliado; el clic en
+   su fondo transparente cierra. */
+html:has(.dashboard-zoom[open]) { overflow: hidden; }
+
+.dashboard-zoom {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--sip-text);
+  font-family: var(--font-body);
+}
+
+.dashboard-zoom[open] {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+}
+
+/* El panel ampliado conserva la clase del panel original (p. ej.
+   dashboard-panel--overview), que trae un grid-area del dashboard; aquí se
+   anula para que ocupe la única celda del diálogo y quede centrado. */
+.dashboard-zoom > .dashboard-zoom-panel {
+  grid-area: 1 / 1;
+  margin: 0;
+}
+
+.dashboard-grid > .dashboard-zoom { animation: zoom-fade 220ms ease both; }
+
+.dashboard-zoom::backdrop {
+  background: rgba(22, 26, 29, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  animation: zoom-fade 220ms ease both;
+}
+
+.dashboard-zoom-panel {
+  position: relative;
+  /* El alto se ajusta al contenido (sin espacio muerto) y solo se desplaza
+     si no cabe en la pantalla. */
+  width: min(760px, 100%);
+  height: auto;
+  max-height: 100%;
+  padding: 22px 28px;
+  overflow-y: auto;
+  border-color: rgba(255, 255, 255, 0.9);
+  background: var(--sip-page-bg);
+  box-shadow: 0 24px 60px rgba(22, 26, 29, 0.25);
+  cursor: auto;
+  animation: zoom-in 320ms var(--ease-out-soft) both;
+}
+
+.dashboard-zoom-panel.dashboard-panel--overview { width: min(820px, 100%); }
+
+.dashboard-zoom-panel .dashboard-title,
+.dashboard-zoom-panel .dashboard-subtitle { font-size: 20px; }
+
+.dashboard-zoom-panel .dashboard-muted { font-size: 14px; }
+
+.dashboard-zoom-panel .hbar-list { flex: none; gap: 14px; margin-top: 20px; overflow: visible; }
+.dashboard-zoom-panel .hbar-row { grid-template-columns: minmax(120px, 30%) 1fr 48px; gap: 16px; font-size: 16px; }
+.dashboard-zoom-panel .hbar-track { height: 22px; }
+.dashboard-zoom-panel .hbar-value { font-size: 18px; }
+.dashboard-zoom-panel .dashboard-zones { overflow: visible; }
+
+.dashboard-zoom-panel .donut {
+  flex: none;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: clamp(24px, 5vw, 64px);
+  margin-top: 12px;
+}
+
+.dashboard-zoom-panel .donut-svg {
+  flex: 0 1 auto;
+  width: min(340px, 100%);
+  height: auto;
+}
+
+.dashboard-zoom-panel .donut-legend {
+  display: flex;
+  width: auto;
+  gap: 10px;
+  font-size: 16px;
+}
+
+.dashboard-zoom-panel .donut-legend li { min-width: 220px; gap: 10px; }
+
+.dashboard-zoom-panel .dashboard-recent { gap: 14px; margin-top: 18px; overflow: visible; }
+.dashboard-zoom-panel .dashboard-recent li { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 16px; }
+.dashboard-zoom-panel .dashboard-recent-avatar { width: 44px; height: 44px; font-size: 15px; }
+.dashboard-zoom-panel .dashboard-recent-who { font-size: 16px; }
+.dashboard-zoom-panel .dashboard-recent-coords { font-size: 15px; }
+
+/* Tendencias: la gráfica mensual ocupa todo el ancho y las otras dos van
+   lado a lado debajo. El ancho se limita por el alto de la pantalla para que
+   las tres quepan sin desplazarse (las gráficas guardan su proporción). */
+.dashboard-zoom-panel.dashboard-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  width: min(1100px, 100%, calc((100dvh - 190px) * 1.64 + 56px));
+  overflow-y: auto;
+}
+
+.dashboard-zoom-panel.dashboard-charts > div:first-child { grid-column: 1 / -1; }
+.dashboard-zoom-panel.dashboard-charts > div { flex: none; }
+
+.dashboard-zoom-panel .chart,
+.dashboard-zoom-panel .chart svg {
+  flex: none;
+  height: auto;
+}
+
+.dashboard-zoom-panel .chart-legend { font-size: 14px; }
+
+@media (max-width: 720px) {
+  .dashboard-zoom-panel.dashboard-charts { grid-template-columns: minmax(0, 1fr); }
+}
+
+@keyframes zoom-fade {
+  from { opacity: 0; }
+}
+
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-grid > .dashboard-zoom,
+  .dashboard-zoom::backdrop,
+  .dashboard-zoom-panel {
+    animation: none;
+  }
+}

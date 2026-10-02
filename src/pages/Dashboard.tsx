@@ -22,6 +22,7 @@ import {
   LineChart,
 } from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
+import { ZoomablePanel } from '../components/ZoomablePanel';
 
 const USER_TYPE_LABELS: Record<UserType, string> = {
   administrador: 'Administrador',
@@ -235,7 +236,7 @@ function Dashboard() {
           </span>
         </Link>
 
-        <section className="dashboard-panel dashboard-panel--overview" aria-labelledby="kpi-states">
+        <ZoomablePanel className="dashboard-panel--overview" aria-labelledby="kpi-states">
           <h2 id="kpi-states" className="dashboard-title">Reportes por estado</h2>
           <DonutChart
             segments={STATES.map((state) => ({
@@ -246,22 +247,22 @@ function Dashboard() {
             centerValue={stats.byState.concluido}
             centerLabel="concluidos"
           />
-        </section>
+        </ZoomablePanel>
 
-        <section className="dashboard-panel dashboard-panel--types" aria-labelledby="kpi-types">
+        <ZoomablePanel className="dashboard-panel--types" aria-labelledby="kpi-types">
           <h2 id="kpi-types" className="dashboard-subtitle">Reportes por tipo</h2>
-          <span className="dashboard-muted">Un reporte puede tener varias modalidades</span>
+          <span className="dashboard-muted">Un reporte puede tener varios tipos</span>
           {!loading && stats.byType.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
           <HorizontalBarChart items={stats.byType.slice(0, 6)} />
-        </section>
+        </ZoomablePanel>
 
-        <section className="dashboard-panel dashboard-panel--ages" aria-labelledby="kpi-ages">
-          <h2 id="kpi-ages" className="dashboard-subtitle">Edades de niñas, niños y adolescentes</h2>
+        <ZoomablePanel className="dashboard-panel--ages" aria-labelledby="kpi-ages">
+          <h2 id="kpi-ages" className="dashboard-subtitle">Edades de niñas, niños y adolescentes en los reportes</h2>
           <HorizontalBarChart items={loading ? [] : stats.byAge} />
-        </section>
+        </ZoomablePanel>
 
         {showZones && (
-          <section className="dashboard-panel dashboard-panel--zones" aria-labelledby="kpi-zones">
+          <ZoomablePanel className="dashboard-panel--zones" aria-labelledby="kpi-zones">
             <h2 id="kpi-zones" className="dashboard-subtitle">Zonas con más y menos reportes</h2>
             {!loading && stats.byZone.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
             <div className="dashboard-zones">
@@ -276,10 +277,10 @@ function Dashboard() {
                 </div>
               )}
             </div>
-          </section>
+          </ZoomablePanel>
         )}
 
-        <section className="dashboard-panel dashboard-panel--recent" aria-labelledby="kpi-recent">
+        <ZoomablePanel className="dashboard-panel--recent" aria-labelledby="kpi-recent">
           <div className="dashboard-panel-header">
             <h2 id="kpi-recent" className="dashboard-subtitle">Reportes recientes</h2>
           </div>
@@ -302,9 +303,9 @@ function Dashboard() {
               </li>
             ))}
           </ul>
-        </section>
+        </ZoomablePanel>
 
-        <section className="dashboard-panel dashboard-panel--featured dashboard-charts" aria-label="Tendencias del año">
+        <ZoomablePanel className="dashboard-panel--featured dashboard-charts" aria-label="Tendencias del año">
           <div>
             <h2 className="dashboard-subtitle">Número de reportes por mes</h2>
             <ColumnChart
@@ -335,7 +336,7 @@ function Dashboard() {
               ]}
             />
           </div>
-        </section>
+        </ZoomablePanel>
       </div>
     </main>
   );
