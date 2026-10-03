@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import * as mapboxgl from 'mapbox-gl/esm'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import './InteractiveMap.css'
@@ -572,6 +572,9 @@ export default function InteractiveMap() {
   const [zonesLoaded, setZonesLoaded] = useState(false)
   // '' = todas las zonas (solo administrador).
   const [selectedZoneId, setSelectedZoneId] = useState('')
+  // /map?folio=X (desde la página de reportes) abre ese reporte al cargar.
+  const [searchParams] = useSearchParams()
+  const pendingFolioRef = useRef(searchParams.get('folio')?.trim().toUpperCase() || null)
 
   // El backend devuelve todas las zonas al administrador y solo la suya al alimentador.
   useEffect(() => {
@@ -608,7 +611,24 @@ export default function InteractiveMap() {
           ? await api.getReportsByZone(selectedZoneId, abortController.signal)
           : await api.getAllReports(abortController.signal)
         // Go serializa un slice vacío como null.
-        setReports(data.reports ?? [])
+        const list = data.reports ?? []
+        setReports(list)
+
+        const folio = pendingFolioRef.current
+        if (folio) {
+          try {
+            if (!list.some((report) => report.folio === folio)) {
+              const { report } = await api.getReportByFolio(folio, abortController.signal)
+              setReports((current) => [report, ...current])
+            }
+            pendingFolioRef.current = null
+            setSelectedReportId(folio)
+          } catch (folioError) {
+            if (abortController.signal.aborted) return
+            pendingFolioRef.current = null
+            console.error(`No se pudo abrir el reporte ${folio}:`, folioError)
+          }
+        }
       } catch (requestError) {
         if (abortController.signal.aborted) return
 

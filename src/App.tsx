@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import RootRedirect from './components/RootRedirect'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
+import Reports from './pages/Reports'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
+        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         {/* Cualquier ruta desconocida muestra la página 404 en vez de quedar en blanco. */}
         <Route path="*" element={<NotFound />} />
       </Routes>

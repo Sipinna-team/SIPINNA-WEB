@@ -28,7 +28,7 @@ export const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', '
 
 // suspicius_level >= este valor se cuenta como reporte falso. El backend
 // devuelve 0 cuando el LLM aún no analiza el reporte, así que esos cuentan como verídicos.
-const FALSE_REPORT_THRESHOLD = 0.5;
+export const FALSE_REPORT_THRESHOLD = 0.5;
 
 // Modalidades de trabajo infantil acordadas con SIPINNA
 const WORK_MODALITIES = [
@@ -97,7 +97,7 @@ export function stateLabel(state: string | null | undefined): string {
   return STATES.find((s) => s.key === key)!.label;
 }
 
-function simplify(text: string | null | undefined) {
+export function simplify(text: string | null | undefined) {
   return (text ?? '')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -111,7 +111,7 @@ function sameText(a: string, b: string | null | undefined) {
 }
 
 // Agrupa el texto libre en la modalidad correspondiente o lo deja tal cual.
-function workTypeLabel(type: string) {
+export function workTypeLabel(type: string) {
   const text = simplify(type);
   if (!text) return null;
   const modality = WORK_MODALITIES.find((m) => text.includes(m.match));

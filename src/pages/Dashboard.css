@@ -376,6 +376,17 @@ html:has(.dashboard-page) body {
   justify-content: space-between;
 }
 
+.dashboard-see-all {
+  /* Queda a la izquierda del botón de ampliar del panel. */
+  margin-right: 32px;
+  color: var(--sip-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dashboard-see-all:hover { text-decoration: underline; }
+
 .dashboard-recent {
   display: flex;
   flex-direction: column;

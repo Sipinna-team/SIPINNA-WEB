@@ -283,6 +283,15 @@ function Dashboard() {
         <ZoomablePanel className="dashboard-panel--recent" aria-labelledby="kpi-recent">
           <div className="dashboard-panel-header">
             <h2 id="kpi-recent" className="dashboard-subtitle">Reportes recientes</h2>
+            {/* stopPropagation: el clic no debe abrir también el panel ampliado. */}
+            <Link
+              to="/reports"
+              viewTransition
+              className="dashboard-see-all"
+              onClick={(event) => event.stopPropagation()}
+            >
+              Ver todos
+            </Link>
           </div>
           {!loading && stats.recent.length === 0 && (
             <p className="dashboard-muted">No hay reportes todavía.</p>
