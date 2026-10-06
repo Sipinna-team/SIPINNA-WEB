@@ -10,6 +10,7 @@ import {MONTHS,STATES,computeDashboardStats,formatDuration,formatRelativeDate,} 
 import {AnimatedNumber,ColumnChart,DonutChart,HorizontalBarChart,LineChart,} from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
 import { ReportMapLink } from '../components/ReportAddress';
+import { StaffManager } from '../components/StaffManager';
 import { ZoomablePanel } from '../components/ZoomablePanel';
 
 const USER_TYPE_LABELS: Record<UserType, string> = {
@@ -112,6 +113,35 @@ function Dashboard() {
   const isAdmin = user?.userType === 'administrador';
   const showZones = isAdmin;
 
+  const profileInfo = (
+    <>
+      <svg
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className="dashboard-avatar"
+        role="img"
+        aria-label={`Foto de ${user?.name || 'usuario'}`}
+      >
+        <circle cx="12" cy="9" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0Z" />
+      </svg>
+      <div className="dashboard-user-info">
+        <span className="dashboard-user-type">{userTypeLabel}</span>
+        <strong>{user?.name}</strong>
+        {/* El administrador ve todas las zonas, el alimentador ve solo su zona asignada. */}
+        {!isAdmin && (
+          <span className="dashboard-user-zone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
+              <circle cx="12" cy="9.5" r="2.5" />
+            </svg>
+            {user?.zoneName || 'Sin zona asignada'}
+          </span>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <main className="dashboard-page" aria-label="Panel de control">
       {error && <p className="dashboard-error" role="alert">{error}</p>}
@@ -172,35 +202,26 @@ function Dashboard() {
           />
         </KpiCarousel>
 
-        <section className="dashboard-panel dashboard-profile" aria-label="Usuario">
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="dashboard-avatar"
-            role="img"
-            aria-label={`Foto de ${user?.name || 'usuario'}`}
-          >
-            <circle cx="12" cy="9" r="4" />
-            <path d="M4 21a8 8 0 0 1 16 0Z" />
-          </svg>
-          <div className="dashboard-user-info">
-            <span className="dashboard-user-type">{userTypeLabel}</span>
-            <strong>{user?.name}</strong>
-            {/* El administrador ve todas las zonas, el alimentador ve solo su zona asignada. */}
-            {!isAdmin && (
-              <span className="dashboard-user-zone">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
-                  <circle cx="12" cy="9.5" r="2.5" />
-                </svg>
-                {user?.zoneName || 'Sin zona asignada'}
-              </span>
-            )}
-          </div>
+        <ZoomablePanel
+          className="dashboard-profile"
+          zoomClassName="dashboard-profile-zoom"
+          aria-label="Usuario"
+          zoomContent={
+            <>
+              <div className="dashboard-profile-card">{profileInfo}</div>
+              {isAdmin && <StaffManager />}
+            </>
+          }
+        >
+          {profileInfo}
+          {/* stopPropagation: cerrar sesión no debe abrir el panel ampliado. */}
           <button
             className="dashboard-logout"
             type="button"
-            onClick={handleLogout}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleLogout();
+            }}
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
           >
@@ -208,7 +229,7 @@ function Dashboard() {
               <path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h12" />
             </svg>
           </button>
-        </section>
+        </ZoomablePanel>
 
         <Link
           to="/map"

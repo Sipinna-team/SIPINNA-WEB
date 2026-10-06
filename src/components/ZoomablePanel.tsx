@@ -4,10 +4,12 @@ import type { HTMLAttributes, MouseEvent, ReactNode } from 'react';
 type ZoomablePanelProps = HTMLAttributes<HTMLElement> & {
   className: string;
   children: ReactNode;
+  zoomContent?: ReactNode;
+  zoomClassName?: string;
 };
 
 // Panel del dashboard que al hacer clic se abre ampliado en un diálogo modal.
-export function ZoomablePanel({ className, children, ...rest }: ZoomablePanelProps) {
+export function ZoomablePanel({ className, children, zoomContent, zoomClassName, ...rest }: ZoomablePanelProps) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -42,8 +44,8 @@ export function ZoomablePanel({ className, children, ...rest }: ZoomablePanelPro
           onClose={() => setOpen(false)}
           onClick={handleDialogClick}
         >
-          <div className={`dashboard-panel dashboard-zoom-panel ${className}`}>
-            {children}
+          <div className={`dashboard-panel dashboard-zoom-panel ${zoomClassName ?? className}`}>
+            {zoomContent ?? children}
             <button
               className="dashboard-zoom-close"
               type="button"

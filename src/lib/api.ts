@@ -64,6 +64,40 @@ export type Zone = {
   longitude: number | null;
 };
 
+export type AdminRole = 'administrador' | 'alimentador';
+export type AccountState = 'activada' | 'pendiente';
+
+// Cuenta de admins que gestiona administradors/alimentadores
+export type StaffMember = {
+  id: string;
+  nombre: string;
+  email: string | null;
+  telefono: string | null;
+  rol: AdminRole;
+  zona_id: string | null;
+  zona_nombre: string;
+  estado_cuenta: AccountState;
+  created_at: string;
+};
+
+// Se necesita email o telefono
+export type CreateStaffPayload = {
+  nombre: string;
+  rol: AdminRole;
+  zona_id: string | null;
+  email: string;
+  telefono: string;
+  password: string;
+  activar: boolean;
+};
+
+// Campos omitidos
+export type UpdateStaffPayload = {
+  rol?: AdminRole;
+  zona_id?: string;
+  estado_cuenta?: AccountState;
+};
+
 export type ReportDetail = Report & {
   sighting_time: string;
   images: string[];
@@ -168,6 +202,25 @@ export const api = {
 
   deleteReport(folio: string) {
     return request<unknown>(`/report/${encodeURIComponent(folio)}`, { method: 'DELETE' });
+  },
+
+  // Solo administradores activos.
+  getStaff(signal?: AbortSignal) {
+    return request<{ staff: StaffMember[] | null }>('/admin/staff', { signal });
+  },
+
+  createStaff(payload: CreateStaffPayload) {
+    return request<{ staff: StaffMember }>('/admin/staff', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateStaff(id: string, payload: UpdateStaffPayload) {
+    return request<{ staff: StaffMember }>(`/admin/staff/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
   },
 
   forgotPassword(payload: ForgotPasswordPayload) {
