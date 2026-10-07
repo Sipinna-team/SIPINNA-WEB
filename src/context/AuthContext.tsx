@@ -13,6 +13,7 @@ type AuthContextValue = {
   user: SessionUser | null;
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
+  loginWithGoogle: (accessToken: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -57,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(toSessionUser(session));
   }, []);
 
+  const loginWithGoogle = useCallback(async (accessToken: string) => {
+    const session = await api.loginWithGoogle(accessToken);
+    setUser(toSessionUser(session));
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       // Solo el backend puede borrar la cookie httpOnly.
@@ -67,8 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, isLoading, login, logout }),
-    [user, isLoading, login, logout],
+    () => ({ user, isLoading, login, loginWithGoogle, logout }),
+    [user, isLoading, login, loginWithGoogle, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

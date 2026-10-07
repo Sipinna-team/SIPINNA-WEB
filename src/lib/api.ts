@@ -149,6 +149,14 @@ export const api = {
     });
   },
 
+  // Canjea el access_token de Supabase (login con Google) por la cookie de sesión.
+  loginWithGoogle(accessToken: string) {
+    return request<SessionResponse>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+  },
+
   me() {
     return request<SessionResponse>('/auth/me');
   },

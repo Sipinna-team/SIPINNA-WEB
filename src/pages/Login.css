@@ -12,7 +12,7 @@
 .login-card {
   width: min(380px, 100%);
   max-width: 100%;
-  padding: clamp(24px, 5vw, 40px);
+  padding: clamp(20px, 4vw, 30px);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.42);
   -webkit-backdrop-filter: blur(15px);
@@ -35,15 +35,15 @@
 .login-logo {
   view-transition-name: auth-logo;
   display: block;
-  margin: 0 auto 16px;
-  max-width: 180px;
+  margin: 0 auto 10px;
+  max-width: 130px;
   width: 100%;
   height: auto;
 }
 
 /* Titulo: "Iniciar sesión" */
 .login-card h2 {
-  margin: 0 0 20px;
+  margin: 0 0 14px;
   font-size: 20px;
   font-family: var(--font-heading);
   font-weight: 400;
@@ -55,7 +55,7 @@
 .login-card form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
 /* Etiquetas de los inputs */
@@ -70,7 +70,7 @@
 .login-card input[type='password']:not([data-slot='otp-input-slot']) {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 15px;
   border: 1.2px solid var(--sip-border);
   background: rgba(255, 255, 255, 0.6);
@@ -98,7 +98,7 @@
 
 /* Botón de iniciar sesión */
 .login-card button {
-  padding: 12px;
+  padding: 10px;
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -147,6 +147,66 @@
   }
 }
 
+/* Separador entre el formulario y el login con Google */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  color: var(--sip-text-muted);
+  font-size: 13px;
+  font-family: var(--font-body);
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--sip-border);
+}
+
+/* Botón "Continuar con Google" */
+.login-card .google-button {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1.2px solid var(--sip-border);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--sip-text);
+  font-weight: 600;
+}
+
+.login-card .google-button:hover {
+  background: var(--sip-white);
+}
+
+.login-card .google-button:disabled {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* Pantalla de espera mientras /auth/callback termina el login con Google */
+.auth-callback-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-callback-card p {
+  margin-top: 12px;
+  color: var(--sip-text-muted);
+}
+
+.auth-callback-spinner {
+  width: 28px;
+  height: 28px;
+  margin-top: 8px;
+  border-color: rgba(155, 34, 71, 0.18);
+  border-top-color: var(--sip-primary);
+}
+
 /* Mensaje de error al iniciar sesión */
 .login-error {
   padding: 10px 12px;
@@ -190,7 +250,7 @@
 
 /* "¿No tienes cuenta? Regístrate" */
 .login-card p {
-  margin-top: 20px;
+  margin: 14px 0 0;
   text-align: center;
   font-size: 14px;
   font-family: var(--font-body);
@@ -241,5 +301,46 @@
 
   .login-card button {
     width: 100%;
+  }
+}
+/* Pantallas bajas (laptops con ventana pequeña): se compacta más para que la
+   tarjeta completa quepa sin hacer scroll. */
+@media (max-height: 640px) {
+  .login-page {
+    padding-block: 6px;
+  }
+
+  .login-card {
+    padding-block: 14px;
+  }
+
+  .login-logo {
+    max-width: 80px;
+    margin-bottom: 6px;
+  }
+
+  .login-card h2 {
+    margin-bottom: 10px;
+  }
+
+  .login-card form {
+    gap: 6px;
+  }
+
+  .login-card input[type='text']:not([data-slot='otp-input-slot']),
+  .login-card input[type='password']:not([data-slot='otp-input-slot']) {
+    padding: 7px 12px;
+  }
+
+  .login-card button {
+    padding: 8px;
+  }
+
+  .login-divider {
+    margin: 8px 0;
+  }
+
+  .login-card p {
+    margin-top: 10px;
   }
 }

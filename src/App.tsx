@@ -9,6 +9,7 @@ import RootRedirect from './components/RootRedirect'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
 import Reports from './pages/Reports'
+import AuthCallback from './pages/AuthCallback'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/map" element={<ProtectedRoute><InteractiveMap /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>

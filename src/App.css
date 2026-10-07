@@ -17,6 +17,12 @@ body, html {
   font-family: var(--font-body);
 }
 
+/* #root es absoluto y el body mide 0, así que el lienzo toma el fondo de html:
+   en crema evita la franja blanca al hacer scroll o rebote hasta abajo. */
+html {
+  background-color: var(--sip-cream);
+}
+
 h1, h2, h3, h4, h5, h6, nav {
   font-family: var(--font-heading);
 }
