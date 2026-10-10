@@ -10,7 +10,7 @@ const PATTERNS = {
   both: /^[a-zA-Z0-9]$/,
 } as const;
 
-// success draws its own ring in svg, so no css ring here
+/** Clases del borde por estado. `success` dibuja su propio anillo en SVG, así que aquí no lleva anillo CSS. */
 const RING = {
   idle: "focus-visible:ring-2 focus-visible:ring-[#868593]/50",
   success: "",
@@ -65,29 +65,39 @@ const ROLL = {
 
 const SHAKE = [0, -5, 4, -2, 0];
 
+/** Reparte el código en `length` casillas, rellenando con vacío. */
 const toSlots = (code: string, length: number) =>
   Array.from({ length }, (_, i) => code[i] ?? "");
 
+/** Estado visual del campo: neutro, correcto o con error (sacude las casillas). */
 export type OtpStatus = "idle" | "success" | "error";
 
+/** Props de {@link OtpInput}; acepta además los atributos de un `div`. */
 export type OtpInputProps = Omit<
   ComponentProps<"div">,
   "onChange" | "value" | "defaultValue"
 > & {
+  /** Número de casillas (6 por defecto). */
   length?: number;
+  /** Valor controlado. */
   value?: string;
+  /** Valor inicial cuando no es controlado. */
   defaultValue?: string;
   onChange?: (value: string) => void;
+  /** Se llama cuando se llenan todas las casillas. */
   onComplete?: (value: string) => void;
+  /** Caracteres aceptados. */
   type?: keyof typeof PATTERNS;
   size?: keyof typeof SIZES;
   status?: OtpStatus;
+  /** Oculta los caracteres como en un campo de contraseña. */
   mask?: boolean;
   disabled?: boolean;
   autoFocus?: boolean;
   slotClassName?: string;
 };
 
+/** Campo de código de un solo uso con una casilla animada por carácter; admite pegar el código completo. */
 export function OtpInput({
   length = 6,
   value,
@@ -112,11 +122,11 @@ export function OtpInput({
   const [caretX, setCaretX] = useState(0);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const cells = useRef<(HTMLDivElement | null)[]>([]);
-  // the slot the user deliberately moved to, so a full code only changes on purpose
+  /** Casilla a la que el usuario se movió a propósito; así un código completo solo cambia de forma intencional. */
   const editingAt = useRef<number | null>(null);
   const reduceMotion = useReducedMotion();
 
-  // padded, not joined: joining would close a gap left by a mid-code backspace
+  /** Casillas rellenadas, no unidas: unirlas cerraría el hueco que deja un borrado a mitad del código. */
   const slots =
     value === undefined
       ? Array.from({ length }, (_, i) => uncontrolled[i] ?? "")
@@ -159,7 +169,7 @@ export function OtpInput({
     const chars = raw.split("").filter((char) => PATTERNS[type].test(char));
     if (!chars.length) return;
 
-    // typing into a filled slot appends, so keep only the new character
+    /** Escribir en una casilla llena agrega un carácter, así que solo se conserva el nuevo; `null` si llegaron varios a la vez (pegado o autollenado por SMS). */
     const typed =
       chars.length === 1
         ? chars[0]
@@ -168,7 +178,6 @@ export function OtpInput({
           : null;
 
     if (typed === null) {
-      // anything longer arrived at once: a paste or an SMS autofill
       fill(index, chars);
       return;
     }
@@ -221,7 +230,7 @@ export function OtpInput({
     if (pasted.length) fill(index, pasted);
   };
 
-  // clicking past the first gap lands on the gap, so a code stays contiguous
+  /** Un clic más allá del primer hueco cae en el hueco, para que el código quede continuo. */
   const handlePointerDown = (
     index: number,
     event: React.PointerEvent<HTMLInputElement>,

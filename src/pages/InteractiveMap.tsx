@@ -17,7 +17,7 @@ type MapContainerProps = {
   reports: Report[]
   selectedReport: Report | null
   onSelectReport: (folio: string) => void
-  // null = todo el estado; undefined = las zonas aún no cargan.
+  /** `null` = todo el estado; `undefined` = las zonas aún no cargan. */
   zone: Zone | null | undefined
   zoneControl: ReactNode
 }
@@ -50,12 +50,14 @@ const REPORTS_POINT_LAYER_ID = 'report-points'
 const ZONE_SOURCE_ID = 'zone-boundary'
 const EMPTY_COLLECTION = { type: 'FeatureCollection' as const, features: [] }
 
+/** Nombre de la zona para el selector, con el municipio si es distinto. */
 function zoneLabel(zone: Zone) {
   return zone.municipio && zone.municipio !== zone.name
     ? `${zone.municipio} (${zone.name})`
     : zone.name
 }
 
+/** Convierte los reportes en una FeatureCollection de puntos para Mapbox (GeoJSON pone la longitud primero). */
 function reportsToGeoJSON(reports: Report[]) {
   return {
     type: 'FeatureCollection' as const,
@@ -69,13 +71,16 @@ function reportsToGeoJSON(reports: Report[]) {
       },
       geometry: {
         type: 'Point' as const,
-        // GeoJSON and Mapbox expect longitude first, then latitude.
         coordinates: [report.longitude, report.latitude] as CoordinatePair,
       },
     })),
   }
 }
 
+/**
+ * Mapa de Mapbox con mapa de calor y puntos de reportes, y el contorno de la zona seleccionada.
+ * @remarks El contorno de la zona (o del estado) va debajo de los reportes y el mapa se encuadra en él.
+ */
 function MapContainer({
   reports,
   selectedReport,
@@ -108,7 +113,6 @@ function MapContainer({
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
     map.on('load', () => {
-      // El contorno va debajo de los reportes; se llena cuando se elige la zona.
       map.addSource(ZONE_SOURCE_ID, { type: 'geojson', data: EMPTY_COLLECTION })
       map.addLayer({
         id: 'zone-boundary-fill',
@@ -198,7 +202,6 @@ function MapContainer({
     }
   }, [])
 
-  // Dibuja el contorno de la zona (o del estado) y encuadra el mapa en él.
   useEffect(() => {
     const map = mapRef.current
     if (!mapLoaded || !map || zone === undefined) return
@@ -207,7 +210,7 @@ function MapContainer({
     const source = map.getSource(ZONE_SOURCE_ID) as mapboxgl.GeoJSONSource
     source.setData(EMPTY_COLLECTION)
 
-    // Una zona sin municipio no tiene contorno; se usa solo su coordenada.
+    /** Una zona sin municipio no tiene contorno; se usa solo su coordenada. */
     const boundaryRequest = zone && !zone.municipio ? Promise.resolve(null) : getBoundary(zone?.municipio)
 
     boundaryRequest
@@ -285,9 +288,10 @@ function MapContainer({
   )
 }
 
-// El backend exige motivo para estos estados.
+/** El backend exige motivo para estos estados. */
 const STATES_REQUIRING_REASON = ['cancelado', 'archivado', 'reincidente']
 
+/** Formulario para cambiar el estado de un reporte, con motivo cuando el estado lo exige. */
 function StatusForm({ report, onUpdated }: StatusFormProps) {
   const currentValue = STATES.find((s) => s.key === normalizeState(report.last_state))!.value
   const [estado, setEstado] = useState(currentValue)
@@ -350,18 +354,22 @@ const dateFormatter = new Intl.DateTimeFormat('es-MX', {
   timeStyle: 'short',
 })
 
+/** Formatea una fecha ISO en estilo corto es-MX; el texto original (o "—") si no es válida. */
 function formatDate(value: string) {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? value || '—' : dateFormatter.format(date)
 }
 
+/**
+ * Detalle del reporte seleccionado: datos, imágenes, cambio de estado y eliminación.
+ * El listado no trae el horario ni las fotos, así que se piden al abrir el reporte.
+ */
 function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
   const [detail, setDetail] = useState<ReportDetail | null>(null)
   const [detailError, setDetailError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  // El listado por zona no trae el horario ni las fotos; se piden al abrir el reporte.
   useEffect(() => {
     const abortController = new AbortController()
 
@@ -455,6 +463,10 @@ function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
   )
 }
 
+/**
+ * Panel lateral con búsqueda por folio, lista de reportes y detalle del seleccionado.
+ * Cuando el reporte se elige desde el mapa, se desplaza la lista hasta él.
+ */
 function SidePanel({
   reports,
   selectedReportId,
@@ -470,7 +482,6 @@ function SidePanel({
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState<string | null>(null)
 
-  // Cuando el reporte se elige desde el mapa, lo traemos a la vista en la lista.
   useEffect(() => {
     selectedCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   }, [selectedReportId])
@@ -561,6 +572,13 @@ function SidePanel({
   )
 }
 
+/**
+ * Página `/map`: mapa interactivo de reportes filtrable por zona.
+ *
+ * @remarks El backend devuelve todas las zonas al administrador y solo la suya al alimentador.
+ * Los reportes se piden hasta que cargan las zonas, para no pedir todo y luego volver a pedir
+ * la zona del alimentador.
+ */
 export default function InteractiveMap() {
   const [reports, setReports] = useState<Report[]>([])
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
@@ -570,13 +588,12 @@ export default function InteractiveMap() {
   const isAdmin = user?.userType === 'administrador'
   const [zones, setZones] = useState<Zone[]>([])
   const [zonesLoaded, setZonesLoaded] = useState(false)
-  // '' = todas las zonas (solo administrador).
+  /** '' = todas las zonas (solo administrador). */
   const [selectedZoneId, setSelectedZoneId] = useState('')
-  // /map?folio=X (desde la página de reportes) abre ese reporte al cargar.
+  /** /map?folio=X (desde la página de reportes) abre ese reporte al cargar. */
   const [searchParams] = useSearchParams()
   const pendingFolioRef = useRef(searchParams.get('folio')?.trim().toUpperCase() || null)
 
-  // El backend devuelve todas las zonas al administrador y solo la suya al alimentador.
   useEffect(() => {
     const abortController = new AbortController()
 
@@ -598,7 +615,6 @@ export default function InteractiveMap() {
   }, [isAdmin])
 
   useEffect(() => {
-    // Se espera a las zonas para no pedir todo y luego volver a pedir la zona del alimentador.
     if (!zonesLoaded) return
     const abortController = new AbortController()
 
@@ -610,7 +626,6 @@ export default function InteractiveMap() {
         const data = selectedZoneId
           ? await api.getReportsByZone(selectedZoneId, abortController.signal)
           : await api.getAllReports(abortController.signal)
-        // Go serializa un slice vacío como null.
         const list = data.reports ?? []
         setReports(list)
 
@@ -693,8 +708,10 @@ export default function InteractiveMap() {
     setSelectedReportId((current) => (current === folio ? null : current))
   }
 
-  // Si el folio ya está en la lista solo se selecciona; si no (p. ej. otra zona, para
-  // un administrador) se pide al backend y se agrega a la lista.
+  /**
+   * Si el folio ya está en la lista solo se selecciona; si no (p. ej. otra zona, para
+   * un administrador) se pide al backend y se agrega a la lista.
+   */
   async function handleSearch(folio: string) {
     const existing = reports.find((report) => report.folio === folio)
     if (existing) {

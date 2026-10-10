@@ -26,16 +26,18 @@ const EMPTY_FORM = {
   activar: true,
 };
 
-// La API espera un número
+/** Convierte un teléfono de 10 dígitos a formato `+52…`; la API espera el número internacional. */
 function normalizePhone(value: string) {
   const compact = value.replace(/[\s()-]/g, '');
   return /^\d{10}$/.test(compact) ? `+52${compact}` : compact;
 }
 
+/** Mensaje de un error desconocido, o `fallback` si no es un `Error`. */
 function errorMessage(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
 }
 
+/** Iniciales (máximo 2) de un nombre para el avatar; `"?"` si está vacío. */
 function initials(name: string) {
   return name
     .split(/\s+/)
@@ -45,8 +47,10 @@ function initials(name: string) {
     .join('') || '?';
 }
 
-// Vista ampliada del perfil del administrador
-// activación / suspensión y cambio de rol o zona.
+/**
+ * Gestión de cuentas de staff en la vista ampliada del perfil del administrador:
+ * alta, activación / suspensión y cambio de rol o zona.
+ */
 export function StaffManager() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -65,7 +69,6 @@ export function StaffManager() {
 
     Promise.all([api.getStaff(abortController.signal), api.getZones(abortController.signal)])
       .then(([staffData, zoneData]) => {
-        // Go serializa un slice vacío como null.
         setStaff(staffData.staff ?? []);
         setZones(zoneData.zones ?? []);
       })

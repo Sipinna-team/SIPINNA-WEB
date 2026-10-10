@@ -1,16 +1,24 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { homePathFor, useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import sipinnaLogo from '../assets/sipinna.svg';
 import './Login.css';
 
-// Google regresa aquí con ?code=; se canjea por la sesión de Supabase y su
-// access_token se manda al backend, que valida la cuenta y crea la cookie httpOnly.
+/**
+ * Página `/auth/callback`. Google regresa aquí con `?code=`; se canjea por la sesión de Supabase y su
+ * access_token se manda al backend, que valida la cuenta y crea la cookie httpOnly.
+ * Si falla, vuelve al login con `state.googleError`.
+ *
+ * @remarks
+ * - Si no hay `code`, Google/Supabase mandan `error_description` cuando el usuario canceló o algo falló.
+ * - Al terminar se cierra la sesión local de Supabase: solo cuenta la del backend.
+ * - Usa la misma tarjeta que el login para que el paso por aquí se sienta continuo.
+ */
 function AuthCallback() {
   const navigate = useNavigate();
   const { loginWithGoogle } = useAuth();
-  // StrictMode ejecuta el efecto dos veces y el código solo se puede canjear una vez.
+  /** StrictMode ejecuta el efecto dos veces y el código solo se puede canjear una vez. */
   const started = useRef(false);
 
   useEffect(() => {
@@ -24,7 +32,6 @@ function AuthCallback() {
     const code = params.get('code');
 
     if (!code) {
-      // Google/Supabase mandan error_description si el usuario canceló o algo falló.
       fail(
         params.get('error_description')
           ? 'Se canceló el inicio de sesión con Google.'
@@ -38,19 +45,17 @@ function AuthCallback() {
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) throw error;
 
-        await loginWithGoogle(data.session.access_token);
-        navigate('/dashboard', { replace: true });
+        const sessionUser = await loginWithGoogle(data.session.access_token);
+        navigate(homePathFor(sessionUser), { replace: true });
       } catch (error) {
         console.error('Error al iniciar sesión con Google:', error);
         fail('No se pudo iniciar sesión con Google. Inténtalo de nuevo.');
       } finally {
-        // La sesión de Supabase ya no se necesita: la del backend es la que cuenta.
         await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
       }
     })();
   }, [loginWithGoogle, navigate]);
 
-  // Misma tarjeta que el login para que el paso por aquí se sienta continuo.
   return (
     <main className="login-page">
       <div className="login-card auth-callback-card" role="status" aria-live="polite">

@@ -18,7 +18,7 @@ const USER_TYPE_LABELS: Record<UserType, string> = {
   alimentador: 'Alimentador',
   citizen: 'Ciudadano',
 };
-// Nombre del municipio o UUID de la zona. Vite solo la lee al arrancar.
+/** Nombre del municipio o UUID de la zona. Vite solo la lee al arrancar. */
 const REPORTS_ZONE: string | undefined = import.meta.env.VITE_REPORTS_ZONE?.trim() || undefined;
 const MONTH_NUMBERS =MONTHS.map((_, i) => String(i + 1));
 const MAP_PREVIEW_URL =
@@ -27,9 +27,11 @@ const MAP_PREVIEW_URL =
 
 const ZONE_LIST_SIZE = 5;
 
+/** Adapta los conteos por zona al formato de {@link HorizontalBarChart}. */
 const toBars = (zones: ZoneCount[]) =>
   zones.map((z) => ({ label: z.zone, value: z.count }));
 
+/** Props de una tarjeta KPI. */
 type KpiTileProps = {
   title: string;
   value: ReactNode;
@@ -38,6 +40,7 @@ type KpiTileProps = {
   badge?: { text: string; tone: 'up' | 'down' };
 };
 
+/** Tarjeta con un indicador, una pista y una insignia opcional de tendencia. */
 function KpiTile({ title, value, hint, tone, badge }: KpiTileProps) {
   return (
     <article className={`dashboard-panel dashboard-tile${tone ? ` dashboard-tile--${tone}` : ''}`}>
@@ -51,6 +54,7 @@ function KpiTile({ title, value, hint, tone, badge }: KpiTileProps) {
   );
 }
 
+/** Iniciales (máximo 2) de un nombre para el avatar. */
 function initials(name: string) {
   return name
     .split(/\s+/)
@@ -60,6 +64,14 @@ function initials(name: string) {
     .join('');
 }
 
+/**
+ * Página `/dashboard` del staff: indicadores, gráficas, reportes recientes y menú de perfil.
+ *
+ * @remarks
+ * - El administrador ve todas las zonas; el alimentador solo su zona asignada.
+ * - Los botones dentro de paneles ampliables (cerrar sesión, enlaces) detienen la propagación
+ *   del clic para no abrir también el panel ampliado.
+ */
 function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -71,13 +83,12 @@ function Dashboard() {
   useEffect(() => {
     const abortController = new AbortController();
 
-    // VITE_REPORTS_ZONE se piden todas las zonas se usa el endpoint GET /report/all
+    /** Con `VITE_REPORTS_ZONE` se piden los reportes de esa zona; sin ella, todos con `GET /report/all`. */
     const request = REPORTS_ZONE
       ? api.getReportsByZone(REPORTS_ZONE, abortController.signal)
       : api.getAllReports(abortController.signal);
 
     request
-      // Go serializa un slice vacío como null.
       .then((data) => setReports(data.reports ?? []))
       .catch((err) => {
         if (!abortController.signal.aborted) {
@@ -109,7 +120,7 @@ function Dashboard() {
   const todayTrend =
     stats.dailyAverage > 0 ? Math.round(((stats.today - stats.dailyAverage) / stats.dailyAverage) * 100) : null;
   const zonesSplit = stats.byZone.length > ZONE_LIST_SIZE;
-  // Solo los administradores ven todas las zonas un alimentador solo tiene la suya.
+  /** Solo los administradores ven todas las zonas; un alimentador solo tiene la suya. */
   const isAdmin = user?.userType === 'administrador';
   const showZones = isAdmin;
 
@@ -128,7 +139,6 @@ function Dashboard() {
       <div className="dashboard-user-info">
         <span className="dashboard-user-type">{userTypeLabel}</span>
         <strong>{user?.name}</strong>
-        {/* El administrador ve todas las zonas, el alimentador ve solo su zona asignada. */}
         {!isAdmin && (
           <span className="dashboard-user-zone">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -214,7 +224,6 @@ function Dashboard() {
           }
         >
           {profileInfo}
-          {/* stopPropagation: cerrar sesión no debe abrir el panel ampliado. */}
           <button
             className="dashboard-logout"
             type="button"
@@ -292,7 +301,6 @@ function Dashboard() {
         <ZoomablePanel className="dashboard-panel--recent" aria-labelledby="kpi-recent">
           <div className="dashboard-panel-header">
             <h2 id="kpi-recent" className="dashboard-subtitle">Reportes recientes</h2>
-            {/* stopPropagation: el clic no debe abrir también el panel ampliado. */}
             <Link
               to="/reports"
               viewTransition

@@ -6,8 +6,10 @@ import sipinnaLogo from '../assets/sipinna.svg';
 import { api } from '../lib/api';
 import { OtpInput, type OtpStatus } from '@/components/ui/otp-input';
 
+/** Paso del flujo: pedir código, capturarlo y elegir nueva contraseña. */
 type Step = 'request' | 'code' | 'password';
 
+/** Página de recuperación de contraseña por código enviado a correo o teléfono. */
 function ForgotPassword() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('request');
@@ -20,7 +22,7 @@ function ForgotPassword() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
-  // El backend acepta email o número (no ambos): el otro va explícitamente en null.
+  /** El backend acepta email o número (no ambos): el otro va explícitamente en null. */
   const contacto = () => {
     const identificador = correoOTelefono.trim();
     const esCorreo = identificador.includes('@');

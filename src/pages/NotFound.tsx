@@ -3,6 +3,10 @@ import './Login.css';
 import './NotFound.css';
 import sipinnaLogo from '../assets/sipinna404.svg';
 
+/**
+ * Página 404 para rutas desconocidas. "Ir al inicio" lleva a `/`, que decide si mandar
+ * al login o a la página de inicio según la sesión.
+ */
 function NotFound() {
   const navigate = useNavigate();
 
@@ -17,7 +21,6 @@ function NotFound() {
           La página que buscas no existe o fue movida. Revisa la dirección o vuelve al inicio.
         </p>
 
-        {/* La raíz decide si mandar al login o al dashboard según la sesión. */}
         <Link to="/" replace viewTransition className="not-found-button">
           Ir al inicio
         </Link>

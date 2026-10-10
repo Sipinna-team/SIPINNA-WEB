@@ -5,8 +5,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 import sipinnaLogo from '../assets/sipinna.svg';
 import { api } from '../lib/api';
-import { useAuth } from '../context/AuthContext';
+import { homePathFor, useAuth } from '../context/AuthContext';
 
+/** Página de registro de ciudadanos; al terminar inicia sesión automáticamente. */
 function Register() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -49,16 +50,16 @@ function Register() {
       return;
     }
 
-    // Al registrarse se inicia sesión con las mismas credenciales.
+    /** Correo con el que se inicia sesión tras registrarse, con las mismas credenciales. */
     const correo = email.trim();
 
     try {
-      await login({
+      const sessionUser = await login({
         email: correo ? correo : null,
         number: correo ? null : phone.trim(),
         password,
       });
-      navigate('/dashboard', { replace: true, viewTransition: true });
+      navigate(homePathFor(sessionUser), { replace: true, viewTransition: true });
     } catch (error) {
       console.error('Error al iniciar sesión tras el registro:', error);
       setErrorMessage(

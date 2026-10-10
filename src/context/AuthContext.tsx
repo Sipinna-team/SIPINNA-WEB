@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { api } from '../lib/api';
 import type { LoginPayload, SessionResponse, UserType } from '../lib/api';
 
+/** Usuario de la sesión actual, tal como lo usa la interfaz. */
 export type SessionUser = {
   name: string;
   userType: UserType;
@@ -12,13 +13,14 @@ export type SessionUser = {
 type AuthContextValue = {
   user: SessionUser | null;
   isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
-  loginWithGoogle: (accessToken: string) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<SessionUser>;
+  loginWithGoogle: (accessToken: string) => Promise<SessionUser>;
   logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Convierte la respuesta del backend al formato de {@link SessionUser}. */
 function toSessionUser(session: SessionResponse): SessionUser {
   return {
     name: session.name ?? '',
@@ -27,8 +29,14 @@ function toSessionUser(session: SessionResponse): SessionUser {
   };
 }
 
-// Solo se guarda el nombre y el tipo de usuario; el JWT nunca llega a JavaScript,
-// vive exclusivamente en la cookie httpOnly que maneja el backend.
+/**
+ * Provee la sesión a la app y la restaura al montar con `/auth/me`.
+ * Solo se guarda el nombre y el tipo de usuario; el JWT nunca llega a JavaScript,
+ * vive exclusivamente en la cookie httpOnly que maneja el backend.
+ *
+ * @remarks `logout` llama al backend porque solo él puede borrar la cookie httpOnly,
+ * y limpia el usuario local aunque esa llamada falle.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,18 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (payload: LoginPayload) => {
-    const session = await api.login(payload);
-    setUser(toSessionUser(session));
+    const sessionUser = toSessionUser(await api.login(payload));
+    setUser(sessionUser);
+    return sessionUser;
   }, []);
 
   const loginWithGoogle = useCallback(async (accessToken: string) => {
-    const session = await api.loginWithGoogle(accessToken);
-    setUser(toSessionUser(session));
+    const sessionUser = toSessionUser(await api.loginWithGoogle(accessToken));
+    setUser(sessionUser);
+    return sessionUser;
   }, []);
 
   const logout = useCallback(async () => {
     try {
-      // Solo el backend puede borrar la cookie httpOnly.
       await api.logout();
     } finally {
       setUser(null);
@@ -80,7 +89,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
+/** Ruta de inicio del usuario: los ciudadanos van a la página de inicio y el personal, al dashboard. */
+export function homePathFor(user: SessionUser): string {
+  return user.userType === 'citizen' ? '/inicio' : '/dashboard';
+}
+
+/**
+ * Hook con la sesión actual y las acciones de login/logout.
+ * @throws {Error} Si se usa fuera de un {@link AuthProvider}.
+ */
 export function useAuth() {
   const context = useContext(AuthContext);
 

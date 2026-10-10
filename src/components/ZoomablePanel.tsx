@@ -4,11 +4,13 @@ import type { HTMLAttributes, MouseEvent, ReactNode } from 'react';
 type ZoomablePanelProps = HTMLAttributes<HTMLElement> & {
   className: string;
   children: ReactNode;
+  /** Contenido de la vista ampliada; por defecto, `children`. */
   zoomContent?: ReactNode;
+  /** Clase de la vista ampliada; por defecto, `className`. */
   zoomClassName?: string;
 };
 
-// Panel del dashboard que al hacer clic se abre ampliado en un diálogo modal.
+/** Panel del dashboard que al hacer clic se abre ampliado en un diálogo modal. */
 export function ZoomablePanel({ className, children, zoomContent, zoomClassName, ...rest }: ZoomablePanelProps) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);

@@ -4,16 +4,16 @@ import { useAddress } from '../lib/geocoding';
 type ReportAddressProps = {
   latitude: number;
   longitude: number;
-  // Texto mientras llega la dirección o si no se pudo obtener.
+  /** Texto mientras llega la dirección o si no se pudo obtener. */
   fallback: string;
   className?: string;
 };
 
-// Enlace universal de Google Maps (no requiere API key); abre la app en móvil.
+/** Enlace universal de Google Maps (no requiere API key); abre la app en móvil. */
 const googleMapsUrl = (latitude: number, longitude: number) =>
   `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
-// Evita que el clic en el enlace active también al contenedor (p. ej. el zoom del panel).
+/** Evita que el clic en el enlace active también al contenedor (p. ej. el zoom del panel). */
 const stopPropagation = (event: MouseEvent) => event.stopPropagation();
 
 type ReportMapLinkProps = {
@@ -22,7 +22,7 @@ type ReportMapLinkProps = {
   className?: string;
 };
 
-// Enlace compacto "Ver mapa" que abre la ubicación del reporte en Google Maps
+/** Enlace compacto "Ver mapa" que abre la ubicación del reporte en Google Maps. */
 export function ReportMapLink({ latitude, longitude, className }: ReportMapLinkProps) {
   return (
     <a
@@ -38,8 +38,10 @@ export function ReportMapLink({ latitude, longitude, className }: ReportMapLinkP
   );
 }
 
-// Muestra la calle, colonia y municipio del reporte en lugar de sus coordenadas,
-// como enlace que abre la ubicación en Google Maps.
+/**
+ * Muestra la calle, colonia y municipio del reporte en lugar de sus coordenadas,
+ * como enlace que abre la ubicación en Google Maps.
+ */
 export function ReportAddress({ latitude, longitude, fallback, className }: ReportAddressProps) {
   const address = useAddress(latitude, longitude);
   const text = address ?? fallback;

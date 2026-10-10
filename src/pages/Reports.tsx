@@ -20,13 +20,14 @@ import {
   formatSuspicion,
 } from '../lib/reportExport';
 
-// Igual que en el dashboard, para que ambos cuenten los mismos reportes.
+/** Igual que en el dashboard, para que ambos cuenten los mismos reportes. */
 const REPORTS_ZONE: string | undefined = import.meta.env.VITE_REPORTS_ZONE?.trim() || undefined;
 const PAGE_SIZES = [10, 25, 50, 100];
 
 type Veracity = '' | 'veridico' | 'falso';
 type Sort = 'recientes' | 'antiguos' | 'sospecha';
 
+/** Filtros de la tabla de reportes; los vacíos no filtran. */
 type Filters = {
   search: string;
   state: StateKey | '';
@@ -49,19 +50,24 @@ const EMPTY_FILTERS: Filters = {
   sort: 'recientes',
 };
 
+/** Modalidades de trabajo de un reporte (la app las manda separadas por coma). */
 const workTypes = (report: Report) =>
   (report.work_type ?? '').split(',').map(workTypeLabel).filter((t): t is string => t !== null);
 
-// Las fechas del <input type="date"> son "YYYY-MM-DD" en hora local.
+/**
+ * Convierte una fecha de `<input type="date">` ("YYYY-MM-DD", hora local) en milisegundos.
+ * @param offsetDays - Días a sumar.
+ */
 function localDay(value: string, offsetDays = 0) {
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year!, month! - 1, day! + offsetDays).getTime();
 }
 
+/** Filtra y ordena los reportes según los filtros. */
 function applyFilters(reports: Report[], filters: Filters) {
   const query = simplify(filters.search);
   const from = filters.from ? localDay(filters.from) : -Infinity;
-  // "Hasta" incluye todo ese día.
+  /** "Hasta" incluye todo ese día. */
   const to = filters.to ? localDay(filters.to, 1) : Infinity;
 
   const result = reports.filter((report) => {
@@ -90,7 +96,7 @@ function applyFilters(reports: Report[], filters: Filters) {
   );
 }
 
-// Texto de los filtros activos para el encabezado del PDF.
+/** Texto de los filtros activos para el encabezado del PDF. */
 function describeFilters(filters: Filters) {
   const parts: string[] = [];
   if (filters.search.trim()) parts.push(`Búsqueda: "${filters.search.trim()}"`);
@@ -103,7 +109,7 @@ function describeFilters(filters: Filters) {
   return parts.length > 0 ? `Filtros: ${parts.join(' · ')}` : 'Sin filtros';
 }
 
-// Números de página a mostrar, con "…" cuando hay muchas.
+/** Números de página a mostrar, con "…" cuando hay muchas. */
 function pageItems(current: number, total: number): (number | '…')[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const pages = new Set([1, total, current - 1, current, current + 1]);
@@ -111,6 +117,10 @@ function pageItems(current: number, total: number): (number | '…')[] {
   return sorted.flatMap((p, i) => (i > 0 && p - sorted[i - 1]! > 1 ? ['…' as const, p] : [p]));
 }
 
+/**
+ * Página `/reports`: tabla paginada de reportes con filtros y exportación a CSV/PDF.
+ * El filtro de zona solo aparece al administrador; el alimentador solo recibe reportes de su zona.
+ */
 function Reports() {
   const { user } = useAuth();
   const isAdmin = user?.userType === 'administrador';
@@ -131,7 +141,6 @@ function Reports() {
       : api.getAllReports(abortController.signal);
 
     request
-      // Go serializa un slice vacío como null.
       .then((data) => setReports(data.reports ?? []))
       .catch((err) => {
         if (!abortController.signal.aborted) {
@@ -145,7 +154,7 @@ function Reports() {
     return () => abortController.abort();
   }, []);
 
-  // Las opciones de zona y tipo salen de los reportes que sí existen.
+  /** Las opciones de zona y tipo salen de los reportes que sí existen. */
   const zoneOptions = useMemo(
     () => [...new Set(reports.map((r) => r.zone_name || 'Sin zona'))].sort((a, b) => a.localeCompare(b, 'es')),
     [reports],
@@ -243,7 +252,6 @@ function Reports() {
           </select>
         </label>
 
-        {/* El alimentador solo recibe reportes de su zona. */}
         {isAdmin && (
           <label className="reports-field">
             Zona

@@ -8,34 +8,41 @@ import type {
 } from 'react';
 
 type KpiCarouselProps = {
+  /** Nombre accesible del carrusel. */
   label: string;
   className?: string;
   children: ReactNode;
 };
 
-// Tiempo sin interacción antes de mostrar la pista de "desliza".
+/** Tiempo sin interacción antes de mostrar la pista de "desliza". */
 const HINT_IDLE_MS = 6500;
-// Cuánto avanza el carrusel en la pista, como fracción del ancho de una tarjeta.
+/** Cuánto avanza el carrusel en la pista, como fracción del ancho de una tarjeta. */
 const HINT_TILE_FRACTION = 0.6;
 const HINT_MAX_PX = 160;
 
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
-// Recorrido de la pista: [posición destino (0 = origen, 1 = distancia completa), duración ms, curva].
+/**
+ * Recorrido de la pista: `[posición destino (0 = origen, 1 = distancia completa), duración ms, curva]`.
+ * Avanza y deja ver la siguiente tarjeta, se detiene un momento, regresa, da un segundo
+ * empujoncito y se asienta.
+ */
 const HINT_PATH: [number, number, (t: number) => number][] = [
-  [1, 650, easeInOut], // avanza y deja ver la siguiente tarjeta
-  [1, 350, easeOut], // se detiene un momento
-  [0, 550, easeInOut], // regresa
-  [0.3, 260, easeOut], // segundo empujoncito
-  [0, 380, easeOut], // se asienta
+  [1, 650, easeInOut],
+  [1, 350, easeOut],
+  [0, 550, easeInOut],
+  [0.3, 260, easeOut],
+  [0, 380, easeOut],
 ];
-// Distancia mínima de arrastre para cambiar de página.
+/** Distancia mínima de arrastre para cambiar de página. */
 const DRAG_THRESHOLD_PX = 40;
 const LEARNED_KEY = 'kpiCarousel.swipeLearned';
 
+/** Indica si el usuario pidió reducir animaciones. */
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/** Indica si el usuario ya deslizó alguna vez (guardado en localStorage). */
 const readLearned = () => {
   try {
     return localStorage.getItem(LEARNED_KEY) === '1';
@@ -44,14 +51,25 @@ const readLearned = () => {
   }
 };
 
+/**
+ * Recuerda que el usuario ya aprendió a deslizar, para no volver a mostrar la pista.
+ * Sin almacenamiento disponible la pista seguirá apareciendo; no es crítico.
+ */
 const saveLearned = () => {
   try {
     localStorage.setItem(LEARNED_KEY, '1');
   } catch {
-    // Sin almacenamiento: la pista seguirá apareciendo, no es crítico.
+    return;
   }
 };
 
+/**
+ * Carrusel paginado de tarjetas KPI con arrastre, rueda, teclado e indicadores de página.
+ * Tras un rato sin interacción muestra una pista animada de "desliza" hasta que el usuario la aprende.
+ *
+ * @remarks La pista desplaza el carrusel de verdad (sin snap) y lo regresa a donde estaba;
+ * deja de mostrarse en cuanto el usuario desliza.
+ */
 export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ pointerId: number; startX: number; startScroll: number; startPage: number } | null>(null);
@@ -63,8 +81,10 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
   const [hint, setHint] = useState<'next' | 'prev' | null>(null);
   const [activity, setActivity] = useState(0);
 
-  // Una página avanza solo las tarjetas completas que caben; la que se asoma
-  // cortada en el borde pasa a ser la primera de la siguiente página.
+  /**
+   * Una página avanza solo las tarjetas completas que caben; la que se asoma
+   * cortada en el borde pasa a ser la primera de la siguiente página.
+   */
   const pageStep = useCallback(() => {
     const track = trackRef.current!;
     const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
@@ -99,7 +119,7 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
 
   const paged = pages > 1;
 
-  // Cualquier interacción reinicia el contador de inactividad.
+  /** Cualquier interacción reinicia el contador de inactividad. */
   const markActive = useCallback(() => setActivity((n) => n + 1), []);
 
   const markLearned = () => {
@@ -108,8 +128,6 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
     saveLearned();
   };
 
-  // Tras un rato sin moverse, el carrusel se desplaza solo un poco para
-  // sugerir que se puede deslizar. Deja de hacerlo en cuanto el usuario desliza.
   useEffect(() => {
     if (!paged || dragging || learnedRef.current || prefersReducedMotion()) return;
     const timer = window.setTimeout(() => {
@@ -122,7 +140,6 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
     return () => window.clearTimeout(timer);
   }, [paged, dragging, page, pages, activity]);
 
-  // La pista desplaza el carrusel de verdad (sin snap) y lo regresa a donde estaba.
   useEffect(() => {
     if (!hint) return;
     const track = trackRef.current!;
@@ -160,7 +177,7 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
     };
   }, [hint, markActive]);
 
-  // Si el usuario interactúa a media pista, se corta y todo vuelve a su lugar.
+  /** Si el usuario interactúa a media pista, se corta y todo vuelve a su lugar. */
   const stopHint = () => {
     if (!hint) return;
     flushSync(() => setHint(null));
@@ -173,7 +190,7 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
     });
   };
 
-  // Arrastre con mouse. En pantallas táctiles el desplazamiento nativo ya funciona.
+  /** Arrastre con mouse. En pantallas táctiles el desplazamiento nativo ya funciona. */
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!paged || e.pointerType !== 'mouse' || e.button !== 0) return;
     stopHint();
@@ -204,7 +221,7 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
     }
   };
 
-  // Deslizar con el dedo o con el trackpad también cuenta como "aprendido".
+  /** Deslizar con el dedo o con el trackpad también cuenta como "aprendido". */
   const onWheel = (e: ReactWheelEvent<HTMLDivElement>) => {
     stopHint();
     markActive();
@@ -217,7 +234,7 @@ export function KpiCarousel({ label, className, children }: KpiCarouselProps) {
     markLearned();
   };
 
-  // Sin flechas ni puntos, el teclado navega con ← → / Inicio / Fin sobre el carrusel enfocado.
+  /** Sin flechas ni puntos, el teclado navega con ← → / Inicio / Fin sobre el carrusel enfocado. */
   const onKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     const targets: Record<string, number> = {
       ArrowRight: page + 1,

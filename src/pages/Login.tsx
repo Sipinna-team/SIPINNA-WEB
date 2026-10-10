@@ -2,10 +2,14 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import './Login.css';
 import sipinnaLogo from '../assets/sipinna.svg';
-import { useAuth } from '../context/AuthContext';
+import { homePathFor, useAuth } from '../context/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../lib/supabase';
 
+/**
+ * Página de inicio de sesión con correo o teléfono, o con Google.
+ * Si `fetch` lanza `TypeError` (sin respuesta del servidor) muestra un error de conexión.
+ */
 function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -15,7 +19,7 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const location = useLocation();
   const passwordReset = (location.state as { passwordReset?: boolean } | null)?.passwordReset
-  // Error que regresa /auth/callback si falló el login con Google
+  /** Error que regresa /auth/callback si falló el login con Google. */
   const googleError = (location.state as { googleError?: string } | null)?.googleError
 
   const handleSubmit = async (
@@ -23,7 +27,7 @@ function Login() {
   ) => {
     event.preventDefault();
 
-    // El backend acepta email o número (no ambos): el otro va explícitamente en null.
+    /** El backend acepta email o número (no ambos): el otro va explícitamente en null. */
     const identificador = correoOTelefono.trim();
     const esCorreo = identificador.includes('@');
 
@@ -31,15 +35,14 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      await login({
+      const sessionUser = await login({
         email: esCorreo ? identificador : null,
         number: esCorreo ? null : identificador,
         password,
       });
-      navigate('/dashboard', { replace: true, viewTransition: true });
+      navigate(homePathFor(sessionUser), { replace: true, viewTransition: true });
     } catch (error) {
       console.error('Credenciales incorrectas:', error);
-      // fetch lanza TypeError cuando no hay respuesta del servidor
       setErrorMessage(
         error instanceof TypeError
           ? 'No se pudo conectar con el servidor. Inténtalo de nuevo.'
@@ -49,7 +52,7 @@ function Login() {
     }
   };
 
-  // Redirige a Google; al volver, /auth/callback termina de iniciar la sesión.
+  /** Redirige a Google; al volver, /auth/callback termina de iniciar la sesión. */
   const handleGoogleLogin = async () => {
     setErrorMessage(null);
     setIsSubmitting(true);

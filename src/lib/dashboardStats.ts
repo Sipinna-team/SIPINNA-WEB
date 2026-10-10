@@ -1,5 +1,8 @@
+/** @file Cálculo de indicadores del dashboard y formatos de estados, fechas y duraciones. */
+
 import type { Report } from './api';
 
+/** Clave normalizada del estado de un reporte. */
 export type StateKey =
   | 'registrado'
   | 'revision'
@@ -10,9 +13,11 @@ export type StateKey =
   | 'cancelado'
   | 'reincidente';
 
-// Colores validados para daltonismo en este orden, incluido el par
-// Reincidente→Registrado donde se cierra la dona. Si se reordena, hay que revalidar.
-// value es el valor técnico que manda y recibe el backend.
+/**
+ * Estados de un reporte con etiqueta y color. Colores validados para daltonismo en este orden,
+ * incluido el par Reincidente→Registrado donde se cierra la dona. Si se reordena, hay que revalidar.
+ * `value` es el valor técnico que manda y recibe el backend.
+ */
 export const STATES: { key: StateKey; value: string; label: string; color: string }[] = [
   { key: 'registrado', value: 'registrado', label: 'Registrado', color: '#2a78d6' },
   { key: 'revision', value: 'en_revision', label: 'En revisión', color: '#eb6834' },
@@ -24,13 +29,16 @@ export const STATES: { key: StateKey; value: string; label: string; color: strin
   { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#e34948' },
 ];
 
+/** Abreviaturas de los meses para los ejes de las gráficas. */
 export const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-// suspicius_level >= este valor se cuenta como reporte falso. El backend
-// devuelve 0 cuando el LLM aún no analiza el reporte, así que esos cuentan como verídicos.
+/**
+ * `suspicius_level` >= este valor se cuenta como reporte falso. El backend
+ * devuelve 0 cuando el LLM aún no analiza el reporte, así que esos cuentan como verídicos.
+ */
 export const FALSE_REPORT_THRESHOLD = 0.5;
 
-// Modalidades de trabajo infantil acordadas con SIPINNA
+/** Modalidades de trabajo infantil acordadas con SIPINNA. */
 const WORK_MODALITIES = [
   { label: 'Mendicidad forzada', match: 'mendicidad' },
   { label: 'Explotación sexual', match: 'sexual' },
@@ -40,28 +48,31 @@ const WORK_MODALITIES = [
   { label: 'Otra situación de explotación y/o vulneración', match: 'otra situacion' },
 ];
 
-// Mismas opciones que la pantalla "Información del niño" de la app.
+/** Mismas opciones que la pantalla "Información del niño" de la app. */
 const AGE_RANGES = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
 
 const UNATTENDED_AFTER_MS = 48 * 3_600_000;
 const DAY_MS = 86_400_000;
-// Días previos a hoy que se promedian para decir si hoy es un día normal.
+/** Días previos a hoy que se promedian para decir si hoy es un día normal. */
 const BASELINE_DAYS = 30;
 
+/** Número de reportes de una zona. */
 export type ZoneCount = { zone: string; count: number };
 type LabelCount = { label: string; value: number };
 
+/** Indicadores que muestra el dashboard; ver {@link computeDashboardStats}. */
 export type DashboardStats = {
   total: number;
   today: number;
-  // Promedio de reportes por día en los BASELINE_DAYS anteriores a hoy.
+  /** Promedio de reportes por día en los `BASELINE_DAYS` anteriores a hoy. */
   dailyAverage: number;
-  // Siguen en "registrado" después de 48 h.
+  /** Siguen en "registrado" después de 48 h. */
   unattended: number;
-  // Promedios en milisegundos; null si no hay reportes con qué calcularlos.
+  /** Promedio en milisegundos; `null` si no hay reportes con qué calcularlo. */
   avgFirstAttentionMs: number | null;
+  /** Promedio en milisegundos; `null` si no hay reportes con qué calcularlo. */
   avgResolutionMs: number | null;
-  // Porcentajes 0-100; null si no hay reportes.
+  /** Porcentajes 0-100; `null` si no hay reportes. */
   attendedPct: number | null;
   falsePct: number | null;
   repeatPct: number | null;
@@ -69,7 +80,9 @@ export type DashboardStats = {
   byAge: LabelCount[];
   byState: Record<StateKey, number>;
   byZone: ZoneCount[];
+  /** Los 6 reportes más recientes. */
   recent: Report[];
+  /** Conteos por mes (enero a diciembre) del año en curso. */
   perMonth: number[];
   truthfulPerMonth: number[];
   falsePerMonth: number[];
@@ -77,8 +90,11 @@ export type DashboardStats = {
   completedPerMonth: number[];
 };
 
-// historial_estados.estado es texto libre; se normaliza para agrupar variantes
-// como "En revisión", "en_revision" o "REVISION".
+/**
+ * Convierte un estado de texto libre en su {@link StateKey}. `historial_estados.estado` es texto libre;
+ * se normaliza para agrupar variantes como "En revisión", "en_revision" o "REVISION".
+ * @returns La clave del estado; `'registrado'` si no se reconoce.
+ */
 export function normalizeState(state: string | null | undefined): StateKey {
   const s = simplify(state);
 
@@ -92,11 +108,13 @@ export function normalizeState(state: string | null | undefined): StateKey {
   return 'registrado';
 }
 
+/** Etiqueta legible de un estado de texto libre, p. ej. `"en_revision"` → `"En revisión"`. */
 export function stateLabel(state: string | null | undefined): string {
   const key = normalizeState(state);
   return STATES.find((s) => s.key === key)!.label;
 }
 
+/** Quita acentos, mayúsculas y espacios repetidos para comparar textos. */
 export function simplify(text: string | null | undefined) {
   return (text ?? '')
     .normalize('NFD')
@@ -106,11 +124,15 @@ export function simplify(text: string | null | undefined) {
     .trim();
 }
 
+/** Compara dos textos ignorando acentos, mayúsculas y espacios. */
 function sameText(a: string, b: string | null | undefined) {
   return simplify(a).replace(/ /g, '') === simplify(b).replace(/ /g, '');
 }
 
-// Agrupa el texto libre en la modalidad correspondiente o lo deja tal cual.
+/**
+ * Agrupa el texto libre en la modalidad de trabajo correspondiente o lo deja tal cual.
+ * @returns La etiqueta, o `null` si el texto está vacío.
+ */
 export function workTypeLabel(type: string) {
   const text = simplify(type);
   if (!text) return null;
@@ -118,11 +140,13 @@ export function workTypeLabel(type: string) {
   return modality?.label ?? type.trim();
 }
 
+/** Promedio de los valores finitos y no negativos; `null` si no hay ninguno. */
 function average(values: number[]) {
   const valid = values.filter((v) => Number.isFinite(v) && v >= 0);
   return valid.length > 0 ? valid.reduce((sum, v) => sum + v, 0) / valid.length : null;
 }
 
+/** Indica si dos fechas caen en el mismo día local. */
 function isSameDay(a: Date, b: Date) {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -131,6 +155,16 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
+/**
+ * Calcula todos los indicadores del dashboard en una sola pasada.
+ * @param reports - Reportes visibles para el usuario.
+ * @param now - Fecha de referencia para "hoy" y el año en curso.
+ *
+ * @remarks
+ * - El tiempo de resolución usa el último cambio de estado de los reportes concluidos o canalizados.
+ * - La app manda varias modalidades separadas por coma; cada una cuenta por separado.
+ * - Las series mensuales solo incluyen el año en curso.
+ */
 export function computeDashboardStats(reports: Report[], now = new Date()): DashboardStats {
   const byState: Record<StateKey, number> = {
     registrado: 0,
@@ -177,12 +211,10 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
     if (report.first_attention_at) {
       firstAttention.push(Date.parse(report.first_attention_at) - createdMs);
     }
-    // El último cambio de estado de un reporte concluido o canalizado es cuando se cerró.
     if (state === 'concluido' || state === 'canalizado') {
       resolution.push(Date.parse(report.state_changed_at) - createdMs);
     }
 
-    // La app manda varias opciones separadas por coma; cada una cuenta por separado.
     for (const type of (report.work_type ?? '').split(',')) {
       const label = workTypeLabel(type);
       if (label) types.set(label, (types.get(label) ?? 0) + 1);
@@ -191,7 +223,6 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
     const age = AGE_RANGES.find((range) => sameText(range, report.children_age)) ?? 'Sin especificar';
     ages.set(age, (ages.get(age) ?? 0) + 1);
 
-    // Las gráficas mensuales solo muestran el año en curso.
     if (createdAt.getFullYear() !== now.getFullYear()) continue;
     const month = createdAt.getMonth();
     perMonth[month] += 1;
@@ -236,12 +267,14 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
   };
 }
 
+/** Formatea coordenadas como `19.4326N, 99.1332W`. */
 export function formatCoordinates(latitude: number, longitude: number) {
   const lat = `${Math.abs(latitude).toFixed(4)}${latitude >= 0 ? 'N' : 'S'}`;
   const lng = `${Math.abs(longitude).toFixed(4)}${longitude >= 0 ? 'E' : 'W'}`;
   return `${lat}, ${lng}`;
 }
 
+/** Formatea una fecha como "Hoy", "Ayer", "Antier" o día y mes, seguido de la hora. */
 export function formatRelativeDate(value: string, now = new Date()) {
   const date = new Date(value);
   const time = date.toLocaleTimeString('es-MX', { hour: 'numeric', minute: '2-digit' });
@@ -254,6 +287,7 @@ export function formatRelativeDate(value: string, now = new Date()) {
   return `${date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}, ${time}`;
 }
 
+/** Formatea una duración en minutos, horas o días; `"—"` si es `null`. */
 export function formatDuration(ms: number | null) {
   if (ms === null) return '—';
   const hours = ms / 3_600_000;

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 
-// Geocodificación inversa con Mapbox convierte coordenadas en calle, colonia y municipio.
+/**
+ * @file Geocodificación inversa con Mapbox: convierte coordenadas en calle, colonia y municipio.
+ */
+
 const GEOCODING_URL = 'https://api.mapbox.com/search/geocode/v6/reverse';
 const MAPBOX_TOKEN: string | undefined = import.meta.env.VITE_MAP_BOX_TOKEN;
 
@@ -17,6 +20,10 @@ type GeocodingResponse = {
 
 const addressCache = new Map<string, Promise<string | null>>();
 
+/**
+ * Arma "calle, colonia, municipio" a partir de la respuesta de Mapbox.
+ * @returns La dirección, `full_address` si no hay partes, o `null` sin resultados.
+ */
 function formatAddress(data: GeocodingResponse): string | null {
   const properties = data.features?.[0]?.properties;
   if (!properties) return null;
@@ -32,6 +39,14 @@ function formatAddress(data: GeocodingResponse): string | null {
   return unique.length > 0 ? unique.join(', ') : properties.full_address ?? null;
 }
 
+/**
+ * Obtiene la dirección legible de un punto. Las peticiones se cachean por
+ * coordenada (5 decimales) y se comparten entre componentes, por eso no aceptan `signal`.
+ * Un fallo se saca de la caché para reintentar la próxima vez.
+ * @param latitude - Latitud.
+ * @param longitude - Longitud.
+ * @returns La dirección, o `null` si no hay token de Mapbox, no se encontró o falló.
+ */
 export function reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
   if (!MAPBOX_TOKEN) return Promise.resolve(null);
 
@@ -47,7 +62,6 @@ export function reverseGeocode(latitude: number, longitude: number): Promise<str
       access_token: MAPBOX_TOKEN,
     });
 
-    // Sin signal: la promesa se comparte entre componentes y no debe cancelarse con uno de ellos.
     request = fetch(`${GEOCODING_URL}?${params}`)
       .then((response) => {
         if (!response.ok) throw new Error(`Mapbox respondió ${response.status}`);
@@ -55,7 +69,6 @@ export function reverseGeocode(latitude: number, longitude: number): Promise<str
       })
       .then(formatAddress)
       .catch((error) => {
-        // Se olvida el fallo para reintentar la próxima vez que se pida.
         addressCache.delete(key);
         console.error('No se pudo obtener la dirección', error);
         return null;
@@ -66,7 +79,11 @@ export function reverseGeocode(latitude: number, longitude: number): Promise<str
   return request;
 }
 
-// Dirección legible del punto, o null mientras carga o si no se encontró.
+/**
+ * Hook de React con la dirección legible del punto. Nunca devuelve la dirección del punto
+ * anterior mientras llega la nueva.
+ * @returns La dirección, o `null` mientras carga o si no se encontró.
+ */
 export function useAddress(latitude: number, longitude: number) {
   const [address, setAddress] = useState<{ key: string; value: string | null } | null>(null);
   const key = `${latitude},${longitude}`;
@@ -81,6 +98,5 @@ export function useAddress(latitude: number, longitude: number) {
     };
   }, [key, latitude, longitude]);
 
-  // Evita mostrar la dirección del punto anterior mientras llega la nueva.
   return address?.key === key ? address.value : null;
 }

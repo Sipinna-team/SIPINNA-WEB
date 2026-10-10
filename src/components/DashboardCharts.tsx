@@ -1,9 +1,14 @@
+/** @file Gráficas SVG del dashboard (dona, barras, columnas y líneas) sin librerías externas. */
+
 import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent, ReactNode } from 'react';
 
 type Tip = { x: number; y: number; content: ReactNode } | null;
 
-// Tooltip compartido: se posiciona relativo al contenedor de cada gráfica.
+/**
+ * Tooltip compartido: se posiciona relativo al contenedor de cada gráfica.
+ * @returns `containerRef` para el contenedor, `show`/`hide` y el `node` a renderizar.
+ */
 function useTooltip() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [tip, setTip] = useState<Tip>(null);
@@ -23,7 +28,7 @@ function useTooltip() {
   return { containerRef, show, hide: () => setTip(null), node };
 }
 
-// Máximo del eje Y dividido en 4 marcas enteras y redondas (p. ej. 0, 10, 20, 30, 40).
+/** Máximo del eje Y dividido en 4 marcas enteras y redondas (p. ej. 0, 10, 20, 30, 40). */
 function niceMax(value: number) {
   const raw = Math.max(value, 4) / 4;
   const magnitude = 10 ** Math.floor(Math.log10(raw));
@@ -31,10 +36,15 @@ function niceMax(value: number) {
   return step * magnitude * 4;
 }
 
+/** Indica si el usuario pidió reducir animaciones. */
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Cuenta desde el valor anterior hasta el nuevo. Solo se re-renderiza este número.
+/**
+ * Número que cuenta desde el valor anterior hasta el nuevo. Solo se re-renderiza este número.
+ * @param value - Valor final.
+ * @param duration - Duración de la animación en ms.
+ */
 export function AnimatedNumber({ value, duration = 900 }: { value: number; duration?: number }) {
   const [display, setDisplay] = useState(0);
   const fromRef = useRef(0);
@@ -64,11 +74,13 @@ export function AnimatedNumber({ value, duration = 900 }: { value: number; durat
   return <>{display}</>;
 }
 
-// Retraso escalonado para animaciones CSS que leen --i.
+/** Retraso escalonado para animaciones CSS que leen `--i`. */
 const staggerStyle = (i: number) => ({ '--i': i }) as CSSProperties;
 
+/** Serie de datos con un valor por categoría. */
 export type Series = { label: string; color: string; values: number[] };
 
+/** Leyenda de colores; se oculta si solo hay una serie. */
 function Legend({ series }: { series: Series[] }) {
   if (series.length < 2) return null;
   return (
@@ -84,8 +96,13 @@ function Legend({ series }: { series: Series[] }) {
 }
 
 /* ---------- Dona ---------- */
+/** Rebanada de la dona. */
 export type DonutSegment = { label: string; value: number; color: string };
 
+/**
+ * Gráfica de dona con tooltip por rebanada y un valor al centro.
+ * @remarks La máscara se monta junto con los datos y "barre" la dona en una sola pasada.
+ */
 export function DonutChart({
   segments,
   centerValue,
@@ -100,7 +117,7 @@ export function DonutChart({
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
-  // Hueco de 2px entre segmentos (en unidades del viewBox de 120).
+  /** Hueco de 2px entre segmentos (en unidades del viewBox de 120). */
   const gap = total > 0 && segments.filter((s) => s.value > 0).length > 1 ? 2 : 0;
   let offset = 0;
 
@@ -109,7 +126,6 @@ export function DonutChart({
       <svg viewBox="0 0 120 120" className="donut-svg" role="img" aria-label={`${centerValue} ${centerLabel}`}>
         <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(22,26,29,0.08)" strokeWidth="16" />
         {total > 0 && (
-          // La máscara se monta junto con los datos y "barre" la dona en una sola pasada.
           <mask id={maskId}>
             <circle
               className="donut-sweep"
@@ -168,6 +184,7 @@ export function DonutChart({
 }
 
 /* ---------- Barras horizontales ---------- */
+/** Lista de barras horizontales escaladas al valor máximo. */
 export function HorizontalBarChart({ items }: { items: { label: string; value: number }[] }) {
   const max = Math.max(...items.map((i) => i.value), 1);
 
@@ -193,6 +210,7 @@ const PAD = { top: 8, right: 6, bottom: 18, left: 26 };
 const PLOT_W = W - PAD.left - PAD.right;
 const PLOT_H = H - PAD.top - PAD.bottom;
 
+/** Líneas guía, marcas del eje Y y etiquetas de categorías. */
 function Axes({ max, categories }: { max: number; categories: string[] }) {
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * max);
   const band = PLOT_W / categories.length;
@@ -215,6 +233,7 @@ function Axes({ max, categories }: { max: number; categories: string[] }) {
   );
 }
 
+/** Contenido del tooltip: la categoría y el valor de cada serie en `index`. */
 function tooltipRows(category: string, series: Series[], index: number) {
   return (
     <>
@@ -230,6 +249,12 @@ function tooltipRows(category: string, series: Series[], index: number) {
 }
 
 /* ---------- Columnas (una o varias series) ---------- */
+/**
+ * Gráfica de columnas agrupadas, una por serie.
+ * @param label - Descripción accesible de la gráfica.
+ * @remarks Cada categoría tiene una zona de hover más grande que la barra. Solo el extremo
+ * superior de la barra va redondeado; la base queda en el eje.
+ */
 export function ColumnChart({ series, categories, label }: { series: Series[]; categories: string[]; label: string }) {
   const { containerRef, show, hide, node } = useTooltip();
   const max = niceMax(Math.max(...series.flatMap((s) => s.values), 0));
@@ -249,14 +274,12 @@ export function ColumnChart({ series, categories, label }: { series: Series[]; c
               onMouseMove={(e) => show(e, tooltipRows(category, series, i))}
               onMouseLeave={hide}
             >
-              {/* Zona de hover más grande que la barra. */}
               <rect x={PAD.left + band * i} y={PAD.top} width={band} height={PLOT_H} fill="transparent" />
               {series.map((s, j) => {
                 const h = (s.values[i] / max) * PLOT_H;
                 const x = groupX + j * (barWidth + 2);
                 const y = PAD.top + PLOT_H - h;
                 const r = Math.min(2, h);
-                // Solo el extremo superior va redondeado; la base queda en el eje.
                 return h > 0 ? (
                   <path
                     key={s.label}
@@ -278,6 +301,11 @@ export function ColumnChart({ series, categories, label }: { series: Series[]; c
 }
 
 /* ---------- Líneas ---------- */
+/**
+ * Gráfica de líneas con una línea por serie y resaltado de la categoría bajo el cursor.
+ * @param label - Descripción accesible de la gráfica.
+ * @remarks La `key` de cada trazo cambia con los datos para que se vuelva a dibujar al llegar.
+ */
 export function LineChart({ series, categories, label }: { series: Series[]; categories: string[]; label: string }) {
   const { containerRef, show, hide, node } = useTooltip();
   const [active, setActive] = useState<number | null>(null);
@@ -296,7 +324,6 @@ export function LineChart({ series, categories, label }: { series: Series[]; cat
         {series.map((s) => (
           <g key={s.label}>
             <polyline
-              // La key cambia con los datos para que el trazo se vuelva a dibujar al llegar.
               key={s.values.join(',')}
               className="chart-line"
               pathLength="1"
