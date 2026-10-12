@@ -57,11 +57,11 @@ function CitizenHome() {
     return () => observer.disconnect();
   }, []);
 
-  async function handleLogout() {
+  async function handleLogin() {
     try {
       await logout();
     } catch (err) {
-      console.error('Error al cerrar sesión', err);
+      console.error('Error al iniciar sesión', err);
     } finally {
       navigate('/login', { replace: true, viewTransition: true });
     }
@@ -88,21 +88,11 @@ function CitizenHome() {
           </nav>
 
           <div className="citizen-user">
-            <span className="citizen-avatar" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="9" r="4" />
-                <path d="M4 21a8 8 0 0 1 16 0Z" />
-              </svg>
-            </span>
-            <div className="citizen-user-info">
-              <span>Ciudadano</span>
-              <strong>{user?.name}</strong>
-            </div>
-            <button type="button" className="citizen-logout" onClick={handleLogout} aria-label="Cerrar sesión">
+            <button type="button" className="citizen-login" onClick={handleLogin} aria-label="Iniciar sesión">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h12" />
               </svg>
-              <span className="citizen-logout-label">Cerrar sesión</span>
+              <span className="citizen-login-label">Iniciar sesión</span>
             </button>
           </div>
         </div>
@@ -233,7 +223,7 @@ function CitizenHome() {
                 </ul>
               </article>
 
-              <article className="citizen-card citizen-card-green">
+              <article className="citizen-card citizen-card-blue">
                 <h3>Relación con SIPINNA</h3>
                 <p>
                   La Ruta RIETI opera bajo el paraguas y los principios de los SIPINNA municipales,

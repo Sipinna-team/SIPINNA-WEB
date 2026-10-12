@@ -2,11 +2,11 @@
    (Montserrat en títulos y Open Sans en texto, definidas en App.css). */
 .citizen-page {
   --citizen-body: #3d4247;
-  --citizen-primary-tint: #f3e4e9;
-  --citizen-gold-tint: #f1e7d0;
-  --citizen-gold-text: #7a5c1c;
-  --citizen-on-primary: #f6e8ed;
-  --citizen-on-primary-accent: #f0d9a6;
+  --citizen-primary-tint: #e4e9f3;
+  --citizen-gold-tint: #e7d0f1;
+  --citizen-gold-text: #5c1c7a;
+  --citizen-on-primary: #e8edf6;
+  --citizen-on-primary-accent: #d9a6f0;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--sip-cream);
@@ -102,7 +102,7 @@ html:has(.citizen-page) body {
 
 .citizen-nav a:focus-visible,
 .citizen-btn:focus-visible,
-.citizen-logout:focus-visible {
+.citizen-login:focus-visible {
   outline: 2px solid var(--sip-primary);
   outline-offset: 3px;
 }
@@ -118,43 +118,7 @@ html:has(.citizen-page) body {
   min-width: 0;
 }
 
-.citizen-avatar {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--citizen-primary-tint);
-  color: var(--sip-primary);
-}
-
-.citizen-avatar svg {
-  width: 22px;
-  height: 22px;
-}
-
-.citizen-user-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.25;
-}
-
-.citizen-user-info span {
-  color: var(--sip-text-muted);
-  font-size: 12px;
-}
-
-.citizen-user-info strong {
-  max-width: 220px;
-  overflow: hidden;
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.citizen-logout {
+.citizen-login {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -172,12 +136,12 @@ html:has(.citizen-page) body {
   transition: background-color 160ms ease, color 160ms ease;
 }
 
-.citizen-logout svg {
+.citizen-login svg {
   width: 18px;
   height: 18px;
 }
 
-.citizen-logout:hover {
+.citizen-login:hover {
   background: var(--sip-primary-soft);
   color: var(--sip-primary-dark);
 }
@@ -394,16 +358,16 @@ html:has(.citizen-page) body {
   background: var(--sip-cream);
 }
 
-.citizen-card-green {
-  background: var(--sip-success);
+.citizen-card-blue {
+  background: var(--sip-primary-dark);
   color: var(--sip-white);
 }
 
-.citizen-card-green h3 {
+.citizen-card-blue h3 {
   color: var(--sip-white);
 }
 
-.citizen-card-green p {
+.citizen-card-blue p {
   color: #e3efec;
 }
 
@@ -555,7 +519,7 @@ html:has(.citizen-page) body {
     display: none;
   }
 
-  .citizen-logout {
+  .citizen-login {
     width: 44px;
     margin-left: 0;
     padding: 0;
@@ -563,12 +527,12 @@ html:has(.citizen-page) body {
     border-radius: 50%;
   }
 
-  .citizen-logout svg {
+  .citizen-login svg {
     width: 20px;
     height: 20px;
   }
 
-  .citizen-logout-label {
+  .citizen-login-label {
     position: absolute;
     width: 1px;
     height: 1px;

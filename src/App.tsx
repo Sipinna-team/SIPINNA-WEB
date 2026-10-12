@@ -26,7 +26,7 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/inicio" element={<ProtectedRoute><CitizenHome /></ProtectedRoute>} />
+        <Route path="/inicio" element={<CitizenHome />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
         <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
