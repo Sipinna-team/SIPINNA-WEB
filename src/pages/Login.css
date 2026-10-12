@@ -18,7 +18,7 @@
   -webkit-backdrop-filter: blur(15px);
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 8px 32px rgba(97, 18, 50, 0.12);
+  box-shadow: 0 8px 32px rgba(18, 50, 97, 0.12);
   color: var(--sip-text);
   animation: page-rise 600ms var(--ease-out-soft) both;
 }
@@ -203,7 +203,7 @@
   width: 28px;
   height: 28px;
   margin-top: 8px;
-  border-color: rgba(155, 34, 71, 0.18);
+  border-color: rgba(34, 71, 155, 0.18);
   border-top-color: var(--sip-primary);
 }
 

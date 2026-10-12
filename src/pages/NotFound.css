@@ -23,7 +23,7 @@
   background-clip: text;
   color: transparent;
   /* Sombra guinda para que el número se despegue del fondo translúcido */
-  filter: drop-shadow(0 6px 14px rgba(155, 34, 71, 0.3));
+  filter: drop-shadow(0 6px 14px rgba(34, 71, 155, 0.3));
 }
 
 .not-found-card h2 {

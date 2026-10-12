@@ -216,7 +216,7 @@
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
   background: rgb(165 127 44 / 14%);
-  color: #6e5419;
+  color: #54196e;
   font-size: 0.72rem;
 }
 
@@ -425,4 +425,14 @@
 .report-delete-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.map-reset-button {
+  display: grid;
+  place-items: center;
+  color: var(--sip-text);
+}
+
+.map-reset-button svg {
+  width: 17px;
+  height: 17px;
 }

@@ -16,7 +16,7 @@ type CoordinatePair = [number, number]
 type MapContainerProps = {
   reports: Report[]
   selectedReport: Report | null
-  onSelectReport: (folio: string) => void
+  onSelectReport: (folio: string | null) => void
   /** `null` = todo el estado; `undefined` = las zonas aún no cargan. */
   zone: Zone | null | undefined
   zoneControl: ReactNode
@@ -94,6 +94,8 @@ function MapContainer({
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
   const onSelectReportRef = useRef(onSelectReport)
+  /** Regresa al encuadre de la zona, el que tenía el mapa antes de abrir un reporte. */
+  const flyHomeRef = useRef<() => void>(() => mapRef.current?.flyTo({ center: INITIAL_CENTER, zoom: INITIAL_ZOOM }))
 
   useEffect(() => {
     onSelectReportRef.current = onSelectReport
@@ -110,7 +112,18 @@ function MapContainer({
     })
 
     mapRef.current = map
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'top-right')
+
+    const resetControl = document.createElement('div')
+    resetControl.className = 'mapboxgl-ctrl mapboxgl-ctrl-group'
+    resetControl.innerHTML = `<button type="button" class="map-reset-button" aria-label="Restablecer vista" title="Restablecer vista">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8M5 9.5V20h5v-6h4v6h5V9.5" /></svg>
+    </button>`
+    resetControl.querySelector('button')!.addEventListener('click', () => {
+      onSelectReportRef.current(null)
+      flyHomeRef.current()
+    })
+    map.addControl({ onAdd: () => resetControl, onRemove: () => resetControl.remove() }, 'top-right')
 
     map.on('load', () => {
       map.addSource(ZONE_SOURCE_ID, { type: 'geojson', data: EMPTY_COLLECTION })
@@ -223,10 +236,14 @@ function MapContainer({
 
         if (boundary) {
           source.setData(boundary)
-          map.fitBounds(boundaryBounds(boundary), { padding: 40, duration: 1200 })
+          flyHomeRef.current = () => map.fitBounds(boundaryBounds(boundary), { padding: 40, duration: 1200 })
         } else if (zone?.latitude != null && zone.longitude != null) {
-          map.flyTo({ center: [zone.longitude, zone.latitude], zoom: INITIAL_ZOOM, duration: 1200 })
+          const center: CoordinatePair = [zone.longitude, zone.latitude]
+          flyHomeRef.current = () => map.flyTo({ center, zoom: INITIAL_ZOOM, duration: 1200 })
+        } else {
+          return
         }
+        flyHomeRef.current()
       })
 
     return () => {

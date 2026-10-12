@@ -88,7 +88,7 @@ export async function exportReportsPdf(reports: Report[], filtersSummary: string
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
 
   doc.setFontSize(16);
-  doc.setTextColor('#611232');
+  doc.setTextColor('#123261');
   doc.text('Reportes SIPINNA', 40, 40);
   doc.setFontSize(9);
   doc.setTextColor('#5c6166');
@@ -100,7 +100,7 @@ export async function exportReportsPdf(reports: Report[], filtersSummary: string
     head: [PDF_COLUMNS.map((c) => c.header)],
     body: reports.map((report) => PDF_COLUMNS.map((c) => c.value(report))),
     styles: { fontSize: 8, cellPadding: 4 },
-    headStyles: { fillColor: '#9b2247', textColor: '#ffffff' },
+    headStyles: { fillColor: '#22479b', textColor: '#ffffff' },
     alternateRowStyles: { fillColor: '#faf6ec' },
     margin: { left: 40, right: 40 },
     didDrawPage: () => {

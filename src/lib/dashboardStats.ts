@@ -24,7 +24,7 @@ export const STATES: { key: StateKey; value: string; label: string; color: strin
   { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#4a3aa7' },
   { key: 'canalizado', value: 'canalizado', label: 'Canalizado', color: '#1baf7a' },
   { key: 'concluido', value: 'concluido', label: 'Concluido', color: '#008300' },
-  { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#e87ba4' },
+  { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#7ba4e8' },
   { key: 'cancelado', value: 'cancelado', label: 'Cancelado', color: '#eda100' },
   { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#e34948' },
 ];

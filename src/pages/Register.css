@@ -23,7 +23,7 @@
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 20px 60px rgba(97, 18, 50, 0.12);
+  box-shadow: 0 20px 60px rgba(18, 50, 97, 0.12);
   animation: page-rise 600ms var(--ease-out-soft) both;
 }
 
@@ -40,7 +40,7 @@
   background:
     linear-gradient(
       150deg,
-      rgba(155, 34, 71, 0.1),
+      rgba(34, 71, 155, 0.1),
       rgba(250, 246, 236, 0.5)
     );
 }
