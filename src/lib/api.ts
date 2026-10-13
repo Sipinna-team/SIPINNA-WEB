@@ -115,7 +115,24 @@ export type ReportDetail = Report & {
   images: string[];
 };
 
+/** Cuerpo de `POST /report`. La condición y la dirección van dentro de `description`. */
+export type CreateReportPayload = {
+  description: string;
+  latitude: number;
+  longitude: number;
+  children_quantity: number;
+  children_age: string;
+  /** Varias opciones separadas por coma. */
+  work_type: string;
+  /** Hora local, `"YYYY-MM-DDTHH:mm"`. */
+  sighting_time: string;
+};
+
 const DEFAULT_TIMEOUT_MS = 8000;
+
+/** Header con el que un reporte anónimo demuestra que es de quien lo creó. */
+const editTokenHeader = (editToken?: string): Record<string, string> =>
+  editToken ? { 'X-Edit-Token': editToken } : {};
 type RequestOptions = RequestInit & { timeoutMs?: number };
 
 /**
@@ -142,7 +159,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       ...fetchOptions,
       signal: controller.signal,
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...fetchOptions.headers },
+      // Con FormData el navegador pone el Content-Type multipart con su boundary.
+      headers: {
+        ...(fetchOptions.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+        ...fetchOptions.headers,
+      },
     });
 
     const data = await response.json().catch(() => null);
@@ -250,6 +271,46 @@ export const api = {
       `/report/${encodeURIComponent(folio)}`,
       { signal },
     );
+  },
+
+  /**
+   * Crea un reporte en borrador. Sin sesión es anónimo y regresa `edit_token`,
+   * que se manda en los pasos siguientes para poder editarlo.
+   */
+  createReport(payload: CreateReportPayload) {
+    return request<{ reporte_id: string; folio: string; edit_token?: string }>('/report', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /** Registra las fotos que se van a subir; regresa sus ids en el mismo orden. */
+  registerReportImages(reportId: string, files: File[], editToken?: string) {
+    return request<{ success: string[] }>(`/report/${encodeURIComponent(reportId)}/images`, {
+      method: 'POST',
+      headers: editTokenHeader(editToken),
+      body: JSON.stringify({
+        images: files.map((file) => ({ file_name: file.name, content_type: file.type })),
+      }),
+    });
+  },
+
+  /** Sube una foto ya registrada. */
+  uploadReportImage(reportId: string, imageId: string, file: File, editToken?: string) {
+    const body = new FormData();
+    body.append('file', file);
+    return request<unknown>(
+      `/report/${encodeURIComponent(reportId)}/images/${encodeURIComponent(imageId)}`,
+      { method: 'PUT', headers: editTokenHeader(editToken), body, timeoutMs: 60_000 },
+    );
+  },
+
+  /** Envía el reporte: deja de ser borrador y pasa a revisión. */
+  submitReport(reportId: string, editToken?: string) {
+    return request<unknown>(`/report/${encodeURIComponent(reportId)}/submit`, {
+      method: 'PUT',
+      headers: editTokenHeader(editToken),
+    });
   },
 
   /** Elimina un reporte. */

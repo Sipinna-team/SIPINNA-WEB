@@ -1,12 +1,13 @@
 /* Página de inicio de ciudadanos. Usa las mismas fuentes que el resto del sitio
    (Montserrat en títulos y Open Sans en texto, definidas en App.css). */
 .citizen-page {
+  overflow-wrap: anywhere;
   --citizen-body: #3d4247;
-  --citizen-primary-tint: #e4e9f3;
-  --citizen-gold-tint: #e7d0f1;
-  --citizen-gold-text: #5c1c7a;
-  --citizen-on-primary: #e8edf6;
-  --citizen-on-primary-accent: #d9a6f0;
+  --citizen-primary-tint: #f5e5ea;
+  --citizen-gold-tint: #f2e8cf;
+  --citizen-gold-text: #765a1f;
+  --citizen-on-primary: #f6e8ed;
+  --citizen-on-primary-accent: #ecd6a0;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--sip-cream);
@@ -100,9 +101,7 @@ html:has(.citizen-page) body {
   border-bottom-color: var(--sip-primary);
 }
 
-.citizen-nav a:focus-visible,
-.citizen-btn:focus-visible,
-.citizen-login:focus-visible {
+.citizen-nav a:focus-visible {
   outline: 2px solid var(--sip-primary);
   outline-offset: 3px;
 }
@@ -118,38 +117,17 @@ html:has(.citizen-page) body {
   min-width: 0;
 }
 
-.citizen-login {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  margin-left: 8px;
+/* Botones del encabezado: .sip-btn (App.css) en tamaño compacto. */
+.citizen-header-btn {
+  min-height: 42px;
   padding: 0 16px;
-  border: 1px solid rgba(22, 26, 29, 0.16);
-  border-radius: 999px;
-  background: var(--sip-white);
-  color: var(--sip-primary);
-  font: inherit;
   font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 160ms ease, color 160ms ease;
-}
-
-.citizen-login svg {
-  width: 18px;
-  height: 18px;
-}
-
-.citizen-login:hover {
-  background: var(--sip-primary-soft);
-  color: var(--sip-primary-dark);
 }
 
 /* ---------- Bienvenida ---------- */
 .citizen-hero {
-  background: var(--sip-primary);
-  color: var(--sip-white);
+  background: var(--sip-cream);
+  color: var(--sip-primary-dark);
 }
 
 .citizen-hero-inner {
@@ -166,7 +144,7 @@ html:has(.citizen-page) body {
 }
 
 .citizen-eyebrow {
-  color: var(--citizen-on-primary-accent);
+  color: var(--citizen-gold-text);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -180,7 +158,6 @@ html:has(.citizen-page) body {
 .citizen-hero h1 {
   margin-bottom: 20px;
   font-family: var(--font-heading);
-  font-size: clamp(34px, 5vw, 56px);
   font-weight: 700;
   line-height: 1.08;
 }
@@ -188,7 +165,7 @@ html:has(.citizen-page) body {
 .citizen-hero .citizen-hero-text {
   max-width: 56ch;
   margin-bottom: 32px;
-  color: var(--citizen-on-primary);
+  color: var(--citizen-body);
   font-size: 18px;
 }
 
@@ -198,45 +175,16 @@ html:has(.citizen-page) body {
   gap: 12px;
 }
 
-.citizen-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 24px;
-  border-radius: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: transform 160ms ease, background-color 160ms ease;
-}
-
-.citizen-btn:hover {
-  transform: translateY(1px);
-}
-
-.citizen-btn-light {
-  background: var(--sip-white);
-  color: var(--sip-primary-dark);
-}
-
-.citizen-btn-light:hover {
-  background: var(--sip-cream);
-}
-
-.citizen-btn-outline {
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  color: var(--sip-white);
-}
-
-.citizen-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.1);
+@media (max-width: 640px) {
+  .citizen-hero-btn {
+    width: 100%;
+  }
 }
 
 .citizen-levels {
   display: flex;
   flex: 1 1 360px;
   flex-direction: column;
-  gap: 12px;
 }
 
 .citizen-levels .citizen-eyebrow {
@@ -247,11 +195,6 @@ html:has(.citizen-page) body {
 .citizen-level {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 22px;
-  border-radius: 16px;
-  background: var(--sip-white);
-  color: var(--sip-text);
 }
 
 /* Escalera: cada nivel se recorre un poco a la derecha. */
@@ -263,7 +206,6 @@ html:has(.citizen-page) body {
 }
 
 .citizen-level span:not(.citizen-number) {
-  color: var(--sip-text-muted);
   font-size: 14px;
 }
 
@@ -309,8 +251,6 @@ html:has(.citizen-page) body {
 
 .citizen-section h2 {
   margin-top: 14px;
-  font-family: var(--font-heading);
-  font-size: clamp(30px, 4vw, 44px);
   line-height: 1.1;
   color: var(--sip-primary-dark);
 }
@@ -318,10 +258,7 @@ html:has(.citizen-page) body {
 .citizen-tag {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 999px;
-  background: var(--citizen-primary-tint);
   color: var(--sip-primary);
-  font-size: 13px;
   font-weight: 700;
 }
 
@@ -332,7 +269,7 @@ html:has(.citizen-page) body {
 
 .citizen-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 20px;
 }
 
@@ -341,12 +278,11 @@ html:has(.citizen-page) body {
   flex-direction: column;
   gap: 14px;
   padding: 32px;
-  border-radius: 20px;
+  border-radius: var(--sip-radius-card);
   background: var(--sip-white);
 }
 
 .citizen-card h3 {
-  font-size: 20px;
   color: var(--sip-primary-dark);
 }
 
@@ -434,7 +370,7 @@ html:has(.citizen-page) body {
 
 .citizen-axes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 16px;
   margin: 0;
   padding: 0;
@@ -446,7 +382,6 @@ html:has(.citizen-page) body {
   flex-direction: column;
   gap: 6px;
   padding: 24px;
-  border-radius: 16px;
   background: var(--sip-cream);
 }
 
@@ -467,13 +402,6 @@ html:has(.citizen-page) body {
   justify-content: space-between;
   gap: 16px;
   padding-block: 32px;
-}
-
-/* ---------- Tableta ---------- */
-@media (max-width: 960px) {
-  .citizen-user-info {
-    display: none;
-  }
 }
 
 /* ---------- Celular ---------- */
@@ -503,7 +431,7 @@ html:has(.citizen-page) body {
   .citizen-nav {
     order: 3;
     width: 100%;
-    gap: 20px;
+    gap: 8px 16px;
     margin-top: 6px;
     font-size: 14px;
   }
@@ -515,21 +443,10 @@ html:has(.citizen-page) body {
   .citizen-nav-long { display: none; }
   .citizen-nav-short { display: inline; }
 
-  .citizen-avatar {
-    display: none;
-  }
-
+  /* Solo el ícono; el texto queda para lectores de pantalla. */
   .citizen-login {
-    width: 44px;
-    margin-left: 0;
+    width: 42px;
     padding: 0;
-    justify-content: center;
-    border-radius: 50%;
-  }
-
-  .citizen-login svg {
-    width: 20px;
-    height: 20px;
   }
 
   .citizen-login-label {
@@ -542,7 +459,6 @@ html:has(.citizen-page) body {
   }
 
   .citizen-hero-inner {
-    gap: 36px;
     padding-block: 40px 44px;
   }
 
@@ -632,4 +548,56 @@ html:has(.citizen-page) body {
     padding-block: 24px;
     font-size: 13px;
   }
+}
+
+@media (max-width: 360px) {
+  .citizen-axes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Composición editorial: un titular abierto y una pieza lateral curvada. */
+.citizen-hero { border-bottom: 1px solid rgba(165, 127, 44, 0.25); }
+.citizen-hero h1 { font-size: clamp(34px, 4.8vw, 60px); letter-spacing: -0.045em; }
+.citizen-hero-emphasis { display: block; font-family: var(--font-editorial); font-style: italic; font-weight: 400; letter-spacing: -0.035em; font-size: 1.18em; }
+.citizen-hero-actions > a:last-child { border: 0; background: transparent; text-decoration: underline; text-underline-offset: 5px; font-weight: 600; }
+.citizen-levels {
+  min-width: 0;
+  padding: 36px 30px 28px;
+  gap: 0;
+  border-radius: 72px 12px 44px 12px;
+  background: var(--sip-primary-dark);
+  color: var(--sip-white);
+}
+.citizen-levels .citizen-eyebrow { padding-bottom: 18px; color: var(--citizen-on-primary-accent); }
+.citizen-level { padding: 18px 0; gap: 18px; border-radius: 0; border-top: 1px solid rgba(255,255,255,0.2); background: transparent; color: var(--sip-white); }
+.citizen-level:nth-of-type(2), .citizen-level:nth-of-type(3) { margin-left: 0; }
+.citizen-level .citizen-number { flex: none; min-width: 48px; white-space: nowrap; font-family: var(--font-editorial); font-size: 38px; font-weight: 400; color: var(--citizen-on-primary-accent); }
+.citizen-level span:not(.citizen-number) { color: var(--citizen-on-primary); }
+.citizen-section h2 { font-family: var(--font-editorial); font-weight: 400; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.025em; }
+.citizen-tag { padding-inline: 0; border-radius: 0; background: transparent; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.citizen-tag::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--sip-gold); vertical-align: middle; margin-right: 10px; }
+.citizen-card-grid > .citizen-card { border-top: 1px solid rgba(165,127,44,0.4); border-radius: 0; background: transparent; }
+.citizen-card-grid > .citizen-card:first-child { border-top: 0; background: var(--sip-cream); border-radius: 40px 8px 8px 8px; }
+.citizen-card-grid > .citizen-card:last-child { background: var(--sip-cream); border-radius: 8px 8px 40px 8px; }
+.citizen-card h3 { font-size: 18px; }
+.citizen-card-blue { border-radius: 8px 48px 8px 8px; }
+.citizen-axes li { border-radius: 6px; border-bottom: 2px solid rgba(165,127,44,0.35); }
+.citizen-number-gold { font-family: var(--font-editorial); font-weight: 400; }
+.citizen-footer { border-top: 4px solid var(--sip-gold); }
+
+@media (min-width: 1000px) {
+  .citizen-card-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .citizen-card-grid > .citizen-card:nth-child(2) { padding-inline: 12px; }
+  .citizen-card-grid > .citizen-card:last-child { margin-top: 28px; }
+  .citizen-rieti-row > .citizen-card:first-child { flex-grow: 1.25; }
+}
+
+@media (max-width: 640px) {
+  .citizen-hero-inner { gap: 28px; }
+  .citizen-levels { padding: 24px; border-radius: 44px 8px 28px 8px; }
+  .citizen-level { padding: 14px 0; }
+  .citizen-level .citizen-number { font-size: 32px; }
+  .citizen-card-grid > .citizen-card { padding: 22px; }
+  .citizen-hero-actions > a:last-child { min-height: 40px; }
 }

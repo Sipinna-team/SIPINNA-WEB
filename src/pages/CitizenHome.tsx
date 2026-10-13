@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/auth';
+import { Link } from 'react-router-dom';
+import { homePathFor, useAuth } from '../context/auth';
 import sipinnaLogo from '../assets/sipinna.svg';
 import './CitizenHome.css';
 
@@ -32,13 +32,12 @@ const RIETI_AXES = ['Inspección', 'Detección', 'Atención', 'Registro de casos
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /**
- * Página de inicio para ciudadanos: llegan aquí al iniciar sesión o al terminar su registro.
+ * Página principal pública y de inicio para ciudadanos. Es solo informativa: no muestra datos
+ * del usuario aunque haya sesión. Su acción principal es hacer un reporte; iniciar sesión es secundaria.
  * El menú marca la sección que ocupa la parte superior de la pantalla.
  */
 function CitizenHome() {
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const firstName = user?.name.trim().split(/\s+/)[0] ?? '';
   const [activeSection, setActiveSection] = useState(NAV_ITEMS[0].id);
 
   useEffect(() => {
@@ -57,15 +56,19 @@ function CitizenHome() {
     return () => observer.disconnect();
   }, []);
 
-  async function handleLogin() {
+  async function handleLogout() {
     try {
       await logout();
     } catch (err) {
-      console.error('Error al iniciar sesión', err);
-    } finally {
-      navigate('/login', { replace: true, viewTransition: true });
+      console.error('Error al cerrar sesión', err);
     }
   }
+
+  const loginIcon = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h12" />
+    </svg>
+  );
 
   return (
     <div className="citizen-page">
@@ -88,12 +91,26 @@ function CitizenHome() {
           </nav>
 
           <div className="citizen-user">
-            <button type="button" className="citizen-login" onClick={handleLogin} aria-label="Iniciar sesión">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h12" />
-              </svg>
-              <span className="citizen-login-label">Iniciar sesión</span>
-            </button>
+            <Link to="/reportar" className="sip-btn sip-btn--primary citizen-header-btn">
+              <span className="citizen-nav-long">Hacer un reporte</span>
+              <span className="citizen-nav-short">Reportar</span>
+            </Link>
+            {user === null ? (
+              <Link to="/login" className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" aria-label="Iniciar sesión">
+                {loginIcon}
+                <span className="citizen-login-label">Iniciar sesión</span>
+              </Link>
+            ) : user.userType === 'citizen' ? (
+              <button type="button" className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" onClick={handleLogout} aria-label="Cerrar sesión">
+                {loginIcon}
+                <span className="citizen-login-label">Cerrar sesión</span>
+              </button>
+            ) : (
+              <Link to={homePathFor(user)} className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" aria-label="Ir al panel">
+                {loginIcon}
+                <span className="citizen-login-label">Ir al panel</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -103,14 +120,14 @@ function CitizenHome() {
           <div className="citizen-container citizen-hero-inner">
             <div className="citizen-hero-copy">
               <p className="citizen-eyebrow">Bienvenida y bienvenido</p>
-              <h1>{firstName ? `Hola, ${firstName}.` : 'Hola.'} Juntos protegemos a la niñez.</h1>
+              <h1>Juntos protegemos <span className="citizen-hero-emphasis">a la niñez.</span></h1>
               <p className="citizen-hero-text">
                 Conoce cómo el Sistema de Protección Integral y la Ruta RIETI trabajan para que niñas,
                 niños y adolescentes vivan libres de violencia y de trabajo infantil.
               </p>
               <div className="citizen-hero-actions">
-                <a href="#sipinna" className="citizen-btn citizen-btn-light">Conocer SIPINNA</a>
-                <a href="#rieti" className="citizen-btn citizen-btn-outline">Ver la Ruta RIETI</a>
+                <Link to="/reportar" className="sip-btn sip-btn--primary citizen-hero-btn">Hacer un reporte</Link>
+                <a href="#sipinna" className="sip-btn sip-btn--secondary citizen-hero-btn">Conocer SIPINNA</a>
               </div>
             </div>
 

@@ -103,7 +103,7 @@ function Dashboard() {
     } catch (err) {
       console.error('Error al cerrar sesión', err);
     } finally {
-      navigate('/login', { replace: true, viewTransition: true });
+      navigate('/inicio', { replace: true, viewTransition: true });
     }
   }
 
