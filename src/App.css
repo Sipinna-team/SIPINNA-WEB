@@ -148,3 +148,11 @@ button, input, select, textarea {
     transform: none;
   }
 }
+
+.password-requirements { margin: 0; color: var(--sip-text-muted); font-size: 12px; line-height: 1.4; }
+.register-form > .password-requirements { grid-column: 1 / -1; }
+.recovery-content form > .password-requirements { text-align: left; font-size: 12px; margin: 0; }
+@media (min-width: 600px) and (max-height: 500px) {
+  .register-form > .password-requirements { grid-column: 1; font-size: 11px; }
+  .register-form:has(.password-requirements) .register-button { grid-column: 2; }
+}

@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 import sipinnaLogo from '../assets/sipinna.svg';
 import { api } from '../lib/api';
+import { passwordError, PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from '../lib/passwordPolicy';
 import { homePathFor, useAuth } from '../context/auth';
 
 /** Página de registro de ciudadanos; al terminar inicia sesión automáticamente. */
@@ -28,6 +29,15 @@ function Register() {
     event.preventDefault();
 
     setErrorMessage(null);
+    const validationError = passwordError(password);
+    if (validationError) {
+      setErrorMessage(validationError);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMessage('Las contraseñas no coinciden.');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -44,7 +54,9 @@ function Register() {
       setErrorMessage(
         error instanceof TypeError
           ? 'No se pudo conectar con el servidor. Inténtalo de nuevo.'
-          : 'No se pudo completar el registro. Revisa tus datos e inténtalo de nuevo.'
+          : error instanceof Error
+            ? error.message
+            : 'No se pudo completar el registro. Revisa tus datos e inténtalo de nuevo.'
       );
       setIsSubmitting(false);
       return;
@@ -259,6 +271,10 @@ function Register() {
                 <input
                   id="password"
                   type="password"
+                  required
+                  minLength={PASSWORD_MIN_LENGTH}
+                  autoComplete="new-password"
+                  aria-describedby="register-password-requirements"
                   placeholder="Crea una contraseña"
                   value={password}
                   onChange={(event) =>
@@ -277,6 +293,10 @@ function Register() {
                 <input
                   id="confirmPassword"
                   type="password"
+                  required
+                  minLength={PASSWORD_MIN_LENGTH}
+                  autoComplete="new-password"
+                  aria-describedby="register-password-requirements"
                   placeholder="Confirma tu contraseña"
                   value={confirmPassword}
                   onChange={(event) =>
@@ -287,6 +307,8 @@ function Register() {
                 />
               </div>
             </div>
+
+            <p id="register-password-requirements" className="password-requirements">{PASSWORD_REQUIREMENTS}</p>
 
             {errorMessage && (
               <div className="register-error" role="alert">

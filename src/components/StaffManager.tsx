@@ -1,4 +1,5 @@
 import { initials } from '../lib/presentation';
+import { passwordError, PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from '../lib/passwordPolicy';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
@@ -126,6 +127,11 @@ export function StaffManager() {
       return;
     }
 
+    const validationError = passwordError(form.password);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
     setSaving(true);
     try {
       const { staff: member } = await api.createStaff({
@@ -217,12 +223,14 @@ export function StaffManager() {
             <input
               type="password"
               required
-              minLength={6}
+              minLength={PASSWORD_MIN_LENGTH}
+              aria-describedby="staff-password-requirements"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               autoComplete="new-password"
             />
           </label>
+          <p id="staff-password-requirements" className="password-requirements staff-field--wide">{PASSWORD_REQUIREMENTS}</p>
           <label className="staff-check">
             <input
               type="checkbox"
