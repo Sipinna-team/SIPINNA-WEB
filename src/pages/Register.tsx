@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 import sipinnaLogo from '../assets/sipinna.svg';
 import { api } from '../lib/api';
-import { homePathFor, useAuth } from '../context/AuthContext';
+import { homePathFor, useAuth } from '../context/auth';
 
 /** Página de registro de ciudadanos; al terminar inicia sesión automáticamente. */
 function Register() {

@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { homePathFor, useAuth } from '../context/AuthContext';
+import { homePathFor, useAuth } from '../context/auth';
 
 /**
  * Redirige `/` a la página de inicio del usuario.

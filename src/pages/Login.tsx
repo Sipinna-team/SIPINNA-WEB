@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import './Login.css';
 import sipinnaLogo from '../assets/sipinna.svg';
-import { homePathFor, useAuth } from '../context/AuthContext';
+import { NEXT_PATH_KEY, postLoginPath, useAuth } from '../context/auth';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../lib/supabase';
 
@@ -21,6 +21,8 @@ function Login() {
   const passwordReset = (location.state as { passwordReset?: boolean } | null)?.passwordReset
   /** Error que regresa /auth/callback si falló el login con Google. */
   const googleError = (location.state as { googleError?: string } | null)?.googleError
+  /** Ruta a la que regresar al iniciar sesión, p. ej. `/login?next=/reportar`. */
+  const next = new URLSearchParams(location.search).get('next')
 
   const handleSubmit = async (
     event: FormEvent<HTMLFormElement>
@@ -40,7 +42,7 @@ function Login() {
         number: esCorreo ? null : identificador,
         password,
       });
-      navigate(homePathFor(sessionUser), { replace: true, viewTransition: true });
+      navigate(postLoginPath(sessionUser, next), { replace: true, viewTransition: true });
     } catch (error) {
       console.error('Credenciales incorrectas:', error);
       setErrorMessage(
@@ -56,6 +58,13 @@ function Login() {
   const handleGoogleLogin = async () => {
     setErrorMessage(null);
     setIsSubmitting(true);
+
+    try {
+      if (next) sessionStorage.setItem(NEXT_PATH_KEY, next);
+      else sessionStorage.removeItem(NEXT_PATH_KEY);
+    } catch {
+      // Sin sessionStorage solo se pierde el regreso a `next`.
+    }
 
     const { error } = await signInWithGoogle();
     if (error) {

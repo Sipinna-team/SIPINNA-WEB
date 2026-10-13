@@ -1,24 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
-import type { LoginPayload, SessionResponse, UserType } from '../lib/api';
-
-/** Usuario de la sesión actual, tal como lo usa la interfaz. */
-export type SessionUser = {
-  name: string;
-  userType: UserType;
-  zoneName: string;
-};
-
-type AuthContextValue = {
-  user: SessionUser | null;
-  isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<SessionUser>;
-  loginWithGoogle: (accessToken: string) => Promise<SessionUser>;
-  logout: () => Promise<void>;
-};
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import type { LoginPayload, SessionResponse } from '../lib/api';
+import { AuthContext } from './auth';
+import type { SessionUser } from './auth';
 
 /** Convierte la respuesta del backend al formato de {@link SessionUser}. */
 function toSessionUser(session: SessionResponse): SessionUser {
@@ -87,23 +72,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-/** Ruta de inicio del usuario: los ciudadanos van a la página de inicio y el personal, al dashboard. */
-export function homePathFor(user: SessionUser): string {
-  return user.userType === 'citizen' ? '/inicio' : '/dashboard';
-}
-
-/**
- * Hook con la sesión actual y las acciones de login/logout.
- * @throws {Error} Si se usa fuera de un {@link AuthProvider}.
- */
-export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de un <AuthProvider>');
-  }
-
-  return context;
 }

@@ -154,7 +154,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     return data as T;
   } catch (error) {
     if (controller.signal.aborted && !externalSignal?.aborted) {
-      throw new Error('El servidor no respondió a tiempo. Intenta de nuevo más tarde.');
+      throw new Error('El servidor no respondió a tiempo. Intenta de nuevo más tarde.', { cause: error });
     }
     throw error;
   } finally {

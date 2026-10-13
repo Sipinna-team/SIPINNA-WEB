@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
 import type { Report, UserType } from '../lib/api';
 import type { ZoneCount } from '../lib/dashboardStats';

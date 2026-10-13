@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 import './Reports.css';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
 import type { Report } from '../lib/api';
 import type { StateKey } from '../lib/dashboardStats';

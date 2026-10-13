@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { homePathFor, useAuth } from '../context/AuthContext';
+import { NEXT_PATH_KEY, postLoginPath, useAuth } from '../context/auth';
 import { supabase } from '../lib/supabase';
 import sipinnaLogo from '../assets/sipinna.svg';
 import './Login.css';
@@ -46,7 +46,14 @@ function AuthCallback() {
         if (error) throw error;
 
         const sessionUser = await loginWithGoogle(data.session.access_token);
-        navigate(homePathFor(sessionUser), { replace: true });
+        let next: string | null = null;
+        try {
+          next = sessionStorage.getItem(NEXT_PATH_KEY);
+          sessionStorage.removeItem(NEXT_PATH_KEY);
+        } catch {
+          // Sin sessionStorage se va a la ruta de inicio.
+        }
+        navigate(postLoginPath(sessionUser, next), { replace: true });
       } catch (error) {
         console.error('Error al iniciar sesión con Google:', error);
         fail('No se pudo iniciar sesión con Google. Inténtalo de nuevo.');
