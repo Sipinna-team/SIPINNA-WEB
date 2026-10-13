@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from '../lib/presentation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import type {
@@ -39,8 +40,6 @@ const HINT_PATH: [number, number, (t: number) => number][] = [
 const DRAG_THRESHOLD_PX = 40;
 const LEARNED_KEY = 'kpiCarousel.swipeLearned';
 
-/** Indica si el usuario pidió reducir animaciones. */
-const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** Indica si el usuario ya deslizó alguna vez (guardado en localStorage). */
 const readLearned = () => {

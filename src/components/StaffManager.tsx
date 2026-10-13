@@ -1,3 +1,4 @@
+import { initials } from '../lib/presentation';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
@@ -37,15 +38,6 @@ function errorMessage(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback;
 }
 
-/** Iniciales (máximo 2) de un nombre para el avatar; `"?"` si está vacío. */
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join('') || '?';
-}
 
 /**
  * Gestión de cuentas de staff en la vista ampliada del perfil del administrador:
@@ -275,7 +267,7 @@ export function StaffManager() {
           const busy = busyId === member.id;
           return (
             <li key={member.id} className="staff-item">
-              <span className="dashboard-recent-avatar" aria-hidden="true">{initials(member.nombre)}</span>
+              <span className="dashboard-recent-avatar" aria-hidden="true">{initials(member.nombre, '?')}</span>
               <span className="staff-who">
                 <strong>{member.nombre || 'Sin nombre'}</strong>
                 <span className="dashboard-muted">{member.email || member.telefono || 'Sin contacto'}</span>

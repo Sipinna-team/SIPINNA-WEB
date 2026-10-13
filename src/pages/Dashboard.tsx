@@ -1,3 +1,4 @@
+import { initials } from '../lib/presentation';
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -54,15 +55,6 @@ function KpiTile({ title, value, hint, tone, badge }: KpiTileProps) {
   );
 }
 
-/** Iniciales (máximo 2) de un nombre para el avatar. */
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]!.toUpperCase())
-    .join('');
-}
 
 /**
  * Página `/dashboard` del staff: indicadores, gráficas, reportes recientes y menú de perfil.

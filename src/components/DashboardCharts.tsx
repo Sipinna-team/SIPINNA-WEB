@@ -1,3 +1,4 @@
+import { prefersReducedMotion } from '../lib/presentation';
 /** @file Gráficas SVG del dashboard (dona, barras, columnas y líneas) sin librerías externas. */
 
 import { useEffect, useId, useRef, useState } from 'react';
@@ -36,9 +37,6 @@ function niceMax(value: number) {
   return step * magnitude * 4;
 }
 
-/** Indica si el usuario pidió reducir animaciones. */
-const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
  * Número que cuenta desde el valor anterior hasta el nuevo. Solo se re-renderiza este número.
