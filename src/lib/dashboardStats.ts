@@ -14,19 +14,18 @@ export type StateKey =
   | 'reincidente';
 
 /**
- * Estados de un reporte con etiqueta y color. Colores validados para daltonismo en este orden,
- * incluido el par Reincidente→Registrado donde se cierra la dona. Si se reordena, hay que revalidar.
+ * Las etiquetas acompañan al color para identificar cada estado.
  * `value` es el valor técnico que manda y recibe el backend.
  */
 export const STATES: { key: StateKey; value: string; label: string; color: string }[] = [
-  { key: 'registrado', value: 'registrado', label: 'Registrado', color: '#2a78d6' },
-  { key: 'revision', value: 'en_revision', label: 'En revisión', color: '#eb6834' },
-  { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#4a3aa7' },
-  { key: 'canalizado', value: 'canalizado', label: 'Canalizado', color: '#1baf7a' },
-  { key: 'concluido', value: 'concluido', label: 'Concluido', color: '#008300' },
-  { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#7ba4e8' },
-  { key: 'cancelado', value: 'cancelado', label: 'Cancelado', color: '#eda100' },
-  { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#e34948' },
+  { key: 'registrado', value: 'registrado', label: 'Registrado', color: '#9b2247' },
+  { key: 'revision', value: 'en_revision', label: 'En revisión', color: '#a57f2c' },
+  { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#765a1f' },
+  { key: 'canalizado', value: 'canalizado', label: 'Canalizado', color: '#438678' },
+  { key: 'concluido', value: 'concluido', label: 'Concluido', color: '#1e5b4f' },
+  { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#5c6166' },
+  { key: 'cancelado', value: 'cancelado', label: 'Cancelado', color: '#c3a562' },
+  { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#611232' },
 ];
 
 /** Abreviaturas de los meses para los ejes de las gráficas. */
@@ -265,13 +264,6 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
     inReviewPerMonth,
     completedPerMonth,
   };
-}
-
-/** Formatea coordenadas como `19.4326N, 99.1332W`. */
-export function formatCoordinates(latitude: number, longitude: number) {
-  const lat = `${Math.abs(latitude).toFixed(4)}${latitude >= 0 ? 'N' : 'S'}`;
-  const lng = `${Math.abs(longitude).toFixed(4)}${longitude >= 0 ? 'E' : 'W'}`;
-  return `${lat}, ${lng}`;
 }
 
 /** Formatea una fecha como "Hoy", "Ayer", "Antier" o día y mes, seguido de la hora. */

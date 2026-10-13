@@ -11,6 +11,7 @@
 :root {
   --font-heading: 'Montserrat', 'Poppins', 'Outfit', system-ui, sans-serif;
   --font-body: 'Open Sans', 'Roboto', 'Lato', system-ui, sans-serif;
+  --font-editorial: Georgia, 'Times New Roman', serif;
 }
 
 body, html {
@@ -30,4 +31,106 @@ h1, h2, h3, h4, h5, h6, nav {
 /* Los controles de formulario no heredan la fuente por defecto. */
 button, input, select, textarea {
   font-family: inherit;
+}
+
+/* ---------- Componentes comunes ----------*/
+.sip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--sip-control-height);
+  padding: 0 20px;
+  border: 1.2px solid transparent;
+  border-radius: var(--sip-radius-control);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+@media (max-width: 640px) {
+  .sip-btn {
+    max-width: 100%;
+    padding-block: 10px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Evita el zoom automático de los campos al enfocarlos en iOS. */
+  input:not([type='checkbox']):not([type='radio']), select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+.sip-btn svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.sip-btn:hover:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.sip-btn:focus-visible {
+  outline: 2px solid var(--sip-primary);
+  outline-offset: 2px;
+}
+
+.sip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sip-btn--block {
+  width: 100%;
+}
+
+/* Acción principal */
+.sip-btn--primary {
+  background: var(--sip-primary);
+  color: var(--sip-white);
+}
+
+.sip-btn--primary:hover:not(:disabled) {
+  background: var(--sip-primary-dark);
+}
+
+/* Acción secundaria (igual que "Continuar con Google") */
+.sip-btn--secondary {
+  border-color: var(--sip-border);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--sip-primary-dark);
+}
+
+.sip-btn--secondary:hover:not(:disabled) {
+  border-color: var(--sip-primary);
+  background: var(--sip-white);
+}
+
+/* Superficie común sobre el fondo crema. */
+.sip-card {
+  border: 1px solid var(--sip-glass-border);
+  border-radius: var(--sip-radius-card);
+  background: var(--sip-glass-bg);
+  -webkit-backdrop-filter: var(--sip-glass-blur);
+  backdrop-filter: var(--sip-glass-blur);
+  box-shadow: var(--sip-shadow-card);
+  color: var(--sip-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sip-btn {
+    transition: none;
+  }
+
+  .sip-btn:hover:not(:disabled) {
+    transform: none;
+  }
 }

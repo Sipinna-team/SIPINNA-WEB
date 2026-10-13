@@ -12,29 +12,33 @@
   --sip-white: #ffffff;         /* Fondo principal */
   --sip-cream: #faf6ec;         /* Fondo alterno / secciones */
   --sip-gray: #f2f2f2;          /* Tarjetas / bordes */
-  --sip-primary: #22479b;       /* Azul: encabezado, botones principales */
-  --sip-primary-dark: #123261;  /* Azul oscuro: hover / texto destacado */
+  --sip-primary: #9b2247;       /* Guinda: encabezado, botones principales */
+  --sip-primary-dark: #611232;  /* Guinda oscuro: hover / texto destacado */
   --sip-success: #1e5b4f;       /* Verde: estados "resuelto" / éxito */
-  --sip-gold: #7f2ca5;          /* Morado: detalles, íconos */
+  --sip-gold: #a57f2c;          /* Dorado: detalles, íconos */
   --sip-text: #161a1d;          /* Casi negro: texto */
   /* Derivados */
   --sip-text-muted: #5c6166;
   --sip-border: rgba(22, 26, 29, 0.12);
-  --sip-primary-soft: rgba(34, 71, 155, 0.1);
-  --sip-focus: 0 0 0 3px rgba(34, 71, 155, 0.18);
-  /* Fondo de página: crema con destellos suaves para que los recuadros
-     translúcidos (backdrop-filter) tengan algo que desenfocar. */
-  --sip-page-bg:
-    radial-gradient(ellipse at 0% 0%, rgba(34, 71, 155, 0.16), transparent 55%),
-    radial-gradient(ellipse at 100% 100%, rgba(127, 44, 165, 0.2), transparent 55%),
-    var(--sip-cream);
+  --sip-primary-soft: rgba(155, 34, 71, 0.1);
+  --sip-focus: 0 0 0 3px rgba(155, 34, 71, 0.18);
+  /* Forma común de toda la web: botones, campos y tarjetas usan estos valores. */
+  --sip-radius-control: 8px;   /* Botones, campos, avisos */
+  --sip-radius-card: 12px;      /* Tarjetas y recuadros */
+  --sip-control-height: 46px;
+  --sip-glass-bg: var(--sip-white);
+  --sip-glass-border: var(--sip-border);
+  --sip-glass-blur: none;
+  --sip-shadow-card: 0 5px 16px rgba(22, 26, 29, 0.04);
+  /* Superficies mates */
+  --sip-page-bg: var(--sip-cream);
   --background: #ffffff;
   --foreground: #161a1d;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #22479b;
+  --primary: #9b2247;
   --primary-foreground: #ffffff;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -45,7 +49,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: #22479b;
+  --ring: #9b2247;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -212,7 +216,6 @@
   text-underline-offset: 2px;
   cursor: pointer;
   transition: color 160ms ease, text-decoration-color 160ms ease;
-  font-size: bold;
 }
 
 .report-address:hover {

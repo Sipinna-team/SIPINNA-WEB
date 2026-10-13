@@ -12,12 +12,12 @@ const PATTERNS = {
 
 /** Clases del borde por estado. `success` dibuja su propio anillo en SVG, así que aquí no lleva anillo CSS. */
 const RING = {
-  idle: "focus-visible:ring-2 focus-visible:ring-[#868593]/50",
+  idle: "focus-visible:ring-2 focus-visible:ring-[#9B2247]/50",
   success: "",
   error: "ring-2 ring-[#FF3B30]/70 delay-150",
 } as const;
 
-const SUCCESS = "#34C759";
+const SUCCESS = "#1E5B4F";
 
 const SIZES = {
   sm: {
@@ -47,7 +47,7 @@ const SIZES = {
 } as const;
 
 const SLOT_CLASS =
-  "bg-[#F4F4F9] dark:bg-[#262626] text-center font-medium text-transparent caret-transparent outline-none transition-shadow duration-200 selection:bg-transparent disabled:cursor-not-allowed disabled:opacity-50";
+  "bg-[#F2F2F2] dark:bg-[#262626] text-center font-medium text-transparent caret-transparent outline-none transition-shadow duration-200 selection:bg-transparent disabled:cursor-not-allowed disabled:opacity-50";
 
 const ROLL_SPRING = { type: "spring", stiffness: 500, damping: 34 } as const;
 const CARET_SPRING = { type: "spring", stiffness: 500, damping: 40 } as const;
@@ -389,5 +389,3 @@ export function OtpInput({
     </div>
   );
 }
-
-export default OtpInput;
