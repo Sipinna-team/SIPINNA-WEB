@@ -10,20 +10,15 @@
   margin-bottom: 8px;
 }
 
-/* Número "404" grande en guinda con degradado hacia el dorado */
+/* Número editorial en guinda. */
 .not-found-code {
   margin: 0 0 8px;
-  font-family: var(--font-heading);
   font-size: clamp(104px, 32vw, 176px);
-  font-weight: 900;
   line-height: 1;
   letter-spacing: -0.05em;
-  background: linear-gradient(135deg, var(--sip-primary) 0%, var(--sip-primary-dark) 50%, var(--sip-gold) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  /* Sombra guinda para que el número se despegue del fondo translúcido */
-  filter: drop-shadow(0 6px 14px rgba(34, 71, 155, 0.3));
+  color: var(--sip-primary);
+  font-family: var(--font-editorial);
+  font-weight: 400;
 }
 
 .not-found-card h2 {
@@ -40,13 +35,16 @@
 
 /* Botón principal: mismo estilo que el botón de login, pero como enlace */
 .not-found-button {
-  display: block;
-  padding: 14px;
-  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sip-control-height);
+  padding: 0 20px;
+  border-radius: var(--sip-radius-control);
   background: var(--sip-primary);
   color: var(--sip-white);
-  font-size: 17px;
-  font-weight: bold;
+  font-size: 15px;
+  font-weight: 700;
   text-decoration: none;
   transition: transform 0.2s, background 0.2s;
 }

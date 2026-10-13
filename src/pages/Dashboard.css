@@ -44,14 +44,10 @@ html:has(.dashboard-page) body {
 
 .dashboard-panel {
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.42);
-  box-shadow:
-    inset 0 1px 12px rgba(255, 255, 255, 0.35),
-    0 4px 18px rgba(18, 50, 97, 0.06);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  border: 1px solid var(--sip-border);
+  border-radius: var(--sip-radius-card);
+  background: var(--sip-white);
+  box-shadow: none;
 }
 
 .dashboard-kpis { grid-area: kpis; }
@@ -190,7 +186,7 @@ html:has(.dashboard-page) body {
   gap: var(--kpi-gap);
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
+  overscroll-behavior-x: none;
   scrollbar-width: none;
   /* Deja espacio para el borde de las tarjetas. */
   padding: 2px;
@@ -241,7 +237,10 @@ html:has(.dashboard-page) body {
   gap: 4px;
   min-height: 84px;
   padding: 10px 14px;
-  border-radius: 16px;
+  border-radius: 0;
+  border: 0;
+  border-left: 1px solid rgba(165, 127, 44, 0.3);
+  background: transparent;
 }
 
 .dashboard-tile-title {
@@ -258,8 +257,8 @@ html:has(.dashboard-page) body {
   gap: 8px;
   margin: auto 0;
   color: var(--sip-text);
-  font-family: var(--font-heading);
-  font-size: clamp(20px, 1.8vw, 28px);
+  font-family: var(--font-editorial);
+  font-size: clamp(24px, 2vw, 32px);
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -358,7 +357,7 @@ html:has(.dashboard-page) body {
 /* Zonas con más y menos reportes */
 .dashboard-zones {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 8px 28px;
 }
 
@@ -425,23 +424,6 @@ html:has(.dashboard-page) body {
 
 .dashboard-recent-who strong {
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dashboard-recent-place {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  min-width: 0;
-}
-
-.dashboard-recent-zone {
-  max-width: 100%;
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: bold;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -597,7 +579,7 @@ html:has(.dashboard-page) body {
   font-variant-numeric: tabular-nums;
 }
 
-@media (min-width: 1001px) and (min-height: 640px) {
+@media (min-width: 1201px) and (min-height: 640px) {
   .dashboard-page {
     display: flex;
     flex-direction: column;
@@ -650,7 +632,7 @@ html:has(.dashboard-page) body {
   }
 }
 
-@media (min-width: 1001px) {
+@media (min-width: 1201px) {
   .dashboard-charts .chart {
     display: flex;
     flex: 1;
@@ -665,7 +647,7 @@ html:has(.dashboard-page) body {
   }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: none;
@@ -697,28 +679,6 @@ html:has(.dashboard-page) body {
   .dashboard-page { padding: 16px; }
   .dashboard-grid {
     gap: 14px;
-    grid-template-areas:
-      'profile profile'
-      'shortcut shortcut'
-      'kpis kpis'
-      'overview overview'
-      'types types'
-      'ages ages'
-      'featured featured'
-      'zones zones'
-      'recent recent';
-  }
-
-  .dashboard-grid--no-zones {
-    grid-template-areas:
-      'profile profile'
-      'shortcut shortcut'
-      'kpis kpis'
-      'overview overview'
-      'types types'
-      'ages ages'
-      'featured featured'
-      'recent recent';
   }
 
   .kpi-carousel { --kpi-per-view: 2.3; --kpi-gap: 10px; }
@@ -798,10 +758,10 @@ html:has(.dashboard-page) body {
 }
 
 .dashboard-panel--zoomable:hover {
-  border-color: rgba(34, 71, 155, 0.25);
+  border-color: rgba(155, 34, 71, 0.25);
   box-shadow:
     inset 0 1px 12px rgba(255, 255, 255, 0.35),
-    0 8px 26px rgba(18, 50, 97, 0.12);
+    0 8px 26px rgba(97, 18, 50, 0.12);
 }
 
 /* Espacio para el botón de ampliar junto al primer título del panel. */
@@ -853,7 +813,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-zoom {
   position: fixed;
   inset: 0;
-  width: 100vw;
+  width: 100%;
   max-width: none;
   height: 100vh;
   height: 100dvh;
@@ -899,7 +859,6 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   padding: 22px 28px;
   overflow-y: auto;
   border-color: rgba(255, 255, 255, 0.9);
-  background: var(--sip-page-bg);
   box-shadow: 0 24px 60px rgba(22, 26, 29, 0.25);
   cursor: auto;
   animation: zoom-in 320ms var(--ease-out-soft) both;
@@ -948,16 +907,16 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-zoom-panel .dashboard-recent-avatar { width: 44px; height: 44px; font-size: 15px; }
 .dashboard-zoom-panel .dashboard-recent-who { font-size: 16px; }
 .dashboard-zoom-panel .dashboard-recent-coords { font-size: 15px; }
-.dashboard-zoom-panel .dashboard-recent-zone { font-size: 15px; white-space: normal; }
 
 /* Tendencias: la gráfica mensual ocupa todo el ancho y las otras dos van
    lado a lado debajo. El ancho se limita por el alto de la pantalla para que
    las tres quepan sin desplazarse (las gráficas guardan su proporción). */
 .dashboard-zoom-panel.dashboard-charts {
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px 24px;
-  width: min(1100px, 100%, calc((100dvh - 190px) * 1.64 + 56px));
+  width: min(1100px, 100%);
   overflow-y: auto;
 }
 
@@ -1212,7 +1171,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 }
 
 .staff-status--activada { background: rgba(30, 91, 79, 0.12); color: var(--sip-success); }
-.staff-status--pendiente { background: rgba(127, 44, 165, 0.15); color: var(--sip-gold); }
+.staff-status--pendiente { background: rgba(165, 127, 44, 0.15); color: var(--sip-gold); }
 
 .staff-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
@@ -1236,3 +1195,75 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   .staff-status { grid-area: status; }
   .staff-actions { grid-area: actions; justify-content: flex-start; }
 }
+/* Los paneles con listas y los diálogos terminan el scroll en su propio borde. */
+.dashboard-recent,
+.dashboard-zones,
+.dashboard-panel .hbar-list,
+.dashboard-zoom,
+.dashboard-zoom-panel {
+  overscroll-behavior: none;
+}
+
+.chart-legend,
+.staff-header,
+.staff-actions {
+  flex-wrap: wrap;
+}
+
+.dashboard-user-zone,
+.dashboard-title,
+.dashboard-subtitle,
+.staff-check {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 540px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'profile' 'shortcut' 'kpis' 'overview' 'types' 'ages'
+      'featured' 'zones' 'recent';
+  }
+
+  .dashboard-grid--no-zones {
+    grid-template-areas:
+      'profile' 'shortcut' 'kpis' 'overview' 'types' 'ages'
+      'featured' 'recent';
+  }
+
+  .dashboard-zoom { padding: 10px; }
+  .dashboard-zoom-panel { padding: 20px 16px; }
+  .dashboard-zoom-panel .hbar-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .dashboard-zoom-panel .donut-legend {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .dashboard-zoom-panel .donut-legend li { min-width: 0; }
+  .dashboard-zoom-panel .dashboard-recent li {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .dashboard-profile-card { gap: 10px; padding-right: 20px; }
+  .dashboard-profile-card .dashboard-avatar { width: 48px; height: 48px; }
+  .dashboard-profile-card .dashboard-user-info { padding-right: 0; }
+  .dashboard-profile-card .dashboard-user-info strong { font-size: 18px; }
+  .staff-item { gap: 8px; }
+  .staff-form { padding: 12px; }
+}
+
+/* La jerarquía se expresa con superficie y tipografía, sin repetir el mismo recuadro. */
+.dashboard-panel--overview { border-top: 3px solid var(--sip-gold); border-top-left-radius: 36px; }
+.dashboard-panel--featured { background: #f5efe2; border-top: 3px solid var(--sip-primary); }
+.dashboard-panel--zones { background: transparent; }
+.dashboard-profile { border-bottom: 2px solid var(--sip-gold); }
+.dashboard-map-link { border-radius: 12px 12px 36px 12px; }
+.dashboard-title { font-family: var(--font-editorial); font-size: 18px; font-weight: 400; }
+.dashboard-zoom-panel { background: var(--sip-white); }
+.dashboard-zoom-panel.dashboard-panel--featured { background: #f5efe2; }
+.dashboard-grid > .dashboard-panel--zoomable:hover { box-shadow: 0 4px 12px rgba(22,26,29,0.04); }

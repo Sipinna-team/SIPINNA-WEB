@@ -72,6 +72,7 @@
 }
 
 .map-zone select {
+  flex: 1;
   min-width: 0;
   max-width: 240px;
   padding: 3px 8px;
@@ -115,10 +116,12 @@
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr);
   width: 100%;
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .map-panel {
+  min-height: 0;
   view-transition-name: map-hero;
   position: relative;
   min-width: 0;
@@ -126,6 +129,10 @@
 }
 
 .information-panel {
+  min-width: 0;
+  min-height: 0;
+  overflow-wrap: anywhere;
+  overscroll-behavior: none;
   height: 100%;
   padding: 1.5rem;
   box-sizing: border-box;
@@ -177,7 +184,6 @@
   width: 100%;
   padding: 0.9rem;
   border: 1px solid var(--sip-border);
-  border-radius: 10px;
   background: var(--sip-white);
   color: var(--sip-text);
   font: inherit;
@@ -202,7 +208,6 @@
 
 .report-card--selected {
   border-color: var(--sip-primary);
-  box-shadow: 0 0 0 2px rgb(155 34 71 / 15%);
 }
 
 .report-card__heading {
@@ -216,7 +221,7 @@
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
   background: rgb(165 127 44 / 14%);
-  color: #54196e;
+  color: #765a1f;
   font-size: 0.72rem;
 }
 
@@ -244,12 +249,15 @@
 @media (max-width: 760px) {
   .interactive-map-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(360px, 60vh) auto;
+    grid-template-rows: clamp(260px, 60dvh, 560px) auto;
     height: auto;
-    min-height: 100%;
+    min-height: 100dvh;
   }
 
   .information-panel {
+    height: auto;
+    padding: 16px;
+    overflow-y: visible;
     border-top: 1px solid var(--sip-border);
     border-left: 0;
   }
@@ -436,3 +444,15 @@
   width: 17px;
   height: 17px;
 }
+
+.report-card__heading { flex-wrap: wrap; }
+.status-form select, .status-form textarea { width: 100%; min-width: 0; }
+@media (max-width: 400px) {
+  .map-toolbar { margin: 8px; max-width: calc(100% - 58px); }
+  .map-zone { border-radius: 12px; flex-wrap: wrap; padding: 6px 10px; font-size: 12px; }
+  .map-zone select { width: 100%; max-width: 100%; }
+}
+.information-panel { border-left-color: rgba(165,127,44,0.4); }
+.sidePanelTitle h1 { font-family: var(--font-editorial); font-weight: 400; }
+.report-card { border-radius: 6px; }
+.report-card--selected { border-left: 3px solid var(--sip-primary); box-shadow: none; }

@@ -1,5 +1,6 @@
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -8,17 +9,20 @@
   background: var(--sip-page-bg);
 }
 
-/* Recuadro de login */
+/* Recuadro de acceso, inspirado en una hoja institucional. */
 .login-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   width: min(380px, 100%);
   max-width: 100%;
   padding: clamp(20px, 4vw, 30px);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.42);
-  -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 8px 32px rgba(18, 50, 97, 0.12);
+  border-radius: var(--sip-radius-card);
+  background: var(--sip-glass-bg);
+  -webkit-backdrop-filter: var(--sip-glass-blur);
+  backdrop-filter: var(--sip-glass-blur);
+  border: 1px solid var(--sip-glass-border);
+  border-top: 3px solid var(--sip-primary);
+  box-shadow: var(--sip-shadow-card);
   color: var(--sip-text);
   animation: page-rise 600ms var(--ease-out-soft) both;
 }
@@ -45,8 +49,6 @@
 .login-card h2 {
   margin: 0 0 14px;
   font-size: 20px;
-  font-family: var(--font-heading);
-  font-weight: 400;
   text-align: center;
   color: var(--sip-primary-dark);
 }
@@ -70,10 +72,10 @@
 .login-card input[type='password']:not([data-slot='otp-input-slot']) {
   width: 100%;
   box-sizing: border-box;
+  min-height: var(--sip-control-height);
   padding: 9px 12px;
-  border-radius: 15px;
+  border-radius: var(--sip-radius-control);
   border: 1.2px solid var(--sip-border);
-  background: rgba(255, 255, 255, 0.6);
   color: var(--sip-text);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -98,16 +100,17 @@
 
 /* Botón de iniciar sesión */
 .login-card button {
+  min-height: var(--sip-control-height);
   padding: 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--sip-radius-control);
   cursor: pointer;
   transition: transform 0.2s, background 0.2s;
   background: var(--sip-primary);
   color: var(--sip-white);
-  font-size: 16px;
+  font-size: 15px;
   font-family: var(--font-body);
-  font-weight: bold;
+  font-weight: 700;
 }
 
 /* Hover en el botón */
@@ -203,14 +206,14 @@
   width: 28px;
   height: 28px;
   margin-top: 8px;
-  border-color: rgba(34, 71, 155, 0.18);
+  border-color: rgba(155, 34, 71, 0.18);
   border-top-color: var(--sip-primary);
 }
 
 /* Mensaje de error al iniciar sesión */
 .login-error {
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--sip-radius-control);
   border: 1px solid #fca5a5;
   background: rgba(254, 226, 226, 0.9);
   color: #b91c1c;
@@ -277,12 +280,12 @@
 @media (max-width: 480px) {
   .login-page {
     padding: 16px;
-    align-items: stretch;
+    align-items: center;
   }
 
   .login-card {
     width: 100%;
-    border-radius: 18px;
+    border-radius: var(--sip-radius-card);
     padding: 24px 20px;
   }
 
@@ -302,6 +305,26 @@
   .login-card button {
     width: 100%;
   }
+}
+
+/* Las casillas se reducen juntas cuando el código no cabe en la tarjeta. */
+.login-card [data-slot='otp-input'],
+.login-card [data-slot='otp-input-row'] {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.login-card [data-slot='otp-input-cell'] {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.login-card [data-slot='otp-input-slot'] {
+  width: 100%;
+  max-width: 40px;
+  aspect-ratio: 1;
+  height: auto;
+  min-width: 0;
 }
 /* Pantallas bajas (laptops con ventana pequeña): se compacta más para que la
    tarjeta completa quepa sin hacer scroll. */
@@ -344,3 +367,8 @@
     margin-top: 10px;
   }
 }
+
+.login-card { border-top-left-radius: 32px; }
+.login-card h2 { font-family: var(--font-editorial); font-weight: 400; }
+.login-card input[type='text']:not([data-slot='otp-input-slot']),
+.login-card input[type='password']:not([data-slot='otp-input-slot']) { background: var(--sip-white); }

@@ -1,9 +1,24 @@
 #root {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-width: 0;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Conserva el scroll del contenido, sin rebote ni desplazamiento lateral
+   del documento. Las tablas y carruseles tienen su propio scroll. */
+html, body {
+  margin: 0;
+  min-width: 0;
+  overscroll-behavior: none;
+  overflow-x: clip;
+}
+
+img {
+  max-width: 100%;
 }
 
 /* Montserrat para títulos y navegación; Open Sans para texto corrido.
@@ -18,8 +33,7 @@ body, html {
   font-family: var(--font-body);
 }
 
-/* #root es absoluto y el body mide 0, así que el lienzo toma el fondo de html:
-   en crema evita la franja blanca al hacer scroll o rebote hasta abajo. */
+/* Fondo del documento durante la carga y las transiciones. */
 html {
   background-color: var(--sip-cream);
 }
