@@ -329,6 +329,7 @@
 }
 
 .status-form select,
+.status-form input,
 .status-form textarea {
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--sip-border);
@@ -445,8 +446,15 @@
   height: 17px;
 }
 
+/* Asignación de reportes a casos y simbología del mapa. */
+.report-card__case { align-self: flex-start; padding: 0.15rem 0.45rem; border: 1px dashed var(--sip-border); border-radius: 999px; color: var(--sip-text-muted); font-size: 0.72rem; }
+.report-card__case--assigned { border: 0; background: rgb(30 91 79 / 14%); color: #1e5b4f; font-weight: 600; }
+.case-form__current { margin: 0; color: var(--sip-text); font-size: 0.85rem; }
+.map-legend { position: absolute; z-index: 1; bottom: 30px; left: 12px; display: flex; flex-wrap: wrap; gap: 12px; max-width: calc(100% - 24px); padding: 6px 12px; border-radius: 999px; background-color: rgb(22 26 29 / 85%); color: #fff; font-family: var(--font-body); font-size: 12px; }
+.map-legend span { display: flex; align-items: center; gap: 6px; }
+.map-legend i { width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; }
 .report-card__heading { flex-wrap: wrap; }
-.status-form select, .status-form textarea { width: 100%; min-width: 0; }
+.status-form select, .status-form input, .status-form textarea { width: 100%; min-width: 0; }
 @media (max-width: 400px) {
   .map-toolbar { margin: 8px; max-width: calc(100% - 58px); }
   .map-zone { border-radius: 12px; flex-wrap: wrap; padding: 6px 10px; font-size: 12px; }

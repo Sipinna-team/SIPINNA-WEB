@@ -6,7 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import './InteractiveMap.css'
 import { useAuth } from '../context/auth'
 import { api } from '../lib/api'
-import type { Report, ReportDetail, Zone } from '../lib/api'
+import type { Case, Report, ReportDetail, Zone } from '../lib/api'
 import { STATES, normalizeState, stateLabel } from '../lib/dashboardStats'
 import { boundaryBounds, getBoundary } from '../lib/zoneBoundary'
 import { ReportAddress } from '../components/ReportAddress'
@@ -27,9 +27,17 @@ type StatusFormProps = {
   onUpdated: (folio: string, estado: string, stateChangedAt: string) => void
 }
 
-type ReportDetailsProps = StatusFormProps & {
-  onDeleted: (folio: string) => void
+type CaseFormProps = {
+  report: Report
+  cases: Case[]
+  onCaseChanged: (folio: string, caseId: string | null, caseName: string | null) => void
+  onCaseCreated: (newCase: Case) => void
 }
+
+type ReportDetailsProps = StatusFormProps &
+  Omit<CaseFormProps, 'report'> & {
+    onDeleted: (folio: string) => void
+  }
 
 type SidePanelProps = {
   reports: Report[]
@@ -39,6 +47,9 @@ type SidePanelProps = {
   onSelectReport: (folio: string) => void
   onStatusUpdated: StatusFormProps['onUpdated']
   onDeleted: ReportDetailsProps['onDeleted']
+  cases: Case[]
+  onCaseChanged: CaseFormProps['onCaseChanged']
+  onCaseCreated: CaseFormProps['onCaseCreated']
   onSearch: (folio: string) => Promise<void>
 }
 
@@ -49,6 +60,10 @@ const REPORTS_HEATMAP_LAYER_ID = 'report-heat-zones'
 const REPORTS_POINT_LAYER_ID = 'report-points'
 const ZONE_SOURCE_ID = 'zone-boundary'
 const EMPTY_COLLECTION = { type: 'FeatureCollection' as const, features: [] }
+const REPORT_COLOR = '#9b2247'
+const SELECTED_REPORT_COLOR = '#a57f2c'
+/** Color de los reportes que ya están en un caso, para distinguirlos de los pendientes de agrupar. */
+const CASE_REPORT_COLOR = '#1e5b4f'
 
 /** Nombre de la zona para el selector, con el municipio si es distinto. */
 function zoneLabel(zone: Zone) {
@@ -68,6 +83,7 @@ function reportsToGeoJSON(reports: Report[]) {
         folio: report.folio,
         description: report.description,
         suspiciousLevel: report.suspicius_level,
+        inCase: Boolean(report.case_id),
       },
       geometry: {
         type: 'Point' as const,
@@ -181,7 +197,7 @@ function MapContainer({
         minzoom: 13,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 5, 20, 9],
-          'circle-color': '#9b2247',
+          'circle-color': ['case', ['get', 'inCase'], CASE_REPORT_COLOR, REPORT_COLOR],
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff',
         },
@@ -265,8 +281,10 @@ function MapContainer({
     map.setPaintProperty(REPORTS_POINT_LAYER_ID, 'circle-color', [
       'case',
       ['==', ['get', 'folio'], selectedReport?.folio ?? ''],
-      '#a57f2c',
-      '#9b2247',
+      SELECTED_REPORT_COLOR,
+      ['get', 'inCase'],
+      CASE_REPORT_COLOR,
+      REPORT_COLOR,
     ])
     map.setPaintProperty(REPORTS_POINT_LAYER_ID, 'circle-radius', [
       'case',
@@ -301,6 +319,10 @@ function MapContainer({
         </div>
       </div>
       <div id="map-container" ref={mapContainerRef} />
+      <div className="map-legend" aria-label="Simbología">
+        <span><i style={{ background: REPORT_COLOR }} />Sin caso</span>
+        <span><i style={{ background: CASE_REPORT_COLOR }} />En un caso</span>
+      </div>
     </>
   )
 }
@@ -366,6 +388,101 @@ function StatusForm({ report, onUpdated }: StatusFormProps) {
   )
 }
 
+const NEW_CASE = '__new__'
+
+/** Asigna el reporte a un caso existente o a uno nuevo, o lo quita del caso en el que está. */
+function CaseForm({ report, cases, onCaseChanged, onCaseCreated }: CaseFormProps) {
+  const [caseId, setCaseId] = useState(cases.length > 0 ? '' : NEW_CASE)
+  const [name, setName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const canSubmit = !saving && (caseId === NEW_CASE ? name.trim() !== '' : caseId !== '')
+
+  async function run(action: () => Promise<void>) {
+    setSaving(true)
+    setError(null)
+    try {
+      await action()
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No se pudo actualizar el caso')
+      setSaving(false)
+    }
+  }
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    void run(async () => {
+      if (caseId === NEW_CASE) {
+        const { case: created } = await api.createCase(name.trim(), [report.folio])
+        onCaseCreated(created)
+        onCaseChanged(report.folio, created.id, created.name)
+      } else {
+        const res = await api.setReportCase(report.folio, caseId)
+        onCaseChanged(res.folio, res.case_id, res.case_name)
+      }
+    })
+  }
+
+  function handleRemove() {
+    void run(async () => {
+      await api.setReportCase(report.folio, null)
+      onCaseChanged(report.folio, null, null)
+    })
+  }
+
+  if (report.case_id) {
+    return (
+      <div className="status-form">
+        <p className="case-form__current">
+          Pertenece al caso <strong>{report.case_name || report.case_id}</strong>
+        </p>
+        {error && <p className="status-form__error">{error}</p>}
+        <button type="button" disabled={saving} onClick={handleRemove}>
+          {saving ? 'Guardando...' : 'Quitar del caso'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <form className="status-form" onSubmit={handleSubmit}>
+      <label>
+        Caso
+        <select value={caseId} onChange={(e) => setCaseId(e.target.value)}>
+          {cases.length > 0 && (
+            <option value="" disabled>
+              Selecciona un caso
+            </option>
+          )}
+          {cases.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name} ({c.report_count})
+            </option>
+          ))}
+          <option value={NEW_CASE}>+ Nuevo caso</option>
+        </select>
+      </label>
+      {caseId === NEW_CASE && (
+        <label>
+          Nombre del caso
+          <input
+            type="text"
+            value={name}
+            required
+            placeholder="Ej. Calle Hidalgo esq. Juárez"
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+      )}
+      {error && <p className="status-form__error">{error}</p>}
+      <button type="submit" disabled={!canSubmit}>
+        {saving ? 'Guardando...' : caseId === NEW_CASE ? 'Crear caso y agregar' : 'Agregar al caso'}
+      </button>
+    </form>
+  )
+}
+
 const dateFormatter = new Intl.DateTimeFormat('es-MX', {
   dateStyle: 'medium',
   timeStyle: 'short',
@@ -381,7 +498,14 @@ function formatDate(value: string) {
  * Detalle del reporte seleccionado: datos, imágenes, cambio de estado y eliminación.
  * El listado no trae el horario ni las fotos, así que se piden al abrir el reporte.
  */
-function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
+function ReportDetails({
+  report,
+  onUpdated,
+  onDeleted,
+  cases,
+  onCaseChanged,
+  onCaseCreated,
+}: ReportDetailsProps) {
   const [detail, setDetail] = useState<ReportDetail | null>(null)
   const [detailError, setDetailError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -465,6 +589,14 @@ function ReportDetails({ report, onUpdated, onDeleted }: ReportDetailsProps) {
         </div>
       )}
 
+      <CaseForm
+        key={report.case_id ?? ''}
+        report={report}
+        cases={cases}
+        onCaseChanged={onCaseChanged}
+        onCaseCreated={onCaseCreated}
+      />
+
       <StatusForm key={report.last_state} report={report} onUpdated={onUpdated} />
 
       {deleteError && <p className="status-form__error">{deleteError}</p>}
@@ -492,6 +624,9 @@ function SidePanel({
   onSelectReport,
   onStatusUpdated,
   onDeleted,
+  cases,
+  onCaseChanged,
+  onCaseCreated,
   onSearch,
 }: SidePanelProps) {
   const selectedCardRef = useRef<HTMLDivElement | null>(null)
@@ -574,12 +709,18 @@ function SidePanel({
               <span className="report-card__meta">
                 {report.zone_name || 'Zona sin especificar'} · {report.work_type}
               </span>
+              <span className={report.case_id ? 'report-card__case report-card__case--assigned' : 'report-card__case'}>
+                {report.case_id ? `Caso: ${report.case_name || report.case_id}` : 'Sin caso'}
+              </span>
             </button>
             {report.folio === selectedReportId && (
               <ReportDetails
                 report={report}
                 onUpdated={onStatusUpdated}
                 onDeleted={onDeleted}
+                cases={cases}
+                onCaseChanged={onCaseChanged}
+                onCaseCreated={onCaseCreated}
               />
             )}
           </div>
@@ -605,6 +746,7 @@ export default function InteractiveMap() {
   const isAdmin = user?.userType === 'administrador'
   const [zones, setZones] = useState<Zone[]>([])
   const [zonesLoaded, setZonesLoaded] = useState(false)
+  const [cases, setCases] = useState<Case[]>([])
   /** '' = todas las zonas (solo administrador). */
   const [selectedZoneId, setSelectedZoneId] = useState('')
   /** /map?folio=X (desde la página de reportes) abre ese reporte al cargar. */
@@ -630,6 +772,19 @@ export default function InteractiveMap() {
 
     return () => abortController.abort()
   }, [isAdmin])
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    api
+      .getCases(abortController.signal)
+      .then((data) => setCases(data.cases ?? []))
+      .catch((requestError) => {
+        if (!abortController.signal.aborted) console.error('No se pudieron cargar los casos:', requestError)
+      })
+
+    return () => abortController.abort()
+  }, [])
 
   useEffect(() => {
     if (!zonesLoaded) return
@@ -720,6 +875,28 @@ export default function InteractiveMap() {
     )
   }
 
+  /** Actualiza el caso del reporte y el conteo de reportes de los casos involucrados. */
+  function handleCaseChanged(folio: string, caseId: string | null, caseName: string | null) {
+    const previousCaseId = reports.find((report) => report.folio === folio)?.case_id ?? null
+    setReports((current) =>
+      current.map((report) =>
+        report.folio === folio ? { ...report, case_id: caseId, case_name: caseName } : report,
+      ),
+    )
+    setCases((current) =>
+      current.map((c) => {
+        if (c.id === previousCaseId) return { ...c, report_count: c.report_count - 1 }
+        if (c.id === caseId) return { ...c, report_count: c.report_count + 1 }
+        return c
+      }),
+    )
+  }
+
+  /** El caso nuevo llega con el conteo en 0; `handleCaseChanged` le suma el reporte. */
+  function handleCaseCreated(newCase: Case) {
+    setCases((current) => [{ ...newCase, report_count: 0 }, ...current])
+  }
+
   function handleDeleted(folio: string) {
     setReports((current) => current.filter((report) => report.folio !== folio))
     setSelectedReportId((current) => (current === folio ? null : current))
@@ -766,6 +943,9 @@ export default function InteractiveMap() {
           }
           onStatusUpdated={handleStatusUpdated}
           onDeleted={handleDeleted}
+          cases={cases}
+          onCaseChanged={handleCaseChanged}
+          onCaseCreated={handleCaseCreated}
           onSearch={handleSearch}
         />
       </aside>

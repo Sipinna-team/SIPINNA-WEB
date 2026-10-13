@@ -62,6 +62,18 @@ export type Report = {
   last_state: string;
   state_changed_at: string;
   first_attention_at?: string | null;
+  /** Caso al que pertenece el reporte; `null`/ausente si no está en ninguno. */
+  case_id?: string | null;
+  case_name?: string | null;
+};
+
+/** Caso: agrupa reportes que describen la misma situación en el mismo lugar. */
+export type Case = {
+  id: string;
+  name: string;
+  zone_id: string | null;
+  report_count: number;
+  created_at: string;
 };
 
 /** Zona de atención. `latitude`/`longitude` son `null` si la zona no tiene coordenadas en la BD. */
@@ -316,6 +328,33 @@ export const api = {
   /** Elimina un reporte. */
   deleteReport(folio: string) {
     return request<unknown>(`/report/${encodeURIComponent(folio)}`, { method: 'DELETE' });
+  },
+
+  /** Lista los casos. El administrador recibe todos y el alimentador solo los de su zona. */
+  getCases(signal?: AbortSignal) {
+    return request<{ cases: Case[] | null }>('/cases', { signal });
+  },
+
+  /** Crea un caso y le asigna los reportes indicados. */
+  createCase(name: string, folios: string[]) {
+    return request<{ case: Case }>('/cases', {
+      method: 'POST',
+      body: JSON.stringify({ name, folios }),
+    });
+  },
+
+  /**
+   * Asigna un reporte a un caso existente.
+   * @param caseId - `null` para quitarlo del caso.
+   */
+  setReportCase(folio: string, caseId: string | null) {
+    return request<{ folio: string; case_id: string | null; case_name: string | null }>(
+      `/report/${encodeURIComponent(folio)}/case`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ case_id: caseId }),
+      },
+    );
   },
 
   /** Lista las cuentas de staff. Solo administradores activos. */
