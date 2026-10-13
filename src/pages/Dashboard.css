@@ -257,7 +257,7 @@ html:has(.dashboard-page) body {
   gap: 8px;
   margin: auto 0;
   color: var(--sip-text);
-  font-family: var(--font-editorial);
+  font-family: var(--font-heading);
   font-size: clamp(24px, 2vw, 32px);
   font-weight: 700;
   line-height: 1;
@@ -303,6 +303,7 @@ html:has(.dashboard-page) body {
 .dashboard-subtitle {
   margin: 0;
   color: var(--sip-primary-dark);
+  font-family: var(--font-heading);
   font-size: 14px;
   font-weight: 700;
 }
@@ -366,7 +367,8 @@ html:has(.dashboard-page) body {
   font-weight: 600;
 }
 
-.dashboard-zones .hbar-list { margin-top: 6px; gap: 6px; }
+.dashboard-zones { flex: 1; min-height: 0; }
+.dashboard-zones > div { display: flex; flex-direction: column; min-height: 0; }
 
 /* Reportes recientes */
 .dashboard-panel-header {
@@ -394,14 +396,49 @@ html:has(.dashboard-page) body {
   padding: 0;
   list-style: none;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .dashboard-recent li {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sip-border);
 }
+
+.dashboard-recent li:last-child { border-bottom: 0; }
+
+.dashboard-recent-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+
+.dashboard-recent-summary > div {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--sip-cream);
+}
+
+.dashboard-recent-summary dt { color: var(--sip-text-muted); font-size: 12px; }
+.dashboard-recent-summary dd { margin: 4px 0 0; color: var(--sip-primary-dark); font-size: 22px; font-weight: 700; }
+.dashboard-recent-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+.dashboard-recent-heading strong { min-width: 0; overflow-wrap: anywhere; }
+.dashboard-recent-type { margin-top: 4px; line-height: 1.4; }
+.dashboard-recent-who > .dashboard-muted { line-height: 1.5; }
+.dashboard-recent-state { padding: 3px 8px; border-radius: 999px; background: var(--sip-gray); color: var(--sip-text); font-size: 11px; font-weight: 600; }
+.dashboard-recent-state--registrado,
+.dashboard-recent-state--reincidente { background: var(--sip-primary-soft); color: var(--sip-primary); }
+.dashboard-recent-state--revision,
+.dashboard-recent-state--seguimiento { background: #f3eddf; color: #765a1f; }
+.dashboard-recent-state--concluido,
+.dashboard-recent-state--canalizado { background: #e7f1ed; color: var(--sip-success); }
+.dashboard-recent-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; }
+.dashboard-recent-actions a { color: var(--sip-primary); font: inherit; font-weight: 600; text-decoration: none; }
+.dashboard-recent-actions a:hover { text-decoration: underline; }
 
 .dashboard-recent-avatar {
   display: grid;
@@ -425,7 +462,7 @@ html:has(.dashboard-page) body {
 .dashboard-recent-who strong {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .dashboard-recent-coords {
@@ -901,12 +938,12 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-zoom-panel .donut-legend li { min-width: 220px; gap: 10px; }
 
 .dashboard-zoom-panel .dashboard-recent { gap: 14px; margin-top: 18px; overflow: visible; }
-.dashboard-zoom-panel .dashboard-recent li { grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.4fr); gap: 16px; }
+.dashboard-zoom-panel .dashboard-recent li { grid-template-columns: 44px minmax(0, 1fr); gap: 16px; }
 /* En grande hay espacio para la dirección completa. */
 .dashboard-zoom-panel .dashboard-recent-coords { white-space: normal; }
 .dashboard-zoom-panel .dashboard-recent-avatar { width: 44px; height: 44px; font-size: 15px; }
 .dashboard-zoom-panel .dashboard-recent-who { font-size: 16px; }
-.dashboard-zoom-panel .dashboard-recent-coords { font-size: 15px; }
+.dashboard-zoom-panel .dashboard-recent-actions { font-size: 15px; }
 
 /* Tendencias: la gráfica mensual ocupa todo el ancho y las otras dos van
    lado a lado debajo. El ancho se limita por el alto de la pantalla para que
@@ -1263,7 +1300,47 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-panel--zones { background: transparent; }
 .dashboard-profile { border-bottom: 2px solid var(--sip-gold); }
 .dashboard-map-link { border-radius: 12px 12px 36px 12px; }
-.dashboard-title { font-family: var(--font-editorial); font-size: 18px; font-weight: 400; }
+.dashboard-title { font-family: var(--font-heading); font-size: 18px; font-weight: 400; }
 .dashboard-zoom-panel { background: var(--sip-white); }
 .dashboard-zoom-panel.dashboard-panel--featured { background: #f5efe2; }
 .dashboard-grid > .dashboard-panel--zoomable:hover { box-shadow: 0 4px 12px rgba(22,26,29,0.04); }
+
+/* Tipos, edades y zonas comparten la escala y aprovechan el alto disponible. */
+.dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-list {
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-row {
+  flex: 1;
+  min-height: 32px;
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr) 30px;
+  font-size: 13px;
+}
+
+:is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-label { white-space: normal; line-height: 1.35; overflow-wrap: anywhere; }
+.dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-track { height: 22px; background: var(--sip-gray); }
+.dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-value { font-size: 18px; }
+
+/* Cada zona conserva el alto de su nombre; la lista se desplaza si no cabe. */
+.dashboard-zones {
+  grid-auto-rows: max-content;
+  align-content: start;
+}
+
+.dashboard-grid > .dashboard-panel--zones .hbar-list,
+.dashboard-zoom-panel .dashboard-zones .hbar-list {
+  flex: none;
+  gap: 12px;
+}
+
+.dashboard-grid > .dashboard-panel--zones .hbar-row,
+.dashboard-zoom-panel .dashboard-zones .hbar-row {
+  flex: 0 0 auto;
+  padding-block: 4px;
+}
+
+@media (max-width: 540px) {
+  .dashboard-recent-summary > div { padding: 8px; }
+  .dashboard-recent-summary dt { font-size: 11px; }
+}

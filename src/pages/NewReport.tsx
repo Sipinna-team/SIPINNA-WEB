@@ -219,6 +219,24 @@ function NewReport() {
               <p className="rf-muted rf-center">
                 ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
               </p>
+              <section className="rf-intro-guide" aria-labelledby="rf-intro-guide-title">
+                <h2 id="rf-intro-guide-title">Completa tu reporte en 5 pasos</h2>
+                <ol className="rf-intro-steps">
+                  {[
+                    ['Ubicación', 'Marca el lugar en el mapa.'],
+                    ['Fotos', 'Agrega imágenes si las tienes; es opcional.'],
+                    ['Descripción', 'Cuéntanos qué viste.'],
+                    ['Datos aproximados', 'Indica la edad, actividad y compañía.'],
+                    ['Revisión', 'Confirma los datos antes de enviar.'],
+                  ].map(([title, description], index) => (
+                    <li key={title}>
+                      <span className="rf-intro-step-number" aria-hidden="true">{index + 1}</span>
+                      <strong>{title}</strong>
+                      <p>{description}</p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
             </>
           )}
 
@@ -290,24 +308,26 @@ function NewReport() {
               <StepTitle headingRef={headingRef} title="Sobre la niña o niño">
                 Responde lo que hayas visto; un aproximado está bien.
               </StepTitle>
-              <ChipGroup label="¿Qué edad aproximada tiene?" options={AGE_OPTIONS} selected={[age]} onToggle={setAge} />
-              <ChipGroup
-                label="¿Qué estaba haciendo?"
-                hint="Puedes elegir más de una opción."
-                options={WORK_OPTIONS}
-                selected={workTypes}
-                onToggle={(option) =>
-                  setWorkTypes((current) =>
-                    current.includes(option) ? current.filter((item) => item !== option) : [...current, option],
-                  )
-                }
-              />
-              <ChipGroup
-                label="¿Con quién estaba?"
-                options={CONDITION_OPTIONS}
-                selected={[condition]}
-                onToggle={setCondition}
-              />
+              <div className="rf-child-fields">
+                <ChipGroup label="¿Qué edad aproximada tiene?" options={AGE_OPTIONS} selected={[age]} onToggle={setAge} />
+                <ChipGroup
+                  label="¿Qué estaba haciendo?"
+                  hint="Puedes elegir más de una opción."
+                  options={WORK_OPTIONS}
+                  selected={workTypes}
+                  onToggle={(option) =>
+                    setWorkTypes((current) =>
+                      current.includes(option) ? current.filter((item) => item !== option) : [...current, option],
+                    )
+                  }
+                />
+                <ChipGroup
+                  label="¿Con quién estaba?"
+                  options={CONDITION_OPTIONS}
+                  selected={[condition]}
+                  onToggle={setCondition}
+                />
+              </div>
               <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={!childComplete} onClick={goNext}>
                 Revisar reporte
               </button>

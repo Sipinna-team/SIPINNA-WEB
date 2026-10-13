@@ -13,9 +13,9 @@
 .login-card {
   min-width: 0;
   overflow-wrap: anywhere;
-  width: min(380px, 100%);
+  width: min(560px, 100%);
   max-width: 100%;
-  padding: clamp(20px, 4vw, 30px);
+  padding: clamp(32px, 5vh, 48px) clamp(24px, 3vw, 36px);
   border-radius: var(--sip-radius-card);
   background: var(--sip-glass-bg);
   -webkit-backdrop-filter: var(--sip-glass-blur);
@@ -39,16 +39,16 @@
 .login-logo {
   view-transition-name: auth-logo;
   display: block;
-  margin: 0 auto 10px;
-  max-width: 130px;
+  margin: 0 auto 18px;
+  max-width: 160px;
   width: 100%;
   height: auto;
 }
 
 /* Titulo: "Iniciar sesión" */
 .login-card h2 {
-  margin: 0 0 14px;
-  font-size: 20px;
+  margin: 0 0 20px;
+  font-size: 28px;
   text-align: center;
   color: var(--sip-primary-dark);
 }
@@ -57,7 +57,7 @@
 .login-card form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 /* Etiquetas de los inputs */
@@ -369,6 +369,6 @@
 }
 
 .login-card { border-top-left-radius: 32px; }
-.login-card h2 { font-family: var(--font-editorial); font-weight: 400; }
+.login-card h2 { font-family: var(--font-heading); font-weight: 400; }
 .login-card input[type='text']:not([data-slot='otp-input-slot']),
 .login-card input[type='password']:not([data-slot='otp-input-slot']) { background: var(--sip-white); }

@@ -559,7 +559,7 @@ html:has(.citizen-page) body {
 /* Composición editorial: un titular abierto y una pieza lateral curvada. */
 .citizen-hero { border-bottom: 1px solid rgba(165, 127, 44, 0.25); }
 .citizen-hero h1 { font-size: clamp(34px, 4.8vw, 60px); letter-spacing: -0.045em; }
-.citizen-hero-emphasis { display: block; font-family: var(--font-editorial); font-style: italic; font-weight: 400; letter-spacing: -0.035em; font-size: 1.18em; }
+.citizen-hero-emphasis { display: block; font-family: var(--font-heading); font-style: italic; font-weight: 400; letter-spacing: -0.035em; font-size: 1.18em; }
 .citizen-hero-actions > a:last-child { border: 0; background: transparent; text-decoration: underline; text-underline-offset: 5px; font-weight: 600; }
 .citizen-levels {
   min-width: 0;
@@ -572,9 +572,9 @@ html:has(.citizen-page) body {
 .citizen-levels .citizen-eyebrow { padding-bottom: 18px; color: var(--citizen-on-primary-accent); }
 .citizen-level { padding: 18px 0; gap: 18px; border-radius: 0; border-top: 1px solid rgba(255,255,255,0.2); background: transparent; color: var(--sip-white); }
 .citizen-level:nth-of-type(2), .citizen-level:nth-of-type(3) { margin-left: 0; }
-.citizen-level .citizen-number { flex: none; min-width: 48px; white-space: nowrap; font-family: var(--font-editorial); font-size: 38px; font-weight: 400; color: var(--citizen-on-primary-accent); }
+.citizen-level .citizen-number { flex: none; min-width: 48px; white-space: nowrap; font-family: var(--font-heading); font-size: 38px; font-weight: 400; color: var(--citizen-on-primary-accent); }
 .citizen-level span:not(.citizen-number) { color: var(--citizen-on-primary); }
-.citizen-section h2 { font-family: var(--font-editorial); font-weight: 400; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.025em; }
+.citizen-section h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.025em; }
 .citizen-tag { padding-inline: 0; border-radius: 0; background: transparent; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
 .citizen-tag::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--sip-gold); vertical-align: middle; margin-right: 10px; }
 .citizen-card-grid > .citizen-card { border-top: 1px solid rgba(165,127,44,0.4); border-radius: 0; background: transparent; }
@@ -583,7 +583,7 @@ html:has(.citizen-page) body {
 .citizen-card h3 { font-size: 18px; }
 .citizen-card-blue { border-radius: 8px 48px 8px 8px; }
 .citizen-axes li { border-radius: 6px; border-bottom: 2px solid rgba(165,127,44,0.35); }
-.citizen-number-gold { font-family: var(--font-editorial); font-weight: 400; }
+.citizen-number-gold { font-family: var(--font-heading); font-weight: 400; }
 .citizen-footer { border-top: 4px solid var(--sip-gold); }
 
 @media (min-width: 1000px) {

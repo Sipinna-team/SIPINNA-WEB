@@ -4,6 +4,13 @@
   background-color: var(--sip-gray);
 }
 
+/* Los controles y ventanas del mapa usan la misma fuente que la aplicación. */
+.mapboxgl-map,
+.mapboxgl-popup,
+.mapboxgl-ctrl {
+  font-family: var(--font-body);
+}
+
 .map-toolbar {
   position: absolute;
   z-index: 1;
@@ -26,7 +33,7 @@
   background: var(--sip-white);
   box-shadow: 0 2px 8px rgb(22 26 29 / 20%);
   color: var(--sip-primary-dark);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -61,7 +68,7 @@
   background: var(--sip-white);
   box-shadow: 0 2px 8px rgb(22 26 29 / 20%);
   color: var(--sip-primary-dark);
-  font-family: var(--font-heading);
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
 }
@@ -461,6 +468,6 @@
   .map-zone select { width: 100%; max-width: 100%; }
 }
 .information-panel { border-left-color: rgba(165,127,44,0.4); }
-.sidePanelTitle h1 { font-family: var(--font-editorial); font-weight: 400; }
+.sidePanelTitle h1 { font-family: var(--font-heading); font-weight: 400; }
 .report-card { border-radius: 6px; }
 .report-card--selected { border-left: 3px solid var(--sip-primary); box-shadow: none; }

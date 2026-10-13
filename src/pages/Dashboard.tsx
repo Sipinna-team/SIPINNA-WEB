@@ -7,7 +7,7 @@ import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
 import type { Report, UserType } from '../lib/api';
 import type { ZoneCount } from '../lib/dashboardStats';
-import {MONTHS,STATES,computeDashboardStats,formatDuration,formatRelativeDate,} from '../lib/dashboardStats';
+import {MONTHS,STATES,computeDashboardStats,formatDuration,formatRelativeDate,normalizeState,stateLabel,workTypeLabel,} from '../lib/dashboardStats';
 import {AnimatedNumber,ColumnChart,DonutChart,HorizontalBarChart,LineChart,} from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
 import { ReportMapLink } from '../components/ReportAddress';
@@ -302,7 +302,15 @@ function Dashboard() {
               Ver todos
             </Link>
           </div>
-          {!loading && stats.recent.length === 0 && (
+          {!isAdmin && (
+            <dl className="dashboard-recent-summary" aria-label="Atención de reportes de tu zona">
+              <div><dt>Registrados</dt><dd>{loading || error ? placeholder : stats.byState.registrado}</dd></div>
+              <div><dt>En revisión</dt><dd>{loading || error ? placeholder : stats.byState.revision}</dd></div>
+              <div><dt>Sin atender +48 h</dt><dd>{loading || error ? placeholder : stats.unattended}</dd></div>
+            </dl>
+          )}
+          {loading && <p className="dashboard-muted" role="status">Cargando reportes recientes…</p>}
+          {!loading && !error && stats.recent.length === 0 && (
             <p className="dashboard-muted">No hay reportes todavía.</p>
           )}
           <ul className="dashboard-recent">
@@ -312,14 +320,30 @@ function Dashboard() {
                   {initials(report.citizen_name || '?')}
                 </span>
                 <span className="dashboard-recent-who">
-                  <strong>{report.citizen_name || 'Anónimo'}</strong>
-                  <span className="dashboard-muted">{formatRelativeDate(report.created_at)}</span>
+                  <span className="dashboard-recent-heading">
+                    <strong title={report.folio}>Folio {report.folio}</strong>
+                    <span className={`dashboard-recent-state dashboard-recent-state--${normalizeState(report.last_state)}`}>
+                      {stateLabel(report.last_state)}
+                    </span>
+                  </span>
+                  <span className="dashboard-muted">{report.citizen_name || 'Anónimo'} · {formatRelativeDate(report.created_at)}</span>
+                  <span className="dashboard-recent-type">
+                    {(report.work_type ?? '').split(',').map(workTypeLabel).filter(Boolean).join(' · ') || 'Tipo sin especificar'}
+                  </span>
+                  <span className="dashboard-muted">
+                    {report.children_quantity > 0 ? `${report.children_quantity} NNA` : 'Cantidad sin especificar'}
+                    {' · Edades: '}{report.children_age || 'Sin especificar'}
+                    {isAdmin && report.zone_name ? ` · ${report.zone_name}` : ''}
+                  </span>
                 </span>
-                <ReportMapLink
-                  className="dashboard-recent-coords"
-                  latitude={report.latitude}
-                  longitude={report.longitude}
-                />
+                <span className="dashboard-recent-actions">
+                  <Link to={`/map?folio=${encodeURIComponent(report.folio)}`} viewTransition onClick={(event) => event.stopPropagation()}>Ver reporte</Link>
+                  <ReportMapLink
+                    className="dashboard-recent-coords"
+                    latitude={report.latitude}
+                    longitude={report.longitude}
+                  />
+                </span>
               </li>
             ))}
           </ul>

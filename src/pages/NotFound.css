@@ -10,14 +10,14 @@
   margin-bottom: 8px;
 }
 
-/* Número editorial en guinda. */
+/* Número destacado en guinda. */
 .not-found-code {
   margin: 0 0 8px;
   font-size: clamp(104px, 32vw, 176px);
   line-height: 1;
   letter-spacing: -0.05em;
   color: var(--sip-primary);
-  font-family: var(--font-editorial);
+  font-family: var(--font-heading);
   font-weight: 400;
 }
 

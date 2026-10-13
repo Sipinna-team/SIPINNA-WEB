@@ -23,12 +23,6 @@ img {
 
 /* Montserrat para títulos y navegación; Open Sans para texto corrido.
    Las fuentes se cargan desde Google Fonts en index.html. */
-:root {
-  --font-heading: 'Montserrat', 'Poppins', 'Outfit', system-ui, sans-serif;
-  --font-body: 'Open Sans', 'Roboto', 'Lato', system-ui, sans-serif;
-  --font-editorial: Georgia, 'Times New Roman', serif;
-}
-
 body, html {
   font-family: var(--font-body);
 }
