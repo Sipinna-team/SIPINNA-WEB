@@ -587,9 +587,7 @@ html:has(.citizen-page) body {
 .citizen-footer { border-top: 4px solid var(--sip-gold); }
 
 @media (min-width: 1000px) {
-  .citizen-card-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: start; }
-  .citizen-card-grid > .citizen-card:nth-child(2) { padding-inline: 12px; }
-  .citizen-card-grid > .citizen-card:last-child { margin-top: 28px; }
+  .citizen-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; align-items: stretch; }
   .citizen-rieti-row > .citizen-card:first-child { flex-grow: 1.25; }
 }
 

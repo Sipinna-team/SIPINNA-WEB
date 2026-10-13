@@ -126,7 +126,6 @@ function CitizenHome() {
                 niños y adolescentes vivan libres de violencia y de trabajo infantil.
               </p>
               <div className="citizen-hero-actions">
-                <Link to="/reportar" className="sip-btn sip-btn--primary citizen-hero-btn">Hacer un reporte</Link>
                 <a href="#sipinna" className="sip-btn sip-btn--secondary citizen-hero-btn">Conocer SIPINNA</a>
               </div>
             </div>

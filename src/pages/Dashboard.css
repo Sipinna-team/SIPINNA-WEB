@@ -373,8 +373,10 @@ html:has(.dashboard-page) body {
 /* Reportes recientes */
 .dashboard-panel-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px 12px;
 }
 
 .dashboard-see-all {
@@ -1080,6 +1082,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .staff-edit select {
   width: 100%;
   min-width: 0;
+  min-height: var(--sip-control-height);
   padding: 7px 10px;
   border: 1px solid var(--sip-border);
   border-radius: 8px;

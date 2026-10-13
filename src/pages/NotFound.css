@@ -11,7 +11,7 @@
 }
 
 /* Número destacado en guinda. */
-.not-found-code {
+.not-found-card .not-found-code {
   margin: 0 0 8px;
   font-size: clamp(104px, 32vw, 176px);
   line-height: 1;

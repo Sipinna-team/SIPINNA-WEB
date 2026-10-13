@@ -415,7 +415,7 @@ function NewReport() {
         </section>
 
         <p className="rf-emergency">
-          ¿Una niña o niño está en peligro en este momento? Llama al <a href="tel:911">911</a>.
+          ¿Una niña o niño está en peligro en este momento? Llama al 911
         </p>
       </main>
     </div>

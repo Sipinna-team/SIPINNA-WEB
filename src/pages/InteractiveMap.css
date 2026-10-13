@@ -171,6 +171,7 @@
   align-items: center;
   justify-content: center;
   min-width: 1.75rem;
+  flex-shrink: 0;
   height: 1.75rem;
   border-radius: 999px;
   background-color: var(--sip-primary);
@@ -219,10 +220,16 @@
 
 .report-card__heading {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem;
 }
+
+.report-card__heading strong { min-width: 0; overflow-wrap: anywhere; }
+.report-card__heading > span { flex-shrink: 0; }
+.report-card__description,
+.report-card__meta { overflow-wrap: anywhere; }
 
 .report-card__heading > span {
   padding: 0.2rem 0.45rem;
