@@ -1298,8 +1298,8 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 }
 
 /* La jerarquía se expresa con superficie y tipografía, sin repetir el mismo recuadro. */
-.dashboard-panel--overview { border-top: 3px solid var(--sip-gold); border-top-left-radius: 36px; }
-.dashboard-panel--featured { background: #f5efe2; border-top: 3px solid var(--sip-primary); }
+.dashboard-panel--overview { border-top-left-radius: 36px; }
+.dashboard-panel--featured { background: #f5efe2; }
 .dashboard-panel--zones { background: transparent; }
 .dashboard-profile { border-bottom: 2px solid var(--sip-gold); }
 .dashboard-map-link { border-radius: 12px 12px 36px 12px; }
@@ -1325,6 +1325,17 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-track { height: 22px; background: var(--sip-gray); }
 .dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-value { font-size: 18px; }
 
+/* Los nombres de tipos pueden ocupar varias líneas sin comprimir las filas. */
+.dashboard-grid > .dashboard-panel--types .hbar-row,
+.dashboard-zoom-panel.dashboard-panel--types .hbar-row {
+  flex: 0 0 auto;
+  padding-block: 4px;
+}
+
+.dashboard-grid > .dashboard-panel--types .hbar-row {
+  grid-template-columns: minmax(0, 40%) minmax(0, 1fr) max-content;
+}
+
 /* Cada zona conserva el alto de su nombre; la lista se desplaza si no cabe. */
 .dashboard-zones {
   grid-auto-rows: max-content;
@@ -1343,7 +1354,31 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   padding-block: 4px;
 }
 
+/* Los alimentadores tienen los enlaces a la derecha de la información. */
+.dashboard-recent.dashboard-recent--side-actions li {
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+}
+
+.dashboard-recent--side-actions .dashboard-recent-actions {
+  grid-column: 3;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.dashboard-zoom-panel .dashboard-recent.dashboard-recent--side-actions li {
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+}
+
 @media (max-width: 540px) {
+  .dashboard-recent--side-actions .dashboard-recent-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .dashboard-zoom-panel .dashboard-recent.dashboard-recent--side-actions li {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
   .dashboard-recent-summary > div { padding: 8px; }
   .dashboard-recent-summary dt { font-size: 11px; }
 }

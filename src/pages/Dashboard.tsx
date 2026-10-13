@@ -313,7 +313,7 @@ function Dashboard() {
           {!loading && !error && stats.recent.length === 0 && (
             <p className="dashboard-muted">No hay reportes todavía.</p>
           )}
-          <ul className="dashboard-recent">
+          <ul className={`dashboard-recent${user?.userType === 'alimentador' ? ' dashboard-recent--side-actions' : ''}`}>
             {stats.recent.map((report) => (
               <li key={report.folio}>
                 <span className="dashboard-recent-avatar" aria-hidden="true">

@@ -267,6 +267,6 @@
 }
 
 .reports-header h1 { font-family: var(--font-heading); font-weight: 400; font-size: 30px; }
-.reports-filters { background: #f3eddf; border-top: 2px solid var(--sip-gold); }
+.reports-filters { background: #f3eddf; }
 .reports-table th { letter-spacing: 0.025em; }
 .reports-table-wrap { border-radius: 6px; }

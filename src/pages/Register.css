@@ -336,7 +336,7 @@
   .back-login { font-size: 12px; }
 }
 
-.register-card { border-top: 3px solid var(--sip-primary); border-top-left-radius: 36px; }
+.register-card { border-top-left-radius: 36px; }
 .register-left h1 { font-family: var(--font-heading); font-weight: 400; }
 .register-header h2 { font-family: var(--font-heading); font-weight: 400; }
 @media (max-width: 900px) {

@@ -21,7 +21,6 @@
   -webkit-backdrop-filter: var(--sip-glass-blur);
   backdrop-filter: var(--sip-glass-blur);
   border: 1px solid var(--sip-glass-border);
-  border-top: 3px solid var(--sip-primary);
   box-shadow: var(--sip-shadow-card);
   color: var(--sip-text);
   animation: page-rise 600ms var(--ease-out-soft) both;

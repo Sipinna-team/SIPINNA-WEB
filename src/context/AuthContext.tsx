@@ -58,6 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return sessionUser;
   }, []);
 
+  const acceptInvitation = useCallback(async (token: string, password: string) => {
+    const sessionUser = toSessionUser(await api.acceptInvitation(token, password));
+    setUser(sessionUser);
+    return sessionUser;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api.logout();
@@ -67,8 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, isLoading, login, loginWithGoogle, logout }),
-    [user, isLoading, login, loginWithGoogle, logout],
+    () => ({ user, isLoading, login, loginWithGoogle, acceptInvitation, logout }),
+    [user, isLoading, login, loginWithGoogle, acceptInvitation, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

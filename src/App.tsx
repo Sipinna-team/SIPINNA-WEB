@@ -12,6 +12,7 @@ import Reports from './pages/Reports'
 import AuthCallback from './pages/AuthCallback'
 import CitizenHome from './pages/CitizenHome'
 import NewReport from './pages/NewReport'
+import AcceptInvitation from './pages/AcceptInvitation'
 
 /**
  * Raíz de la app: define las rutas públicas y las protegidas por sesión.
@@ -27,6 +28,7 @@ function App() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/aceptar-invitacion" element={<AcceptInvitation />} />
         <Route path="/inicio" element={<CitizenHome />} />
         <Route path="/reportar" element={<NewReport />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>

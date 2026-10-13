@@ -577,14 +577,13 @@ html:has(.citizen-page) body {
 .citizen-section h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.025em; }
 .citizen-tag { padding-inline: 0; border-radius: 0; background: transparent; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
 .citizen-tag::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--sip-gold); vertical-align: middle; margin-right: 10px; }
-.citizen-card-grid > .citizen-card { border-top: 1px solid rgba(165,127,44,0.4); border-radius: 0; background: transparent; }
+.citizen-card-grid > .citizen-card { border-radius: 0; background: transparent; }
 .citizen-card-grid > .citizen-card:first-child { border-top: 0; background: var(--sip-cream); border-radius: 40px 8px 8px 8px; }
 .citizen-card-grid > .citizen-card:last-child { background: var(--sip-cream); border-radius: 8px 8px 40px 8px; }
 .citizen-card h3 { font-size: 18px; }
 .citizen-card-blue { border-radius: 8px 48px 8px 8px; }
 .citizen-axes li { border-radius: 6px; border-bottom: 2px solid rgba(165,127,44,0.35); }
 .citizen-number-gold { font-family: var(--font-heading); font-weight: 400; }
-.citizen-footer { border-top: 4px solid var(--sip-gold); }
 
 @media (min-width: 1000px) {
   .citizen-card-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; align-items: stretch; }

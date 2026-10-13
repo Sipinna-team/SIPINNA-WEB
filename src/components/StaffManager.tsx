@@ -1,5 +1,4 @@
 import { initials } from '../lib/presentation';
-import { passwordError, PASSWORD_MIN_LENGTH, PASSWORD_REQUIREMENTS } from '../lib/passwordPolicy';
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { api } from '../lib/api';
@@ -24,8 +23,6 @@ const EMPTY_FORM = {
   zona_id: '',
   email: '',
   telefono: '',
-  password: '',
-  activar: true,
 };
 
 /** Convierte un teléfono de 10 dígitos a formato `+52…`; la API espera el número internacional. */
@@ -40,9 +37,16 @@ function errorMessage(err: unknown, fallback: string) {
 }
 
 
+/** Etiqueta del estado de una cuenta; una pendiente sin aceptar su invitación no está suspendida. */
+function statusLabel(member: StaffMember) {
+  if (member.estado_cuenta === 'activada') return 'Activa';
+  return member.invitacion_pendiente ? 'Invitación enviada' : 'Suspendida';
+}
+
 /**
  * Gestión de cuentas de staff en la vista ampliada del perfil del administrador:
- * alta, activación / suspensión y cambio de rol o zona.
+ * alta por invitación, reenvío de invitaciones, activación / suspensión y cambio
+ * de rol o zona.
  */
 export function StaffManager() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -56,6 +60,7 @@ export function StaffManager() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -105,6 +110,20 @@ export function StaffManager() {
     }
   }
 
+  async function resendInvitation(member: StaffMember) {
+    setBusyId(member.id);
+    setError(null);
+    setNotice(null);
+    try {
+      await api.resendInvitation(member.id);
+      setNotice(`Enviamos una nueva invitación a ${member.email}. El enlace anterior ya no sirve.`);
+    } catch (err) {
+      setError(errorMessage(err, 'No se pudo reenviar la invitación'));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function saveEdit() {
     if (!editing) return;
     const ok = await update(editing.id, {
@@ -117,9 +136,10 @@ export function StaffManager() {
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
+    setNotice(null);
 
-    if (!form.email.trim() && !form.telefono.trim()) {
-      setFormError('Escribe un correo o un teléfono.');
+    if (!form.email.trim()) {
+      setFormError('Escribe el correo al que se enviará la invitación.');
       return;
     }
     if (form.rol === 'alimentador' && !form.zona_id) {
@@ -127,11 +147,6 @@ export function StaffManager() {
       return;
     }
 
-    const validationError = passwordError(form.password);
-    if (validationError) {
-      setFormError(validationError);
-      return;
-    }
     setSaving(true);
     try {
       const { staff: member } = await api.createStaff({
@@ -144,6 +159,7 @@ export function StaffManager() {
       setStaff((current) => [member, ...current]);
       setForm(EMPTY_FORM);
       setShowForm(false);
+      setNotice(`Enviamos la invitación a ${member.email}. La cuenta se activará cuando la acepte.`);
     } catch (err) {
       setFormError(errorMessage(err, 'No se pudo crear la cuenta'));
     } finally {
@@ -203,6 +219,7 @@ export function StaffManager() {
             Correo
             <input
               type="email"
+              required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               autoComplete="off"
@@ -218,31 +235,13 @@ export function StaffManager() {
               autoComplete="off"
             />
           </label>
-          <label className="staff-field">
-            Contraseña temporal
-            <input
-              type="password"
-              required
-              minLength={PASSWORD_MIN_LENGTH}
-              aria-describedby="staff-password-requirements"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              autoComplete="new-password"
-            />
-          </label>
-          <p id="staff-password-requirements" className="password-requirements staff-field--wide">{PASSWORD_REQUIREMENTS}</p>
-          <label className="staff-check">
-            <input
-              type="checkbox"
-              checked={form.activar}
-              onChange={(e) => setForm({ ...form, activar: e.target.checked })}
-            />
-            Activar la cuenta ahora
-          </label>
+          <p className="dashboard-muted staff-field--wide">
+            Le enviaremos un correo para que acepte la invitación y cree su contraseña.
+          </p>
           {formError && <p className="staff-error staff-field--wide" role="alert">{formError}</p>}
           <div className="staff-form-actions">
             <button type="submit" className="staff-button staff-button--primary" disabled={saving}>
-              {saving ? 'Creando…' : 'Crear cuenta'}
+              {saving ? 'Enviando…' : 'Enviar invitación'}
             </button>
           </div>
         </form>
@@ -264,6 +263,7 @@ export function StaffManager() {
       </div>
 
       {error && <p className="staff-error" role="alert">{error}</p>}
+      {notice && <p className="dashboard-muted" role="status">{notice}</p>}
       {loading && <p className="dashboard-muted">Cargando cuentas…</p>}
       {!loading && visible.length === 0 && !error && (
         <p className="dashboard-muted">No hay cuentas en esta lista.</p>
@@ -314,7 +314,7 @@ export function StaffManager() {
               )}
 
               <span className={`staff-status staff-status--${member.estado_cuenta}`}>
-                {member.estado_cuenta === 'activada' ? 'Activa' : 'Pendiente'}
+                {statusLabel(member)}
               </span>
 
               <span className="staff-actions">
@@ -334,7 +334,16 @@ export function StaffManager() {
                   </>
                 ) : (
                   <>
-                    {member.estado_cuenta === 'pendiente' ? (
+                    {member.invitacion_pendiente ? (
+                      <button
+                        type="button"
+                        className="staff-button staff-button--primary"
+                        disabled={busy || !member.email}
+                        onClick={() => resendInvitation(member)}
+                      >
+                        Reenviar invitación
+                      </button>
+                    ) : member.estado_cuenta === 'pendiente' ? (
                       <button
                         type="button"
                         className="staff-button staff-button--primary"

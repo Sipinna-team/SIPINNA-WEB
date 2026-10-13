@@ -13,6 +13,7 @@ type AuthContextValue = {
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<SessionUser>;
   loginWithGoogle: (accessToken: string) => Promise<SessionUser>;
+  acceptInvitation: (token: string, password: string) => Promise<SessionUser>;
   logout: () => Promise<void>;
 };
 

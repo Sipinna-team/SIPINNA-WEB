@@ -64,7 +64,6 @@
   overflow-wrap: anywhere;
   padding: clamp(20px, 3vw, 36px);
   animation: page-rise 600ms var(--ease-out-soft) both;
-  border-top: 3px solid var(--sip-primary);
   border-top-left-radius: 32px;
 }
 .rf-form {

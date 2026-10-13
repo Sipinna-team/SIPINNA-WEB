@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 import './Reports.css';
@@ -132,6 +132,8 @@ function Reports() {
   const [pageSize, setPageSize] = useState(PAGE_SIZES[1]!);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLElement>(null);
+  const scrollToResultsRef = useRef(false);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -170,6 +172,19 @@ function Reports() {
   const pageStart = (currentPage - 1) * pageSize;
   const pageReports = filtered.slice(pageStart, pageStart + pageSize);
   const hasFilters = JSON.stringify({ ...filters, sort: '' }) !== JSON.stringify({ ...EMPTY_FILTERS, sort: '' });
+
+  // Desplaza después de renderizar los nuevos resultados, solo al usar la paginación.
+  useEffect(() => {
+    if (!scrollToResultsRef.current) return;
+    scrollToResultsRef.current = false;
+    resultsRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
+  }, [currentPage, pageSize]);
+
+  function changePage(nextPage: number) {
+    if (nextPage === currentPage) return;
+    scrollToResultsRef.current = true;
+    setPage(nextPage);
+  }
 
   function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -317,7 +332,7 @@ function Reports() {
         </button>
       </section>
 
-      <section className="dashboard-panel reports-results" aria-label="Resultados">
+      <section ref={resultsRef} className="dashboard-panel reports-results" aria-label="Resultados">
         <p className="dashboard-muted reports-count" aria-live="polite">
           {loading
             ? 'Cargando reportes…'
@@ -395,6 +410,7 @@ function Reports() {
               <select
                 value={pageSize}
                 onChange={(e) => {
+                  scrollToResultsRef.current = true;
                   setPageSize(Number(e.target.value));
                   setPage(1);
                 }}
@@ -409,7 +425,7 @@ function Reports() {
               <button
                 type="button"
                 disabled={currentPage === 1}
-                onClick={() => setPage(currentPage - 1)}
+                onClick={() => changePage(currentPage - 1)}
                 aria-label="Página anterior"
               >
                 ‹
@@ -423,7 +439,7 @@ function Reports() {
                     type="button"
                     className={item === currentPage ? 'is-current' : undefined}
                     aria-current={item === currentPage ? 'page' : undefined}
-                    onClick={() => setPage(item)}
+                    onClick={() => changePage(item)}
                   >
                     {item}
                   </button>
@@ -432,7 +448,7 @@ function Reports() {
               <button
                 type="button"
                 disabled={currentPage === totalPages}
-                onClick={() => setPage(currentPage + 1)}
+                onClick={() => changePage(currentPage + 1)}
                 aria-label="Página siguiente"
               >
                 ›

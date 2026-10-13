@@ -100,18 +100,26 @@ export type StaffMember = {
   zona_id: string | null;
   zona_nombre: string;
   estado_cuenta: AccountState;
+  /** `true` mientras la cuenta no acepta su invitación; una cuenta suspendida también está `'pendiente'`, pero con esto en `false`. */
+  invitacion_pendiente: boolean;
   created_at: string;
 };
 
-/** Datos para crear una cuenta de staff. Se necesita `email` o `telefono`. */
+/** Datos para crear una cuenta de staff. La cuenta nace pendiente y se le envía la invitación a `email`. */
 export type CreateStaffPayload = {
   nombre: string;
   rol: AdminRole;
   zona_id: string | null;
   email: string;
   telefono: string;
-  password: string;
-  activar: boolean;
+};
+
+/** Datos de una invitación de staff, de `POST /auth/invitation`. */
+export type Invitation = {
+  nombre: string;
+  email: string | null;
+  rol: AdminRole;
+  zona_nombre: string;
 };
 
 /** Cambios parciales a una cuenta de staff; los campos omitidos no se modifican. */
@@ -362,11 +370,45 @@ export const api = {
     return request<{ staff: StaffMember[] | null }>('/admin/staff', { signal });
   },
 
-  /** Crea una cuenta de staff. */
+  /** Crea una cuenta de staff pendiente y le envía la invitación por correo. Usa 15 s porque incluye el envío del correo. */
   createStaff(payload: CreateStaffPayload) {
     return request<{ staff: StaffMember }>('/admin/staff', {
       method: 'POST',
       body: JSON.stringify(payload),
+      timeoutMs: 15000,
+    });
+  },
+
+  /** Reenvía la invitación de una cuenta que todavía no la acepta; el enlace anterior deja de servir. */
+  resendInvitation(id: string) {
+    return request<{ message: string }>(`/admin/staff/${encodeURIComponent(id)}/invitation`, {
+      method: 'POST',
+      timeoutMs: 15000,
+    });
+  },
+
+  /** Datos de la invitación con el token del enlace del correo. Va en el cuerpo (POST) para que no quede en los logs del backend. */
+  getInvitation(token: string, signal?: AbortSignal) {
+    return request<Invitation>('/auth/invitation', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+      signal,
+    });
+  },
+
+  /** Acepta la invitación con la contraseña elegida; el backend activa la cuenta y deja la cookie de sesión. */
+  acceptInvitation(token: string, password: string) {
+    return request<SessionResponse>('/auth/invitation/accept', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
+    });
+  },
+
+  /** Rechaza la invitación; el backend borra la cuenta. */
+  rejectInvitation(token: string) {
+    return request<{ message: string }>('/auth/invitation/reject', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
     });
   },
 
