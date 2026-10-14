@@ -598,3 +598,12 @@ html:has(.citizen-page) body {
   .citizen-card-grid > .citizen-card { padding: 22px; }
   .citizen-hero-actions > a:last-child { min-height: 40px; }
 }
+
+@media (max-width: 540px) {
+  .citizen-user { flex-wrap: wrap; gap: 8px; }
+  .citizen-header-btn { padding-inline: 10px; font-size: 13px; }
+  .citizen-login { padding: 0; }
+}
+@media (max-width: 380px) {
+  .citizen-user { width: 100%; margin-top: 10px; }
+}

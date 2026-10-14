@@ -116,7 +116,7 @@ function Dashboard() {
   const isAdmin = user?.userType === 'administrador';
   const showZones = isAdmin;
 
-  const profileInfo = (
+  const profileInfo = (expanded = false) => (
     <>
       <svg
         viewBox="0 0 24 24"
@@ -137,9 +137,10 @@ function Dashboard() {
               <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
               <circle cx="12" cy="9.5" r="2.5" />
             </svg>
-            {user?.zoneName || 'Sin zona asignada'}
+            <span>{user?.zoneName || 'Sin zona asignada'}</span>
           </span>
         )}
+        {!expanded && <Link to="/mi-cuenta" className="dashboard-account-link" onClick={(event) => event.stopPropagation()}>Mi cuenta</Link>}
       </div>
     </>
   );
@@ -206,16 +207,22 @@ function Dashboard() {
 
         <ZoomablePanel
           className="dashboard-profile"
-          zoomClassName="dashboard-profile-zoom"
+          zoomClassName={`dashboard-profile-zoom${isAdmin ? " dashboard-profile-zoom--admin" : ""}`}
           aria-label="Usuario"
           zoomContent={
             <>
-              <div className="dashboard-profile-card">{profileInfo}</div>
+              <div className="dashboard-profile-card">
+                <div className="dashboard-profile-identity">{profileInfo(true)}</div>
+                <div className="dashboard-profile-actions" aria-label="Opciones de cuenta">
+                  <Link to="/mi-cuenta" className="sip-btn sip-btn--primary">Administrar mi cuenta</Link>
+                  <button type="button" className="sip-btn sip-btn--secondary" onClick={handleLogout}>Cerrar sesión</button>
+                </div>
+              </div>
               {isAdmin && <StaffManager />}
             </>
           }
         >
-          {profileInfo}
+          {profileInfo()}
           <button
             className="dashboard-logout"
             type="button"

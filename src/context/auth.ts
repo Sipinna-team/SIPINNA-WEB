@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { LoginPayload, UserType } from '../lib/api';
+import type { LoginPayload, UserType, UpdateProfilePayload } from '../lib/api';
 
 /** Usuario de la sesión actual, tal como lo usa la interfaz. */
 export type SessionUser = {
@@ -14,6 +14,8 @@ type AuthContextValue = {
   login: (payload: LoginPayload) => Promise<SessionUser>;
   loginWithGoogle: (accessToken: string) => Promise<SessionUser>;
   acceptInvitation: (token: string, password: string) => Promise<SessionUser>;
+  updateProfile: (payload: UpdateProfilePayload) => Promise<void>;
+  deleteAccount: (confirmation: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 

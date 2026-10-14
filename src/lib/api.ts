@@ -22,6 +22,19 @@ export type RegisterCitizenPayload = {
   password: string;
 };
 
+export type AccountProfile = {
+  nombre: string;
+  email: string | null;
+  telefono: string | null;
+  edad: number;
+  genero: string;
+  user_type: UserType;
+  zone_name: string;
+  has_password: boolean;
+};
+
+export type UpdateProfilePayload = Omit<RegisterCitizenPayload, 'password'>;
+
 /** Solicitud de código de recuperación. Igual que en login: solo uno de `email`/`number` va lleno, el otro en `null`. */
 export type ForgotPasswordPayload = {
   email: string | null;
@@ -233,6 +246,18 @@ export const api = {
   /** Devuelve la sesión actual; falla si no hay cookie válida. */
   me() {
     return request<SessionResponse>('/auth/me');
+  },
+
+  getProfile(signal?: AbortSignal) {
+    return request<AccountProfile>('/account', { signal });
+  },
+
+  updateProfile(payload: UpdateProfilePayload) {
+    return request<AccountProfile>('/account', { method: 'PUT', body: JSON.stringify(payload) });
+  },
+
+  deleteAccount(confirmation: string) {
+    return request<unknown>('/account', { method: 'DELETE', body: JSON.stringify({ confirmation }) });
   },
 
   /** Cierra la sesión y borra la cookie. */

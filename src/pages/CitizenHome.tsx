@@ -95,6 +95,7 @@ function CitizenHome() {
               <span className="citizen-nav-long">Hacer un reporte</span>
               <span className="citizen-nav-short">Reportar</span>
             </Link>
+            {user && <Link to="/mi-cuenta" className="sip-btn sip-btn--secondary citizen-header-btn">Mi cuenta</Link>}
             {user === null ? (
               <Link to="/login" className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" aria-label="Iniciar sesión">
                 {loginIcon}
