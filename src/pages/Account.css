@@ -1,4 +1,4 @@
-.account-page { min-height: 100vh; background: var(--sip-cream); padding: 28px 20px 60px; color: var(--sip-text); }
+.account-page { min-height: 100vh; background: var(--sip-surface); padding: 28px 20px 60px; color: var(--sip-text); }
 .account-header { max-width: 720px; margin: 0 auto 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .account-header img { width: 150px; }
 .account-page a { color: var(--sip-primary); text-decoration: underline; }

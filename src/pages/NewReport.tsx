@@ -175,13 +175,13 @@ function NewReport() {
         </Link>
         {currentStep !== DONE && (
           <Link to="/inicio" className="rf-exit">
-            Salir
+            Volver al inicio
           </Link>
         )}
       </header>
 
       <main className="rf-main">
-        <section className="rf-card sip-card" aria-labelledby="rf-title">
+        <section className="rf-card sip-card" data-step={currentStep} aria-labelledby="rf-title">
           {currentStep >= 0 && currentStep < DONE && (
             <StepHeader step={currentStep} onBack={goBack} canGoBack={!sending && (currentStep > 0 || !user)} />
           )}
@@ -309,7 +309,7 @@ function NewReport() {
                 Responde lo que hayas visto; un aproximado está bien.
               </StepTitle>
               <div className="rf-child-fields">
-                <ChipGroup label="¿Qué edad aproximada tiene?" options={AGE_OPTIONS} selected={[age]} onToggle={setAge} />
+                <SelectQuestion label="¿Qué edad aproximada tiene?" options={AGE_OPTIONS} value={age} onChange={setAge} />
                 <ChipGroup
                   label="¿Qué estaba haciendo?"
                   hint="Puedes elegir más de una opción."
@@ -321,11 +321,11 @@ function NewReport() {
                     )
                   }
                 />
-                <ChipGroup
+                <SelectQuestion
                   label="¿Con quién estaba?"
                   options={CONDITION_OPTIONS}
-                  selected={[condition]}
-                  onToggle={setCondition}
+                  value={condition}
+                  onChange={setCondition}
                 />
               </div>
               <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={!childComplete} onClick={goNext}>
@@ -375,7 +375,7 @@ function NewReport() {
                   {sendError}
                 </p>
               )}
-              <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={sending} onClick={handleSend}>
+              <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={sending} aria-busy={sending} onClick={handleSend}>
                 {sending ? 'Enviando…' : sendError ? 'Reintentar envío' : 'Enviar reporte'}
               </button>
             </>
@@ -415,7 +415,7 @@ function NewReport() {
         </section>
 
         <p className="rf-emergency">
-          ¿Una niña o niño está en peligro en este momento? Llama al 911
+          ¿Una niña o niño está en peligro en este momento? <a href="tel:911">Llama al 911</a>
         </p>
       </main>
     </div>
@@ -514,7 +514,7 @@ function LocationPicker({ value, onChange }: { value: LngLat | null; onChange: (
     const map = mapRef.current;
     if (!map || !value) return;
     if (!markerRef.current) {
-      markerRef.current = new mapboxgl.Marker({ color: '#9b2247', draggable: true })
+      markerRef.current = new mapboxgl.Marker({ color: '#007e87', draggable: true })
         .setLngLat(value)
         .addTo(map)
         .on('dragend', () => {
@@ -697,6 +697,23 @@ function PhotoThumbs({ photos, onRemove }: { photos: File[]; onRemove?: (index: 
         </li>
       ))}
     </ul>
+  );
+}
+
+function SelectQuestion({ label, options, value, onChange }: {
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="rf-question rf-select-question">
+      <span>{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)}>
+        <option value="" disabled>Selecciona una opción</option>
+        {options.map((option) => <option key={option} value={option}>{option}</option>)}
+      </select>
+    </label>
   );
 }
 

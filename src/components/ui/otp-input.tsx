@@ -12,12 +12,12 @@ const PATTERNS = {
 
 /** Clases del borde por estado. `success` dibuja su propio anillo en SVG, así que aquí no lleva anillo CSS. */
 const RING = {
-  idle: "focus-visible:ring-2 focus-visible:ring-[#9B2247]/50",
+  idle: "focus-visible:ring-2 focus-visible:ring-primary/50",
   success: "",
-  error: "ring-2 ring-[#FF3B30]/70 delay-150",
+  error: "ring-2 ring-destructive/70 delay-150",
 } as const;
 
-const SUCCESS = "#1E5B4F";
+const SUCCESS = "var(--sip-success)";
 
 const SIZES = {
   sm: {
@@ -47,7 +47,7 @@ const SIZES = {
 } as const;
 
 const SLOT_CLASS =
-  "bg-[#F2F2F2] dark:bg-[#262626] text-center font-medium text-transparent caret-transparent outline-none transition-shadow duration-200 selection:bg-transparent disabled:cursor-not-allowed disabled:opacity-50";
+  "bg-muted text-center font-medium text-transparent caret-transparent outline-none transition-shadow duration-200 selection:bg-transparent disabled:cursor-not-allowed disabled:opacity-50";
 
 const ROLL_SPRING = { type: "spring", stiffness: 500, damping: 34 } as const;
 const CARET_SPRING = { type: "spring", stiffness: 500, damping: 40 } as const;
@@ -357,7 +357,7 @@ export function OtpInput({
                     transition={reduceMotion ? { duration: 0 } : ROLL_SPRING}
                     data-slot="otp-input-char"
                     className={cn(
-                      "font-semibold text-black dark:text-white",
+                      "font-semibold text-foreground",
                       scale.text,
                     )}
                   >
@@ -380,7 +380,7 @@ export function OtpInput({
               opacity: BLINK,
             }}
             className={cn(
-              "pointer-events-none absolute left-0 top-1/2 w-0.5 rounded-full bg-black dark:bg-white",
+              "pointer-events-none absolute left-0 top-1/2 w-0.5 rounded-full bg-foreground",
               scale.caret,
             )}
           />

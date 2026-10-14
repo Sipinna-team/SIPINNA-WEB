@@ -11,7 +11,7 @@
    el fondo del documento toma el color del dashboard y se desactiva el rebote. */
 html:has(.dashboard-page),
 html:has(.dashboard-page) body {
-  background-color: var(--sip-cream);
+  background-color: var(--sip-surface);
   overscroll-behavior-y: none;
 }
 
@@ -79,7 +79,7 @@ html:has(.dashboard-page) body {
   width: 48px;
   height: 48px;
   overflow: hidden;
-  border: 2px solid var(--sip-gold);
+  border: 2px solid var(--sip-detail);
   border-radius: 50%;
   background: var(--sip-gray);
   color: var(--sip-text-muted);
@@ -121,7 +121,7 @@ html:has(.dashboard-page) body {
 
 .dashboard-user-zone svg {
   flex-shrink: 0;
-  color: var(--sip-gold);
+  color: var(--sip-detail);
   width: 16px;
   height: 16px;
 }
@@ -148,7 +148,7 @@ html:has(.dashboard-page) body {
   height: 20px;
 }
 
-.dashboard-logout:hover { background: var(--sip-primary-soft); color: var(--sip-primary-dark); }
+.dashboard-logout:hover { background: var(--sip-primary-soft); color: var(--sip-hover); }
 .dashboard-logout:focus-visible {
   outline: 2px solid var(--sip-primary);
   outline-offset: 2px;
@@ -197,7 +197,7 @@ html:has(.dashboard-page) body {
 }
 
 .kpi-carousel--paged .kpi-carousel-track { cursor: grab; }
-.kpi-carousel-track:focus-visible { outline: none; }
+.kpi-carousel-track:focus-visible { outline: none; box-shadow: var(--sip-focus); border-radius: var(--sip-radius-card); }
 
 /* Desvanece el borde por donde hay más tarjetas, para que el corte se lea
    como "continúa" y no como un error de diseño. */
@@ -235,7 +235,7 @@ html:has(.dashboard-page) body {
   padding: 10px 14px;
   border-radius: 0;
   border: 0;
-  border-left: 1px solid rgba(165, 127, 44, 0.3);
+  border-left: 1px solid rgba(0, 156, 166, 0.3);
   background: transparent;
 }
 
@@ -273,7 +273,7 @@ html:has(.dashboard-page) body {
 
 /* Más reportes que un día normal es una alerta, no una buena noticia. */
 .dashboard-tile-badge--up { background: var(--sip-primary-soft); color: var(--sip-primary); }
-.dashboard-tile-badge--down { background: rgba(30, 91, 79, 0.12); color: var(--sip-success); }
+.dashboard-tile-badge--down { background: rgba(22, 114, 71, 0.12); color: var(--sip-success); }
 
 .dashboard-tile-hint {
   margin: 0;
@@ -347,7 +347,7 @@ html:has(.dashboard-page) body {
   transition: transform 0.15s ease;
 }
 
-.dashboard-map-link svg { width: 20px; height: 20px; color: var(--sip-gold); }
+.dashboard-map-link svg { width: 20px; height: 20px; color: var(--sip-detail); }
 .dashboard-map-link:hover span { transform: scale(1.05); }
 .dashboard-map-link:focus-visible { outline: 2px solid var(--sip-primary); outline-offset: 3px; }
 
@@ -418,7 +418,7 @@ html:has(.dashboard-page) body {
 .dashboard-recent-summary > div {
   padding: 10px 12px;
   border-radius: 10px;
-  background: var(--sip-cream);
+  background: var(--sip-surface);
 }
 
 .dashboard-recent-summary dt { color: var(--sip-text-muted); font-size: 12px; }
@@ -428,12 +428,13 @@ html:has(.dashboard-page) body {
 .dashboard-recent-type { margin-top: 4px; line-height: 1.4; }
 .dashboard-recent-who > .dashboard-muted { line-height: 1.5; }
 .dashboard-recent-state { padding: 3px 8px; border-radius: 999px; background: var(--sip-gray); color: var(--sip-text); font-size: 11px; font-weight: 600; }
-.dashboard-recent-state--registrado,
-.dashboard-recent-state--reincidente { background: var(--sip-primary-soft); color: var(--sip-primary); }
+.dashboard-recent-state--registrado { background: color-mix(in srgb, var(--sip-pending) 10%, white); color: var(--sip-pending); }
+.dashboard-recent-state--reincidente { background: color-mix(in srgb, var(--sip-magenta) 10%, white); color: var(--sip-magenta); }
 .dashboard-recent-state--revision,
-.dashboard-recent-state--seguimiento { background: #f3eddf; color: #765a1f; }
-.dashboard-recent-state--concluido,
-.dashboard-recent-state--canalizado { background: #e7f1ed; color: var(--sip-success); }
+.dashboard-recent-state--seguimiento { background: color-mix(in srgb, var(--sip-progress) 10%, white); color: var(--sip-progress); }
+.dashboard-recent-state--concluido { background: color-mix(in srgb, var(--sip-success) 10%, white); color: var(--sip-success); }
+.dashboard-recent-state--canalizado { background: var(--sip-surface); color: var(--sip-hover); }
+.dashboard-recent-state--cancelado { background: var(--sip-danger-soft); color: var(--sip-danger); }
 .dashboard-recent-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; }
 .dashboard-recent-actions a { color: var(--sip-primary); font: inherit; font-weight: 600; text-decoration: none; }
 .dashboard-recent-actions a:hover { text-decoration: underline; }
@@ -488,8 +489,8 @@ html:has(.dashboard-page) body {
   font-size: 7px;
 }
 
-.chart-grid { stroke: rgba(22, 26, 29, 0.08); stroke-width: 0.6; }
-.chart-crosshair { stroke: rgba(22, 26, 29, 0.35); stroke-width: 0.8; stroke-dasharray: 2 2; }
+.chart-grid { stroke: rgba(16, 42, 67, 0.08); stroke-width: 0.6; }
+.chart-crosshair { stroke: rgba(16, 42, 67, 0.35); stroke-width: 0.8; stroke-dasharray: 2 2; }
 
 .chart-legend {
   display: flex;
@@ -724,7 +725,7 @@ html:has(.dashboard-page) body {
 /* Entrada escalonada de los paneles. El atajo al mapa queda fuera porque ese
    elemento se anima como transición compartida con la pantalla del mapa. */
 .dashboard-grid > :not(.dashboard-map-link) {
-  animation: page-rise 560ms var(--ease-out-soft) both;
+  animation: page-rise 360ms var(--ease-out-soft) both;
 }
 
 .dashboard-profile { animation-delay: 60ms; }
@@ -793,10 +794,10 @@ html:has(.dashboard-page) body {
 }
 
 .dashboard-panel--zoomable:hover {
-  border-color: rgba(155, 34, 71, 0.25);
+  border-color: rgba(0, 126, 135, 0.25);
   box-shadow:
     inset 0 1px 12px rgba(255, 255, 255, 0.35),
-    0 8px 26px rgba(97, 18, 50, 0.12);
+    0 8px 26px rgba(16, 42, 67, 0.12);
 }
 
 /* Espacio para el botón de ampliar junto al primer título del panel. */
@@ -833,7 +834,7 @@ html:has(.dashboard-page) body {
 .dashboard-zoom-button:focus-visible { opacity: 1; }
 
 .dashboard-zoom-button:hover,
-.dashboard-zoom-close:hover { background: var(--sip-primary-soft); color: var(--sip-primary-dark); }
+.dashboard-zoom-close:hover { background: var(--sip-primary-soft); color: var(--sip-hover); }
 
 .dashboard-zoom-button:focus-visible,
 .dashboard-zoom-close:focus-visible {
@@ -878,7 +879,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .dashboard-grid > .dashboard-zoom { animation: zoom-fade 220ms ease both; }
 
 .dashboard-zoom::backdrop {
-  background: rgba(22, 26, 29, 0.4);
+  background: rgba(16, 42, 67, 0.4);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   animation: zoom-fade 220ms ease both;
@@ -894,7 +895,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   padding: 22px 28px;
   overflow-y: auto;
   border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 24px 60px rgba(22, 26, 29, 0.25);
+  box-shadow: 0 24px 60px rgba(16, 42, 67, 0.25);
   cursor: auto;
   animation: zoom-in 320ms var(--ease-out-soft) both;
 }
@@ -1103,7 +1104,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   color: var(--sip-white);
 }
 
-.staff-button--primary:hover:not(:disabled) { background: var(--sip-primary-dark); }
+.staff-button--primary:hover:not(:disabled) { background: var(--sip-hover); }
 
 .staff-button:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -1263,8 +1264,8 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   font-weight: 700;
 }
 
-.staff-status--activada { background: rgba(30, 91, 79, 0.12); color: var(--sip-success); }
-.staff-status--pendiente { background: rgba(165, 127, 44, 0.15); color: var(--sip-gold); }
+.staff-status--activada { background: rgba(22, 114, 71, 0.12); color: var(--sip-success); }
+.staff-status--pendiente { background: color-mix(in srgb, var(--sip-pending) 10%, white); color: var(--sip-pending); }
 
 .staff-actions { display: flex; justify-content: flex-end; gap: 6px; }
 
@@ -1354,14 +1355,14 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 
 /* La jerarquía se expresa con superficie y tipografía, sin repetir el mismo recuadro. */
 .dashboard-panel--overview { border-top-left-radius: 36px; }
-.dashboard-panel--featured { background: #f5efe2; }
+.dashboard-panel--featured { background: #f4f9fa; }
 .dashboard-panel--zones { background: transparent; }
-.dashboard-profile { border-bottom: 2px solid var(--sip-gold); }
+.dashboard-profile { border-bottom: 2px solid var(--sip-detail); }
 .dashboard-map-link { border-radius: 12px 12px 36px 12px; }
 .dashboard-title { font-family: var(--font-heading); font-size: 18px; font-weight: 400; }
 .dashboard-zoom-panel { background: var(--sip-white); }
-.dashboard-zoom-panel.dashboard-panel--featured { background: #f5efe2; }
-.dashboard-grid > .dashboard-panel--zoomable:hover { box-shadow: 0 4px 12px rgba(22,26,29,0.04); }
+.dashboard-zoom-panel.dashboard-panel--featured { background: #f4f9fa; }
+.dashboard-grid > .dashboard-panel--zoomable:hover { box-shadow: 0 4px 12px rgba(16, 42, 67,0.04); }
 
 /* Tipos, edades y zonas comparten la escala y aprovechan el alto disponible. */
 .dashboard-grid > :is(.dashboard-panel--types, .dashboard-panel--ages, .dashboard-panel--zones) .hbar-list {

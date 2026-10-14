@@ -2,15 +2,15 @@
    (Montserrat en títulos y Open Sans en texto, definidas en App.css). */
 .citizen-page {
   overflow-wrap: anywhere;
-  --citizen-body: #3d4247;
-  --citizen-primary-tint: #f5e5ea;
-  --citizen-gold-tint: #f2e8cf;
-  --citizen-gold-text: #765a1f;
-  --citizen-on-primary: #f6e8ed;
-  --citizen-on-primary-accent: #ecd6a0;
+  --citizen-body: var(--sip-text-muted);
+  --citizen-primary-tint: #e5edf0;
+  --citizen-detail-tint: #e5edf0;
+  --citizen-detail-text: #24658e;
+  --citizen-on-primary: #f4f9fa;
+  --citizen-on-primary-accent: #e5edf0;
   min-height: 100vh;
   min-height: 100dvh;
-  background: var(--sip-cream);
+  background: var(--sip-white);
   color: var(--sip-text);
   font-family: var(--font-body);
   font-size: 16px;
@@ -30,7 +30,7 @@ html:has(.citizen-page) {
 
 html:has(.citizen-page),
 html:has(.citizen-page) body {
-  background-color: var(--sip-cream);
+  background-color: var(--sip-surface);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -57,7 +57,7 @@ html:has(.citizen-page) body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--sip-white);
+  background: var(--sip-navy);
   border-bottom: 1px solid var(--sip-border);
 }
 
@@ -87,22 +87,23 @@ html:has(.citizen-page) body {
 .citizen-nav a {
   padding-bottom: 4px;
   border-bottom: 2px solid transparent;
-  color: var(--sip-text-muted);
+  color: var(--sip-white);
   text-decoration: none;
   transition: color 160ms ease, border-color 160ms ease;
 }
 
 .citizen-nav a:hover {
-  color: var(--sip-primary-dark);
+  color: var(--sip-white);
+  border-bottom-color: var(--sip-detail);
 }
 
 .citizen-nav a.is-active {
-  color: var(--sip-primary-dark);
-  border-bottom-color: var(--sip-primary);
+  color: var(--sip-white);
+  border-bottom-color: var(--sip-detail);
 }
 
 .citizen-nav a:focus-visible {
-  outline: 2px solid var(--sip-primary);
+  outline: 2px solid var(--sip-detail);
   outline-offset: 3px;
 }
 
@@ -126,7 +127,7 @@ html:has(.citizen-page) body {
 
 /* ---------- Bienvenida ---------- */
 .citizen-hero {
-  background: var(--sip-cream);
+  background: var(--sip-surface);
   color: var(--sip-primary-dark);
 }
 
@@ -144,7 +145,7 @@ html:has(.citizen-page) body {
 }
 
 .citizen-eyebrow {
-  color: var(--citizen-gold-text);
+  color: var(--citizen-detail-text);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -219,7 +220,7 @@ html:has(.citizen-page) body {
 
 .citizen-number-gold {
   font-size: 36px;
-  color: var(--sip-gold);
+  color: var(--sip-detail);
 }
 
 /* ---------- Secciones ---------- */
@@ -263,8 +264,8 @@ html:has(.citizen-page) body {
 }
 
 .citizen-tag-gold {
-  background: var(--citizen-gold-tint);
-  color: var(--citizen-gold-text);
+  background: var(--citizen-detail-tint);
+  color: var(--citizen-detail-text);
 }
 
 .citizen-card-grid {
@@ -291,7 +292,7 @@ html:has(.citizen-page) body {
 }
 
 .citizen-card-cream {
-  background: var(--sip-cream);
+  background: var(--sip-surface);
 }
 
 .citizen-card-blue {
@@ -304,7 +305,7 @@ html:has(.citizen-page) body {
 }
 
 .citizen-card-blue p {
-  color: #e3efec;
+  color: #f4f9fa;
 }
 
 .citizen-card-icon {
@@ -328,7 +329,7 @@ html:has(.citizen-page) body {
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: var(--sip-cream);
+  background: var(--sip-surface);
   font-size: 14px;
   font-weight: 600;
 }
@@ -336,7 +337,7 @@ html:has(.citizen-page) body {
 .citizen-chip svg {
   width: 14px;
   height: 14px;
-  color: var(--sip-gold);
+  color: var(--sip-detail);
 }
 
 .citizen-chip-outline {
@@ -382,7 +383,7 @@ html:has(.citizen-page) body {
   flex-direction: column;
   gap: 6px;
   padding: 24px;
-  background: var(--sip-cream);
+  background: var(--sip-surface);
 }
 
 .citizen-axes strong {
@@ -557,7 +558,7 @@ html:has(.citizen-page) body {
 }
 
 /* Composición editorial: un titular abierto y una pieza lateral curvada. */
-.citizen-hero { border-bottom: 1px solid rgba(165, 127, 44, 0.25); }
+.citizen-hero { border-bottom: 1px solid rgba(0, 156, 166, 0.25); }
 .citizen-hero h1 { font-size: clamp(34px, 4.8vw, 60px); letter-spacing: -0.045em; }
 .citizen-hero-emphasis { display: block; font-family: var(--font-heading); font-style: italic; font-weight: 400; letter-spacing: -0.035em; font-size: 1.18em; }
 .citizen-hero-actions > a:last-child { border: 0; background: transparent; text-decoration: underline; text-underline-offset: 5px; font-weight: 600; }
@@ -574,15 +575,15 @@ html:has(.citizen-page) body {
 .citizen-level:nth-of-type(2), .citizen-level:nth-of-type(3) { margin-left: 0; }
 .citizen-level .citizen-number { flex: none; min-width: 48px; white-space: nowrap; font-family: var(--font-heading); font-size: 38px; font-weight: 400; color: var(--citizen-on-primary-accent); }
 .citizen-level span:not(.citizen-number) { color: var(--citizen-on-primary); }
-.citizen-section h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.025em; }
+.citizen-section h2 { color: var(--sip-purple); font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.025em; }
 .citizen-tag { padding-inline: 0; border-radius: 0; background: transparent; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
-.citizen-tag::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--sip-gold); vertical-align: middle; margin-right: 10px; }
+.citizen-tag::before { content: ''; display: inline-block; width: 24px; height: 2px; background: var(--sip-detail); vertical-align: middle; margin-right: 10px; }
 .citizen-card-grid > .citizen-card { border-radius: 0; background: transparent; }
-.citizen-card-grid > .citizen-card:first-child { border-top: 0; background: var(--sip-cream); border-radius: 40px 8px 8px 8px; }
-.citizen-card-grid > .citizen-card:last-child { background: var(--sip-cream); border-radius: 8px 8px 40px 8px; }
+.citizen-card-grid > .citizen-card:first-child { border-top: 0; background: var(--sip-surface); border-radius: 40px 8px 8px 8px; }
+.citizen-card-grid > .citizen-card:last-child { background: var(--sip-surface); border-radius: 8px 8px 40px 8px; }
 .citizen-card h3 { font-size: 18px; }
 .citizen-card-blue { border-radius: 8px 48px 8px 8px; }
-.citizen-axes li { border-radius: 6px; border-bottom: 2px solid rgba(165,127,44,0.35); }
+.citizen-axes li { border-radius: 6px; border-bottom: 2px solid rgba(0, 156, 166,0.35); }
 .citizen-number-gold { font-family: var(--font-heading); font-weight: 400; }
 
 @media (min-width: 1000px) {
@@ -603,7 +604,4 @@ html:has(.citizen-page) body {
   .citizen-user { flex-wrap: wrap; gap: 8px; }
   .citizen-header-btn { padding-inline: 10px; font-size: 13px; }
   .citizen-login { padding: 0; }
-}
-@media (max-width: 380px) {
-  .citizen-user { width: 100%; margin-top: 10px; }
 }

@@ -14,6 +14,7 @@ import CitizenHome from './pages/CitizenHome'
 import NewReport from './pages/NewReport'
 import Account from './pages/Account'
 import AcceptInvitation from './pages/AcceptInvitation'
+import './Viewport.css'
 
 /**
  * Raíz de la app: define las rutas públicas y las protegidas por sesión.

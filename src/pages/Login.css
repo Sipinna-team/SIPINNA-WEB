@@ -23,7 +23,7 @@
   border: 1px solid var(--sip-glass-border);
   box-shadow: var(--sip-shadow-card);
   color: var(--sip-text);
-  animation: page-rise 600ms var(--ease-out-soft) both;
+  animation: page-rise 360ms var(--ease-out-soft) both;
 }
 
 .login-card h1 {
@@ -93,7 +93,7 @@
 .login-card input[type='text']::placeholder,
 .login-card input[type='password']::placeholder {
   color: var(--sip-text-muted);
-  font-size: 13px;
+  font-size: inherit;
   font-family: var(--font-body);
 }
 
@@ -115,7 +115,7 @@
 /* Hover en el botón */
 .login-card button:hover {
   transform: translateY(2px);
-  background: var(--sip-primary-dark);
+  background: var(--sip-hover);
 }
 
 /* Botón deshabilitado mientras se inicia sesión */
@@ -205,7 +205,7 @@
   width: 28px;
   height: 28px;
   margin-top: 8px;
-  border-color: rgba(155, 34, 71, 0.18);
+  border-color: rgba(0, 126, 135, 0.18);
   border-top-color: var(--sip-primary);
 }
 
@@ -213,9 +213,9 @@
 .login-error {
   padding: 10px 12px;
   border-radius: var(--sip-radius-control);
-  border: 1px solid #fca5a5;
-  background: rgba(254, 226, 226, 0.9);
-  color: #b91c1c;
+  border: 1px solid var(--sip-danger-border);
+  background: var(--sip-danger-soft);
+  color: var(--sip-danger);
   font-size: 14px;
   font-family: var(--font-body);
   text-align: center;
@@ -272,7 +272,7 @@
 }
 
 .register-link:hover {
-  color: var(--sip-primary-dark);
+  color: var(--sip-hover);
   text-decoration: underline;
 }
 

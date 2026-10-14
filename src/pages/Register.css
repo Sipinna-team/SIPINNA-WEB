@@ -25,7 +25,7 @@
   -webkit-backdrop-filter: var(--sip-glass-blur);
   border: 1px solid var(--sip-glass-border);
   box-shadow: var(--sip-shadow-card);
-  animation: page-rise 600ms var(--ease-out-soft) both;
+  animation: page-rise 360ms var(--ease-out-soft) both;
 }
 
 /* Lado Izquierdo */
@@ -40,8 +40,8 @@
 
   padding: clamp(28px, 3vw, 40px);
   overflow: hidden;
-  background: #f3eddf;
-  border-right: 1px solid rgba(165, 127, 44, 0.25);
+  background: #f4f9fa;
+  border-right: 1px solid rgba(0, 156, 166, 0.25);
 }
 
 .register-logo {
@@ -170,7 +170,7 @@
   justify-content: center;
   align-items: center;
   margin-bottom: 8px;
-  color: var(--sip-gold);
+  color: var(--sip-detail);
   font-family: var(--font-body);
 }
 
@@ -199,7 +199,7 @@
 
 .register-button:hover:not(:disabled) {
   transform: translateY(2px);
-  background: var(--sip-primary-dark);
+  background: var(--sip-hover);
 }
 
 .register-button:disabled {
@@ -235,9 +235,9 @@
 .register-error {
   padding: 10px 12px;
   border-radius: var(--sip-radius-control);
-  border: 1px solid #fca5a5;
-  background: #fee2e2;
-  color: #b91c1c;
+  border: 1px solid var(--sip-danger-border);
+  background: var(--sip-danger-soft);
+  color: var(--sip-danger);
   font-size: 14px;
   text-align: center;
 }
@@ -256,7 +256,7 @@
 }
 
 .back-login-link:hover {
-  color: var(--sip-primary-dark);
+  color: var(--sip-hover);
   text-decoration: underline;
 }
 
@@ -340,5 +340,5 @@
 .register-left h1 { font-family: var(--font-heading); font-weight: 400; }
 .register-header h2 { font-family: var(--font-heading); font-weight: 400; }
 @media (max-width: 900px) {
-  .register-left { border-right: 0; border-bottom: 1px solid rgba(165,127,44,0.25); }
+  .register-left { border-right: 0; border-bottom: 1px solid rgba(0, 156, 166,0.25); }
 }

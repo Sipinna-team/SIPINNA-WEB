@@ -5,7 +5,7 @@ import { useAuth } from '../context/auth';
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) return <p>Cargando...</p>;
+  if (isLoading) return <p className="sip-loading" role="status">Cargando...</p>;
   if (user === null) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

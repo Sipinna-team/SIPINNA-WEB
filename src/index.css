@@ -8,20 +8,28 @@
 :root {
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
-  /* Paleta institucional de Sipinna */
-  --sip-white: #ffffff;         /* Fondo principal */
-  --sip-cream: #faf6ec;         /* Fondo alterno / secciones */
-  --sip-gray: #f2f2f2;          /* Tarjetas / bordes */
-  --sip-primary: #9b2247;       /* Guinda: encabezado, botones principales */
-  --sip-primary-dark: #611232;  /* Guinda oscuro: hover / texto destacado */
-  --sip-success: #1e5b4f;       /* Verde: estados "resuelto" / éxito */
-  --sip-gold: #a57f2c;          /* Dorado: detalles, íconos */
-  --sip-text: #161a1d;          /* Casi negro: texto */
-  /* Derivados */
-  --sip-text-muted: #5c6166;
-  --sip-border: rgba(22, 26, 29, 0.12);
-  --sip-primary-soft: rgba(155, 34, 71, 0.1);
-  --sip-focus: 0 0 0 3px rgba(155, 34, 71, 0.18);
+  /* Paleta de la interfaz y estados. */
+  --sip-white: #ffffff;
+  --sip-surface: #f4f9fa;
+  --sip-gray: #e5edf0;
+  --sip-navy: #102a43;
+  --sip-primary: #007e87;
+  --sip-primary-dark: var(--sip-navy);
+  --sip-hover: #24658e;
+  --sip-purple: #65418d;
+  --sip-detail: #009ca6;
+  --sip-magenta: #b21e70;
+  --sip-pending: #9a5b00;
+  --sip-progress: var(--sip-purple);
+  --sip-success: #167247;
+  --sip-danger: #b42332;
+  --sip-text: var(--sip-navy);
+  --sip-text-muted: #595959;
+  --sip-danger-soft: color-mix(in srgb, var(--sip-danger) 8%, var(--sip-white));
+  --sip-danger-border: color-mix(in srgb, var(--sip-danger) 30%, var(--sip-white));
+  --sip-border: var(--sip-gray);
+  --sip-primary-soft: color-mix(in srgb, var(--sip-primary) 10%, var(--sip-white));
+  --sip-focus: 0 0 0 3px rgb(0 126 135 / 18%);
   /* Forma común de toda la web: botones, campos y tarjetas usan estos valores. */
   --sip-radius-control: 8px;   /* Botones, campos, avisos */
   --sip-radius-card: 12px;      /* Tarjetas y recuadros */
@@ -29,41 +37,41 @@
   --sip-glass-bg: var(--sip-white);
   --sip-glass-border: var(--sip-border);
   --sip-glass-blur: none;
-  --sip-shadow-card: 0 5px 16px rgba(22, 26, 29, 0.04);
+  --sip-shadow-card: 0 5px 16px rgba(16, 42, 67, 0.04);
   /* Superficies mates */
-  --sip-page-bg: var(--sip-cream);
-  --background: #ffffff;
-  --foreground: #161a1d;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #9b2247;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: #9b2247;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --sip-page-bg: var(--sip-white);
+  --background: var(--sip-white);
+  --foreground: var(--sip-text);
+  --card: var(--sip-white);
+  --card-foreground: var(--sip-text);
+  --popover: var(--sip-white);
+  --popover-foreground: var(--sip-text);
+  --primary: var(--sip-primary);
+  --primary-foreground: var(--sip-white);
+  --secondary: var(--sip-surface);
+  --secondary-foreground: var(--sip-text);
+  --muted: var(--sip-surface);
+  --muted-foreground: var(--sip-text-muted);
+  --accent: var(--sip-gray);
+  --accent-foreground: var(--sip-hover);
+  --destructive: var(--sip-danger);
+  --border: var(--sip-border);
+  --input: var(--sip-border);
+  --ring: var(--sip-primary);
+  --chart-1: var(--sip-purple);
+  --chart-2: var(--sip-detail);
+  --chart-3: var(--sip-magenta);
+  --chart-4: var(--sip-hover);
+  --chart-5: var(--sip-success);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--sip-navy);
+  --sidebar-foreground: var(--sip-white);
+  --sidebar-primary: var(--sip-primary);
+  --sidebar-primary-foreground: var(--sip-white);
+  --sidebar-accent: var(--sip-hover);
+  --sidebar-accent-foreground: var(--sip-white);
+  --sidebar-border: var(--sip-hover);
+  --sidebar-ring: var(--sip-detail);
 }
 
 @keyframes page-rise {
@@ -211,7 +219,7 @@
 }
 /* Dirección del reporte como enlace a Google Maps */
 .report-address {
-  color: var(--sip-primary);
+  color: var(--sip-hover);
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--sip-primary) 35%, transparent);
   text-underline-offset: 2px;
@@ -220,7 +228,7 @@
 }
 
 .report-address:hover {
-  color: var(--sip-primary-dark);
+  color: var(--sip-hover);
   text-decoration-color: currentColor;
 }
 

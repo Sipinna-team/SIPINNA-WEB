@@ -88,10 +88,10 @@ export async function exportReportsPdf(reports: Report[], filtersSummary: string
   const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'letter' });
 
   doc.setFontSize(16);
-  doc.setTextColor('#611232');
+  doc.setTextColor('#102a43');
   doc.text('Reportes SIPINNA', 40, 40);
   doc.setFontSize(9);
-  doc.setTextColor('#5c6166');
+  doc.setTextColor('#595959');
   doc.text(`Generado el ${formatReportDate(new Date().toISOString())} · ${reports.length} reportes`, 40, 56);
   doc.text(doc.splitTextToSize(filtersSummary, 712), 40, 70);
 
@@ -100,13 +100,13 @@ export async function exportReportsPdf(reports: Report[], filtersSummary: string
     head: [PDF_COLUMNS.map((c) => c.header)],
     body: reports.map((report) => PDF_COLUMNS.map((c) => c.value(report))),
     styles: { fontSize: 8, cellPadding: 4 },
-    headStyles: { fillColor: '#9b2247', textColor: '#ffffff' },
-    alternateRowStyles: { fillColor: '#faf6ec' },
+    headStyles: { fillColor: '#102a43', textColor: '#ffffff' },
+    alternateRowStyles: { fillColor: '#f4f9fa' },
     margin: { left: 40, right: 40 },
     didDrawPage: () => {
       const pageSize = doc.internal.pageSize;
       doc.setFontSize(8);
-      doc.setTextColor('#5c6166');
+      doc.setTextColor('#595959');
       doc.text(`Página ${doc.getNumberOfPages()}`, pageSize.getWidth() - 40, pageSize.getHeight() - 20, {
         align: 'right',
       });

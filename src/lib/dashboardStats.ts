@@ -18,14 +18,14 @@ export type StateKey =
  * `value` es el valor técnico que manda y recibe el backend.
  */
 export const STATES: { key: StateKey; value: string; label: string; color: string }[] = [
-  { key: 'registrado', value: 'registrado', label: 'Registrado', color: '#9b2247' },
-  { key: 'revision', value: 'en_revision', label: 'En revisión', color: '#a57f2c' },
-  { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#765a1f' },
-  { key: 'canalizado', value: 'canalizado', label: 'Canalizado', color: '#438678' },
-  { key: 'concluido', value: 'concluido', label: 'Concluido', color: '#1e5b4f' },
-  { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#5c6166' },
-  { key: 'cancelado', value: 'cancelado', label: 'Cancelado', color: '#c3a562' },
-  { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#611232' },
+  { key: 'registrado', value: 'registrado', label: 'Registrado', color: '#9a5b00' },
+  { key: 'revision', value: 'en_revision', label: 'En revisión', color: '#65418d' },
+  { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#65418d' },
+  { key: 'canalizado', value: 'canalizado', label: 'Canalizado', color: '#24658e' },
+  { key: 'concluido', value: 'concluido', label: 'Concluido', color: '#167247' },
+  { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#595959' },
+  { key: 'cancelado', value: 'cancelado', label: 'Cancelado', color: '#b42332' },
+  { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#b21e70' },
 ];
 
 /** Abreviaturas de los meses para los ejes de las gráficas. */

@@ -63,7 +63,7 @@
   font-weight: 600;
 }
 
-.reports-button:hover:not(:disabled) { background: var(--sip-primary-dark); }
+.reports-button:hover:not(:disabled) { background: var(--sip-hover); }
 
 .reports-button:disabled,
 .reports-clear:disabled,
@@ -166,7 +166,7 @@
 }
 
 .reports-table th {
-  background: var(--sip-cream);
+  background: var(--sip-surface);
   color: var(--sip-primary-dark);
   font-size: 12px;
   font-weight: 700;
@@ -267,6 +267,6 @@
 }
 
 .reports-header h1 { font-family: var(--font-heading); font-weight: 400; font-size: 30px; }
-.reports-filters { background: #f3eddf; }
+.reports-filters { background: #f4f9fa; }
 .reports-table th { letter-spacing: 0.025em; }
 .reports-table-wrap { border-radius: 6px; }

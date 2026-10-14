@@ -362,7 +362,7 @@ function Dashboard() {
             <ColumnChart
               label="Reportes por mes"
               categories={MONTHS}
-              series={[{ label: 'Reportes', color: '#9b2247', values: stats.perMonth }]}
+              series={[{ label: 'Reportes', color: '#65418d', values: stats.perMonth }]}
             />
           </div>
           <div>
@@ -371,8 +371,8 @@ function Dashboard() {
               label="Reportes verídicos y falsos por mes"
               categories={MONTH_NUMBERS}
               series={[
-                { label: 'Verídicos', color: '#9b2247', values: stats.truthfulPerMonth },
-                { label: 'Falsos', color: '#a57f2c', values: stats.falsePerMonth },
+                { label: 'Verídicos', color: '#007e87', values: stats.truthfulPerMonth },
+                { label: 'Falsos', color: '#b21e70', values: stats.falsePerMonth },
               ]}
             />
           </div>
@@ -382,8 +382,8 @@ function Dashboard() {
               label="Reportes en revisión y completados por mes"
               categories={MONTH_NUMBERS}
               series={[
-                { label: 'En revisión', color: '#9b2247', values: stats.inReviewPerMonth },
-                { label: 'Completados', color: '#1e5b4f', values: stats.completedPerMonth },
+                { label: 'En revisión', color: '#65418d', values: stats.inReviewPerMonth },
+                { label: 'Completados', color: '#167247', values: stats.completedPerMonth },
               ]}
             />
           </div>

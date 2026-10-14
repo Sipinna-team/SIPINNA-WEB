@@ -122,7 +122,7 @@ export function DonutChart({
   return (
     <div className="donut" ref={containerRef}>
       <svg viewBox="0 0 120 120" className="donut-svg" role="img" aria-label={`${centerValue} ${centerLabel}`}>
-        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(22,26,29,0.08)" strokeWidth="16" />
+        <circle cx="60" cy="60" r={radius} fill="none" stroke="rgba(16, 42, 67,0.08)" strokeWidth="16" />
         {total > 0 && (
           <mask id={maskId}>
             <circle

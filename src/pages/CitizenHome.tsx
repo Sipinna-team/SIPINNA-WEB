@@ -120,7 +120,6 @@ function CitizenHome() {
         <section id="inicio" className="citizen-hero">
           <div className="citizen-container citizen-hero-inner">
             <div className="citizen-hero-copy">
-              <p className="citizen-eyebrow">Bienvenida y bienvenido</p>
               <h1>Juntos protegemos <span className="citizen-hero-emphasis">a la niñez.</span></h1>
               <p className="citizen-hero-text">
                 Conoce cómo el Sistema de Protección Integral y la Ruta RIETI trabajan para que niñas,

@@ -9,7 +9,7 @@ import { homePathFor, useAuth } from '../context/auth';
 function RootRedirect() {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) return <p>Cargando...</p>;
+  if (isLoading) return <p className="sip-loading" role="status">Cargando...</p>;
   return <Navigate to={user === null ? '/inicio' : homePathFor(user)} replace />;
 }
 

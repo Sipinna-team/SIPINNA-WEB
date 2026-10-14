@@ -51,7 +51,7 @@
 
 .not-found-button:hover {
   transform: translateY(2px);
-  background: var(--sip-primary-dark);
+  background: var(--sip-hover);
 }
 
 .not-found-button:focus-visible {
