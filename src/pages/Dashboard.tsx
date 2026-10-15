@@ -7,11 +7,12 @@ import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
 import type { Report, UserType } from '../lib/api';
 import type { ZoneCount } from '../lib/dashboardStats';
-import {MONTHS,STATES,computeDashboardStats,formatDuration,formatRelativeDate,normalizeState,stateLabel,workTypeLabel,} from '../lib/dashboardStats';
+import {MONTHS,STATES,computeDashboardStats,computeHotspots,formatDuration,formatRelativeDate,normalizeState,quantityLabel,stateLabel,workTypeLabel,} from '../lib/dashboardStats';
 import {AnimatedNumber,ColumnChart,DonutChart,HorizontalBarChart,LineChart,} from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
 import { ReportMapLink } from '../components/ReportAddress';
 import { StaffManager } from '../components/StaffManager';
+import AuditLog from '../components/AuditLog';
 import { ZoomablePanel } from '../components/ZoomablePanel';
 
 const USER_TYPE_LABELS: Record<UserType, string> = {
@@ -95,6 +96,7 @@ function Dashboard() {
   }, []);
 
   const stats = useMemo(() => computeDashboardStats(reports), [reports]);
+  const hotspots = useMemo(() => computeHotspots(reports), [reports]);
   const placeholder = loading ? '…' : '—';
 
   async function handleLogout() {
@@ -161,6 +163,43 @@ function Dashboard() {
             }
           />
           <KpiTile
+            title="Peligro inmediato abiertos"
+            value={loading ? placeholder : <AnimatedNumber value={stats.openUrgent} />}
+            hint="Prioridad alta sin cerrar"
+            tone={stats.openUrgent > 0 ? 'warn' : undefined}
+          />
+          <KpiTile
+            title="Reportes ciudadanos"
+            value={loading ? placeholder : <AnimatedNumber value={stats.funnel.received} />}
+            hint={`Sin contar ${stats.duplicates} posibles duplicados`}
+          />
+          <KpiTile
+            title="Reportes verificados"
+            value={loading ? placeholder : <AnimatedNumber value={stats.funnel.verified} />}
+            hint="Validados por la autoridad"
+          />
+          <KpiTile
+            title="Casos identificados"
+            value={loading ? placeholder : <AnimatedNumber value={stats.funnel.confirmed} />}
+            hint="Casos confirmados o ya canalizados"
+          />
+          <KpiTile
+            title="NNA atendidos"
+            value={loading ? placeholder : <AnimatedNumber value={stats.funnel.childrenCared} />}
+            hint="Canalizados o atendidos según el expediente"
+            tone="good"
+          />
+          <KpiTile
+            title="Puntos recurrentes"
+            value={loading ? placeholder : <AnimatedNumber value={hotspots.length} />}
+            hint={
+              hotspots[0]
+                ? `${hotspots[0].count} reportes en ${hotspots[0].neighborhood || hotspots[0].zone}, ${hotspots[0].days} ${hotspots[0].hours}`
+                : '3 o más reportes en el mismo punto en 90 días'
+            }
+            tone={hotspots.length > 0 ? 'warn' : undefined}
+          />
+          <KpiTile
             title="Sin atender +48 h"
             value={loading ? placeholder : <AnimatedNumber value={stats.unattended} />}
             hint="Siguen en registrado"
@@ -219,6 +258,7 @@ function Dashboard() {
                 </div>
               </div>
               {isAdmin && <StaffManager />}
+              {isAdmin && <AuditLog />}
             </>
           }
         >
@@ -338,7 +378,7 @@ function Dashboard() {
                     {(report.work_type ?? '').split(',').map(workTypeLabel).filter(Boolean).join(' · ') || 'Tipo sin especificar'}
                   </span>
                   <span className="dashboard-muted">
-                    {report.children_quantity > 0 ? `${report.children_quantity} NNA` : 'Cantidad sin especificar'}
+                    {`NNA: ${quantityLabel(report.children_quantity)}`}
                     {' · Edades: '}{report.children_age || 'Sin especificar'}
                     {isAdmin && report.zone_name ? ` · ${report.zone_name}` : ''}
                   </span>

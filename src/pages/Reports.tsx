@@ -10,6 +10,7 @@ import {
   FALSE_REPORT_THRESHOLD,
   STATES,
   normalizeState,
+  quantityLabel,
   simplify,
   workTypeLabel,
 } from '../lib/dashboardStats';
@@ -25,7 +26,7 @@ const REPORTS_ZONE: string | undefined = import.meta.env.VITE_REPORTS_ZONE?.trim
 const PAGE_SIZES = [10, 25, 50, 100];
 
 type Veracity = '' | 'veridico' | 'falso';
-type Sort = 'recientes' | 'antiguos' | 'sospecha';
+type Sort = 'recientes' | 'antiguos' | 'sospecha' | 'prioridad';
 
 /** Filtros de la tabla de reportes; los vacíos no filtran. */
 type Filters = {
@@ -34,6 +35,7 @@ type Filters = {
   zone: string;
   type: string;
   veracity: Veracity;
+  priority: '' | 'alta' | 'normal';
   from: string;
   to: string;
   sort: Sort;
@@ -45,6 +47,7 @@ const EMPTY_FILTERS: Filters = {
   zone: '',
   type: '',
   veracity: '',
+  priority: '',
   from: '',
   to: '',
   sort: 'recientes',
@@ -74,6 +77,7 @@ function applyFilters(reports: Report[], filters: Filters) {
     if (filters.state && normalizeState(report.last_state) !== filters.state) return false;
     if (filters.zone && (report.zone_name || 'Sin zona') !== filters.zone) return false;
     if (filters.type && !workTypes(report).includes(filters.type)) return false;
+    if (filters.priority && (report.priority || 'normal') !== filters.priority) return false;
     if (filters.veracity) {
       const isFalse = report.suspicius_level >= FALSE_REPORT_THRESHOLD;
       if (isFalse !== (filters.veracity === 'falso')) return false;
@@ -89,10 +93,13 @@ function applyFilters(reports: Report[], filters: Filters) {
     return true;
   });
 
+  const urgency = (report: Report) => (report.priority === 'alta' ? 1 : 0);
   return result.sort((a, b) =>
     filters.sort === 'sospecha'
       ? b.suspicius_level - a.suspicius_level
-      : (Date.parse(b.created_at) - Date.parse(a.created_at)) * (filters.sort === 'antiguos' ? -1 : 1),
+      : filters.sort === 'prioridad' && urgency(a) !== urgency(b)
+        ? urgency(b) - urgency(a)
+        : (Date.parse(b.created_at) - Date.parse(a.created_at)) * (filters.sort === 'antiguos' ? -1 : 1),
   );
 }
 
@@ -104,6 +111,7 @@ function describeFilters(filters: Filters) {
   if (filters.zone) parts.push(`Zona: ${filters.zone}`);
   if (filters.type) parts.push(`Tipo: ${filters.type}`);
   if (filters.veracity) parts.push(filters.veracity === 'falso' ? 'Solo falsos' : 'Solo verídicos');
+  if (filters.priority) parts.push(`Prioridad: ${filters.priority}`);
   if (filters.from) parts.push(`Desde: ${filters.from}`);
   if (filters.to) parts.push(`Hasta: ${filters.to}`);
   return parts.length > 0 ? `Filtros: ${parts.join(' · ')}` : 'Sin filtros';
@@ -290,6 +298,15 @@ function Reports() {
         </label>
 
         <label className="reports-field">
+          Prioridad
+          <select value={filters.priority} onChange={(e) => updateFilter('priority', e.target.value as Filters['priority'])}>
+            <option value="">Todas</option>
+            <option value="alta">Alta (peligro inmediato)</option>
+            <option value="normal">Normal</option>
+          </select>
+        </label>
+
+        <label className="reports-field">
           Veracidad
           <select value={filters.veracity} onChange={(e) => updateFilter('veracity', e.target.value as Veracity)}>
             <option value="">Todos</option>
@@ -324,6 +341,7 @@ function Reports() {
             <option value="recientes">Más recientes</option>
             <option value="antiguos">Más antiguos</option>
             <option value="sospecha">Mayor sospecha</option>
+            <option value="prioridad">Prioridad alta primero</option>
           </select>
         </label>
 
@@ -373,6 +391,8 @@ function Reports() {
                           <span className="reports-state-dot" style={{ background: state.color }} aria-hidden="true" />
                           {state.label}
                         </span>
+                        {report.priority === 'alta' && <span className="reports-urgent">Prioridad alta</span>}
+                        {report.duplicate_of && <span className="reports-duplicate">Duplicado de {report.duplicate_of}</span>}
                       </td>
                       <td>
                         <span className="reports-description" title={report.description}>{report.description || '—'}</span>
@@ -380,7 +400,7 @@ function Reports() {
                       <td>{workTypes(report).join(', ') || '—'}</td>
                       {isAdmin && <td>{report.zone_name || 'Sin zona'}</td>}
                       <td>{report.citizen_name || 'Anónimo'}</td>
-                      <td className="reports-num">{report.children_quantity}</td>
+                      <td className="reports-num">{quantityLabel(report.children_quantity)}</td>
                       <td
                         className={`reports-num${report.suspicius_level >= FALSE_REPORT_THRESHOLD ? ' reports-suspicious' : ''}`}
                       >

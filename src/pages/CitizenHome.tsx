@@ -95,6 +95,10 @@ function CitizenHome() {
               <span className="citizen-nav-long">Hacer un reporte</span>
               <span className="citizen-nav-short">Reportar</span>
             </Link>
+            <Link to="/mis-reportes" className="sip-btn sip-btn--secondary citizen-header-btn">
+              <span className="citizen-nav-long">Ver mis reportes</span>
+              <span className="citizen-nav-short">Mis reportes</span>
+            </Link>
             {user && <Link to="/mi-cuenta" className="sip-btn sip-btn--secondary citizen-header-btn">Mi cuenta</Link>}
             {user === null ? (
               <Link to="/login" className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" aria-label="Iniciar sesión">
@@ -273,6 +277,7 @@ function CitizenHome() {
         <div className="citizen-container citizen-footer-inner">
           <span>Sistema de Protección Integral de Niñas, Niños y Adolescentes</span>
           <span>Ley General de los Derechos de Niñas, Niños y Adolescentes</span>
+          <Link to="/aviso-privacidad">Aviso de privacidad</Link>
         </div>
       </footer>
     </div>

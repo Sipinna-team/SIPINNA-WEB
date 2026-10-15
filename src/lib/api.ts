@@ -64,7 +64,8 @@ export type Report = {
   description: string;
   latitude: number;
   longitude: number;
-  children_quantity: number;
+  /** `null` = "No sé"; 5 = "5 o más". */
+  children_quantity: number | null;
   work_type: string;
   created_at: string;
   /** Nivel de sospecha de 0 a 1. */
@@ -78,6 +79,20 @@ export type Report = {
   /** Caso al que pertenece el reporte; `null`/ausente si no está en ninguno. */
   case_id?: string | null;
   case_name?: string | null;
+  /** Hora local del avistamiento, `"YYYY-MM-DDTHH:mm"`. */
+  sighting_time: string;
+  /** `'si' | 'no' | 'no_se'`, o vacío en reportes anteriores. */
+  risk: string;
+  immediate_danger: boolean;
+  priority: 'normal' | 'alta';
+  sex: string;
+  neighborhood: string;
+  /** Calle o referencia del lugar. */
+  reference: string;
+  /** Folio original; vacío si no es duplicado. */
+  duplicate_of: string;
+  /** NNA atendidos; `null` si no se ha registrado. */
+  children_cared: number | null;
 };
 
 /** Caso: agrupa reportes que describen la misma situación en el mismo lugar. */
@@ -142,23 +157,86 @@ export type UpdateStaffPayload = {
   estado_cuenta?: AccountState;
 };
 
-/** Reporte con hora del avistamiento e imágenes, de `GET /report/:folio`. */
-export type ReportDetail = Report & {
-  sighting_time: string;
+/** Expediente interno. Fechas: `YYYY-MM-DD`; vacío = sin fecha. */
+export type CaseFile = {
+  responsible: string;
+  channeled_to: string;
+  follow_up_date: string;
+  outcome: string;
+  closed_date: string;
+};
+
+/** Reporte con expediente e imágenes, de `GET /report/:folio`. */
+export type ReportDetail = Report & CaseFile & {
   images: string[];
 };
 
-/** Cuerpo de `POST /report`. La condición y la dirección van dentro de `description`. */
+/** Cambios al expediente: omitir conserva el valor; `""` lo borra. */
+export type CaseFilePayload = Partial<CaseFile> & {
+  priority?: 'normal' | 'alta';
+  sex?: string;
+  neighborhood?: string;
+  children_cared?: number;
+  /** Folio del reporte original; vacío para quitar la marca de duplicado. */
+  duplicate_of?: string;
+};
+
+/** Acción realizada sobre un reporte. */
+export type ReportAction = {
+  id: string;
+  text: string;
+  staff_name: string;
+  created_at: string;
+};
+
+/** Estados que ve el ciudadano. */
+export type PublicStatus = 'recibido' | 'en_revision' | 'canalizado' | 'en_atencion' | 'concluido';
+
+/** Reportes de la cuenta actual, sin expediente interno. */
+export type CitizenReport = {
+  folio: string;
+  report_state: PublicStatus | 'borrador' | 'DRAFT';
+  description: string;
+  created_at: string;
+  state_changed_at: string;
+};
+
+/** Resultado de consultar un folio sin sesión. */
+export type PublicReport = {
+  folio: string;
+  status: PublicStatus;
+  created_at: string;
+  state_changed_at: string;
+};
+
+/** Entrada de la bitácora de accesos del personal. */
+export type LogEntry = {
+  user_name: string;
+  method: string;
+  path: string;
+  status: number;
+  ip: string;
+  created_at: string;
+};
+
+/** Cuerpo de `POST /report`. */
 export type CreateReportPayload = {
   description: string;
   latitude: number;
   longitude: number;
-  children_quantity: number;
+  /** `null` = "No sé"; 5 = "5 o más". */
+  children_quantity: number | null;
   children_age: string;
   /** Varias opciones separadas por coma. */
   work_type: string;
   /** Hora local, `"YYYY-MM-DDTHH:mm"`. */
   sighting_time: string;
+  risk: 'si' | 'no' | 'no_se';
+  immediate_danger: boolean;
+  neighborhood: string;
+  reference: string;
+  /** Correo opcional para recibir el folio sin cuenta. */
+  contact_email?: string;
 };
 
 const DEFAULT_TIMEOUT_MS = 8000;
@@ -294,6 +372,11 @@ export const api = {
     return request<{ zones: Zone[] | null }>('/zones', { signal });
   },
 
+  /** Reportes del ciudadano con sesión activa. */
+  getMyReports(signal?: AbortSignal) {
+    return request<{ reports: CitizenReport[] | null }>('/report', { signal });
+  },
+
   /** Lista los reportes. El administrador recibe los de todas las zonas y el alimentador solo los de la suya. */
   getAllReports(signal?: AbortSignal) {
     return request<{ reports: Report[] | null }>('/report/all', { signal });
@@ -323,7 +406,7 @@ export const api = {
    * que se manda en los pasos siguientes para poder editarlo.
    */
   createReport(payload: CreateReportPayload) {
-    return request<{ reporte_id: string; folio: string; edit_token?: string }>('/report', {
+    return request<{ reporte_id: string; folio: string; clave_consulta: string; edit_token?: string }>('/report', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
@@ -356,6 +439,40 @@ export const api = {
       method: 'PUT',
       headers: editTokenHeader(editToken),
     });
+  },
+
+  /** Actualiza el expediente interno de un reporte. */
+  updateCaseFile(folio: string, payload: CaseFilePayload) {
+    return request<unknown>(`/report/${encodeURIComponent(folio)}/expediente`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  /** Acciones del reporte, en orden cronológico. */
+  getReportActions(folio: string, signal?: AbortSignal) {
+    return request<{ actions: ReportAction[] | null }>(`/report/${encodeURIComponent(folio)}/acciones`, { signal });
+  },
+
+  /** Registra una acción realizada sobre un reporte. */
+  addReportAction(folio: string, text: string) {
+    return request<{ action: ReportAction }>(`/report/${encodeURIComponent(folio)}/acciones`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+  },
+
+  /** Consulta pública del estado con folio y clave. */
+  getPublicReport(folio: string, clave: string, signal?: AbortSignal) {
+    return request<{ report: PublicReport }>(
+      `/public/report/${encodeURIComponent(folio)}?clave=${encodeURIComponent(clave)}`,
+      { signal },
+    );
+  },
+
+  /** Bitácora reciente; solo administradores. */
+  getLog(signal?: AbortSignal) {
+    return request<{ entries: LogEntry[] | null }>('/admin/bitacora', { signal });
   },
 
   /** Elimina un reporte. */

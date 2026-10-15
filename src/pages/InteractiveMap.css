@@ -121,7 +121,7 @@
 
 .interactive-map-layout {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(280px, 1fr);
+  grid-template-columns: minmax(0, 7fr) minmax(340px, 3fr);
   width: 100%;
   height: 100vh;
   height: 100dvh;
@@ -478,3 +478,18 @@
 .sidePanelTitle h1 { font-family: var(--font-heading); font-weight: 400; }
 .report-card { border-radius: 6px; }
 .report-card--selected { border-color: var(--sip-primary); background: color-mix(in srgb, var(--sip-primary) 4%, var(--sip-white)); box-shadow: inset 0 0 0 1px var(--sip-primary); }
+
+/* Filtros, banderas, expediente y acciones (RIETI) */
+.map-filters { margin: 0 0 0.75rem; border: 1px solid var(--sip-border); border-radius: 12px; background: #fff; }
+.map-filters summary { padding: 0.6rem 0.85rem; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+.map-filters__grid { padding: 0 0.85rem 0.85rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem 0.75rem; }
+.map-filters__check { flex-direction: row !important; align-items: center; gap: 0.4rem; }
+.map-filters__check input { width: auto !important; }
+.report-card__flags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.report-flag { padding: 0.15rem 0.45rem; border-radius: 999px; background: var(--sip-surface); color: var(--sip-text-muted); font-size: 0.72rem; font-weight: 600; }
+.report-flag--urgent { background: rgb(208 2 27 / 12%); color: #a10016; }
+.report-details__subtitle { margin: 0; font-size: 0.95rem; }
+.report-actions { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.4rem; font-size: 0.85rem; }
+.report-actions small { display: block; color: var(--sip-text-muted); }
+.report-actions__empty { margin: 0; color: var(--sip-text-muted); font-size: 0.85rem; }
+.status-form__ok { margin: 0; color: #167247; font-size: 0.85rem; }

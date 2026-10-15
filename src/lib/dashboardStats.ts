@@ -6,27 +6,78 @@ import type { Report } from './api';
 export type StateKey =
   | 'registrado'
   | 'revision'
-  | 'seguimiento'
+  | 'validado'
+  | 'confirmado'
   | 'canalizado'
+  | 'atencion'
+  | 'seguimiento'
   | 'concluido'
   | 'archivado'
   | 'cancelado'
-  | 'reincidente';
+  | 'reincidente'
+  | 'duplicado';
 
 /**
  * Las etiquetas acompañan al color para identificar cada estado.
  * `value` es el valor técnico que manda y recibe el backend.
  */
 export const STATES: { key: StateKey; value: string; label: string; color: string }[] = [
-  { key: 'registrado', value: 'registrado', label: 'Registrado', color: '#9a5b00' },
+  { key: 'registrado', value: 'registrado', label: 'Reporte recibido', color: '#9a5b00' },
   { key: 'revision', value: 'en_revision', label: 'En revisión', color: '#65418d' },
-  { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#65418d' },
+  { key: 'validado', value: 'validado', label: 'Reporte validado', color: '#5b4a9e' },
+  { key: 'confirmado', value: 'caso_confirmado', label: 'Caso confirmado', color: '#8a2f6b' },
   { key: 'canalizado', value: 'canalizado', label: 'Canalizado', color: '#24658e' },
+  { key: 'atencion', value: 'en_atencion', label: 'En atención', color: '#1d6f73' },
+  { key: 'seguimiento', value: 'en_seguimiento', label: 'En seguimiento', color: '#65418d' },
   { key: 'concluido', value: 'concluido', label: 'Concluido', color: '#167247' },
   { key: 'archivado', value: 'archivado', label: 'Archivado', color: '#595959' },
   { key: 'cancelado', value: 'cancelado', label: 'Cancelado', color: '#b42332' },
   { key: 'reincidente', value: 'reincidente', label: 'Reincidente', color: '#b21e70' },
+  { key: 'duplicado', value: 'duplicado', label: 'Duplicado', color: '#7a7a7a' },
 ];
+
+/** Estados de reportes verificados. */
+const VERIFIED_STATES: StateKey[] = ['validado', 'confirmado', 'canalizado', 'atencion', 'seguimiento', 'concluido', 'reincidente'];
+/** Estados de casos identificados. */
+const CONFIRMED_STATES: StateKey[] = ['confirmado', 'canalizado', 'atencion', 'seguimiento', 'concluido'];
+
+/** Rangos de edad del formulario RIETI. */
+export const AGE_OPTIONS = ['0 a 5 años', '6 a 11 años', '12 a 14 años', '15 a 17 años', 'No sé'];
+/** Rangos anteriores; se muestran cuando hay reportes que los usan. */
+const LEGACY_AGE_RANGES = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
+
+/** Actividades del formulario RIETI. */
+export const WORK_OPTIONS = [
+  'Venta ambulante',
+  'Limpieza de parabrisas',
+  'Mendicidad',
+  'Carga y descarga',
+  'Trabajo en comercio',
+  'Campo',
+  'Construcción',
+  'Trabajo doméstico',
+  'Recolección de residuos',
+  'Otra actividad',
+  'No sé',
+];
+
+/** Opciones de riesgo. */
+export const RISK_OPTIONS = [
+  { value: 'si', label: 'Sí' },
+  { value: 'no', label: 'No' },
+  { value: 'no_se', label: 'No sé' },
+] as const;
+
+/** Etiqueta de riesgo; vacío si falta. */
+export function riskLabel(risk: string) {
+  return RISK_OPTIONS.find((option) => option.value === risk)?.label ?? '';
+}
+
+/** Texto de la cantidad de NNA: `null` = "No sé", 5 = "5 o más". */
+export function quantityLabel(quantity: number | null) {
+  if (quantity === null || quantity === undefined) return 'No sé';
+  return quantity >= 5 ? '5 o más' : String(quantity);
+}
 
 /** Abreviaturas de los meses para los ejes de las gráficas. */
 export const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -47,8 +98,7 @@ const WORK_MODALITIES = [
   { label: 'Otra situación de explotación y/o vulneración', match: 'otra situacion' },
 ];
 
-/** Mismas opciones que la pantalla "Información del niño" de la app. */
-const AGE_RANGES = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
+const AGE_RANGES = [...AGE_OPTIONS, ...LEGACY_AGE_RANGES];
 
 const UNATTENDED_AFTER_MS = 48 * 3_600_000;
 const DAY_MS = 86_400_000;
@@ -87,6 +137,12 @@ export type DashboardStats = {
   falsePerMonth: number[];
   inReviewPerMonth: number[];
   completedPerMonth: number[];
+  /** Indicadores de atención, sin duplicados. */
+  funnel: { received: number; verified: number; confirmed: number; childrenCared: number };
+  /** Reportes marcados como duplicado o posible duplicado. */
+  duplicates: number;
+  /** Reportes con peligro inmediato que siguen sin cerrarse. */
+  openUrgent: number;
 };
 
 /**
@@ -98,6 +154,10 @@ export function normalizeState(state: string | null | undefined): StateKey {
   const s = simplify(state);
 
   if (s.includes('reincid')) return 'reincidente';
+  if (s.includes('duplic')) return 'duplicado';
+  if (s.includes('confirm')) return 'confirmado';
+  if (s.includes('validad')) return 'validado';
+  if (s.includes('atencion')) return 'atencion';
   if (s.includes('cancel')) return 'cancelado';
   if (s.includes('archiv')) return 'archivado';
   if (s.includes('revision')) return 'revision';
@@ -174,7 +234,14 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
     archivado: 0,
     cancelado: 0,
     reincidente: 0,
+    validado: 0,
+    confirmado: 0,
+    atencion: 0,
+    duplicado: 0,
   };
+  const funnel = { received: 0, verified: 0, confirmed: 0, childrenCared: 0 };
+  let duplicates = 0;
+  let openUrgent = 0;
   const zones = new Map<string, number>();
   const emptyYear = () => Array<number>(12).fill(0);
   const perMonth = emptyYear();
@@ -195,6 +262,18 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
   for (const report of reports) {
     const state = normalizeState(report.last_state);
     byState[state] += 1;
+
+    if (state === 'duplicado' || report.duplicate_of) {
+      duplicates += 1;
+    } else {
+      funnel.received += 1;
+      if (VERIFIED_STATES.includes(state)) funnel.verified += 1;
+      if (CONFIRMED_STATES.includes(state)) funnel.confirmed += 1;
+      funnel.childrenCared += report.children_cared ?? 0;
+    }
+    if (report.priority === 'alta' && !['concluido', 'archivado', 'cancelado', 'duplicado'].includes(state)) {
+      openUrgent += 1;
+    }
 
     const zoneName = report.zone_name || 'Sin zona';
     zones.set(zoneName, (zones.get(zoneName) ?? 0) + 1);
@@ -251,7 +330,7 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
       .map(([label, value]) => ({ label, value }))
       .sort((a, b) => b.value - a.value),
     byAge: [...ages.entries()]
-      .filter(([label, value]) => label !== 'Sin especificar' || value > 0)
+      .filter(([label, value]) => AGE_OPTIONS.includes(label) || value > 0)
       .map(([label, value]) => ({ label, value })),
     byState,
     byZone,
@@ -263,7 +342,93 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
     falsePerMonth,
     inReviewPerMonth,
     completedPerMonth,
+    funnel,
+    duplicates,
+    openUrgent,
   };
+}
+
+/** Punto con reportes recurrentes. */
+export type Hotspot = {
+  latitude: number;
+  longitude: number;
+  count: number;
+  zone: string;
+  neighborhood: string;
+  /** Días más frecuentes. */
+  days: string;
+  /** Horario más frecuente. */
+  hours: string;
+  lastAt: string;
+};
+
+const WEEKDAYS = ['domingos', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados'];
+
+/** Fecha del avistamiento o, si falta, de creación. */
+export function sightingDate(report: Report) {
+  const sighting = report.sighting_time ? new Date(report.sighting_time) : null;
+  return sighting && !Number.isNaN(sighting.getTime()) ? sighting : new Date(report.created_at);
+}
+
+/**
+ * Agrupa reportes en celdas de unos 100 m durante el periodo indicado.
+ * Devuelve las de mayor frecuencia, sin cancelados ni duplicados.
+ */
+export function computeHotspots(reports: Report[], days = 90, minReports = 3, now = new Date()): Hotspot[] {
+  const since = now.getTime() - days * DAY_MS;
+  const cells = new Map<string, Report[]>();
+
+  for (const report of reports) {
+    const state = normalizeState(report.last_state);
+    if (state === 'cancelado' || state === 'duplicado') continue;
+    if (Date.parse(report.created_at) < since) continue;
+    // 0.001° ≈ 110 m en el centro de México.
+    const key = `${report.latitude.toFixed(3)},${report.longitude.toFixed(3)}`;
+    const group = cells.get(key);
+    if (group) group.push(report);
+    else cells.set(key, [report]);
+  }
+
+  return [...cells.values()]
+    .filter((group) => group.length >= minReports)
+    .map((group) => {
+      const dayCounts = Array<number>(7).fill(0);
+      const hourCounts = Array<number>(24).fill(0);
+      for (const report of group) {
+        const date = sightingDate(report);
+        dayCounts[date.getDay()] += 1;
+        hourCounts[date.getHours()] += 1;
+      }
+      const topDays = dayCounts
+        .map((count, day) => ({ count, day }))
+        .filter((d) => d.count > 0)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 2)
+        .map((d) => WEEKDAYS[d.day]);
+      // Ventana de 4 horas con más reportes.
+      let bestStart = 0;
+      let bestCount = -1;
+      for (let start = 0; start < 24; start += 1) {
+        const count = [0, 1, 2, 3].reduce((sum, i) => sum + hourCounts[(start + i) % 24]!, 0);
+        if (count > bestCount) {
+          bestCount = count;
+          bestStart = start;
+        }
+      }
+      const pad = (h: number) => `${String(h % 24).padStart(2, '0')}:00`;
+      const latest = group.reduce((a, b) => (Date.parse(a.created_at) > Date.parse(b.created_at) ? a : b));
+      return {
+        latitude: group.reduce((sum, r) => sum + r.latitude, 0) / group.length,
+        longitude: group.reduce((sum, r) => sum + r.longitude, 0) / group.length,
+        count: group.length,
+        zone: latest.zone_name || 'Sin zona',
+        neighborhood: group.find((r) => r.neighborhood)?.neighborhood ?? '',
+        days: topDays.join(' y '),
+        hours: `${pad(bestStart)} a ${pad(bestStart + 4)}`,
+        lastAt: latest.created_at,
+      };
+    })
+    .sort((a, b) => b.count - a.count);
 }
 
 /** Formatea una fecha como "Hoy", "Ayer", "Antier" o día y mes, seguido de la hora. */

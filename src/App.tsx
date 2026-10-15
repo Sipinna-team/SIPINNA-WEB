@@ -14,6 +14,9 @@ import CitizenHome from './pages/CitizenHome'
 import NewReport from './pages/NewReport'
 import Account from './pages/Account'
 import AcceptInvitation from './pages/AcceptInvitation'
+import TrackReport from './pages/TrackReport'
+import MyReports from './pages/MyReports'
+import PrivacyNotice from './pages/PrivacyNotice'
 import './Viewport.css'
 
 /**
@@ -33,6 +36,9 @@ function App() {
         <Route path="/aceptar-invitacion" element={<AcceptInvitation />} />
         <Route path="/inicio" element={<CitizenHome />} />
         <Route path="/reportar" element={<NewReport />} />
+        <Route path="/mis-reportes" element={<MyReports />} />
+        <Route path="/consultar-folio" element={<TrackReport />} />
+        <Route path="/aviso-privacidad" element={<PrivacyNotice />} />
         <Route path="/mi-cuenta" element={<ProtectedRoute><Account /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
         <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />

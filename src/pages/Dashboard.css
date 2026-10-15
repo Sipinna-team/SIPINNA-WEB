@@ -1438,3 +1438,12 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   .dashboard-recent-summary > div { padding: 8px; }
   .dashboard-recent-summary dt { font-size: 11px; }
 }
+.dashboard-recent-state--validado,
+.dashboard-recent-state--atencion { background: color-mix(in srgb, var(--sip-progress) 10%, white); color: var(--sip-progress); }
+.dashboard-recent-state--confirmado { background: color-mix(in srgb, var(--sip-magenta) 10%, white); color: var(--sip-magenta); }
+.audit-log summary { cursor: pointer; }
+.audit-log__scroll { max-height: 320px; overflow: auto; margin-top: 8px; }
+.audit-log__table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.audit-log__table th,
+.audit-log__table td { padding: 4px 6px; border-bottom: 1px solid var(--sip-border); text-align: left; vertical-align: top; }
+.audit-log__table code { word-break: break-all; }

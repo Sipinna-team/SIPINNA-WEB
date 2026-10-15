@@ -1,5 +1,5 @@
 import type { Report } from './api';
-import { stateLabel } from './dashboardStats';
+import { quantityLabel, riskLabel, stateLabel } from './dashboardStats';
 
 /** @file Exportación de reportes a CSV y PDF, y formatos compartidos para mostrarlos. */
 
@@ -30,7 +30,11 @@ const COLUMNS: Column[] = [
   { header: 'Tipo de trabajo', value: (r) => r.work_type },
   { header: 'Zona', value: (r) => r.zone_name || 'Sin zona' },
   { header: 'Reportado por', value: (r) => r.citizen_name || 'Anónimo' },
-  { header: 'NNA', value: (r) => r.children_quantity },
+  { header: 'NNA', value: (r) => quantityLabel(r.children_quantity) },
+  { header: 'Prioridad', value: (r) => (r.priority === 'alta' ? 'Alta' : 'Normal') },
+  { header: 'Riesgo', value: (r) => riskLabel(r.risk) },
+  { header: 'Colonia', value: (r) => r.neighborhood },
+  { header: 'Posible duplicado de', value: (r) => r.duplicate_of },
   { header: 'Edades', value: (r) => r.children_age },
   { header: 'Sospecha', value: (r) => formatSuspicion(r.suspicius_level) },
   { header: 'Latitud', value: (r) => r.latitude },
@@ -39,7 +43,7 @@ const COLUMNS: Column[] = [
 ];
 
 /** La descripción y las coordenadas no caben en una hoja horizontal. */
-const PDF_HEADERS = ['Folio', 'Fecha', 'Estado', 'Tipo de trabajo', 'Zona', 'Reportado por', 'NNA', 'Edades', 'Sospecha'];
+const PDF_HEADERS = ['Folio', 'Fecha', 'Estado', 'Prioridad', 'Tipo de trabajo', 'Zona', 'Reportado por', 'NNA', 'Edades', 'Sospecha'];
 const PDF_COLUMNS = COLUMNS.filter((c) => PDF_HEADERS.includes(c.header));
 
 /** Nombre de archivo con la fecha de hoy, p. ej. `reportes-sipinna-2026-10-10.csv`. */

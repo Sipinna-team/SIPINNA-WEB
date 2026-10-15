@@ -4,25 +4,17 @@ import * as mapboxgl from 'mapbox-gl/esm';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
-import { forwardGeocode, reverseGeocode } from '../lib/geocoding';
-import sipinnaLogo from '../assets/sipinna.svg';
-import './NewReport.css';
+import { AGE_OPTIONS, RISK_OPTIONS, WORK_OPTIONS } from '../lib/dashboardStats';
+import { cachedNeighborhood, forwardGeocode, reverseGeocode } from '../lib/geocoding';
+import PublicReportLayout from '../components/PublicReportLayout';
 
-/** Mismas opciones que la app de Android, para que el dashboard las agrupe igual. */
-const AGE_OPTIONS = ['Menos de 5 años', '5 - 7 años', '8 - 10 años', '11 - 13 años', '14 - 17 años'];
-const WORK_OPTIONS = [
-  'Vendedor ambulante',
-  'Limpieza de calles',
-  'Cargador / Cargadora',
-  'Recolección de basura',
-  'Agricultura / Campo',
-  'Mendicidad',
-  'Construcción',
-  'Otro',
-];
-const CONDITION_OPTIONS = ['Solo / Sola', 'Con adultos', 'Con otros niños', 'Con familiares', 'En situación de riesgo'];
+const QUANTITY_OPTIONS = ['1', '2', '3', '4', '5 o más', 'No sé'];
+const YES_NO = ['Sí', 'No'];
+const RISK_LABELS = RISK_OPTIONS.map((option) => option.label);
+const WHEN_OPTIONS = ['Ahora mismo', 'En otro momento'];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const STEPS = ['Ubicación', 'Fotos', 'Descripción', 'Niña o niño', 'Revisión'];
+const STEPS = ['Ubicación', 'Lo que viste', 'Descripción', 'Foto', 'Revisión'];
 const CHOICE = -1;
 const REVIEW = 4;
 const DONE = 5;
@@ -42,13 +34,23 @@ function localDateTime(date = new Date()) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
-/** Avance del envío; permite reintentar sin crear otro borrador ni volver a subir fotos. */
-type SendProgress = { reportId?: string; editToken?: string; folio?: string; imageIds?: string[]; uploaded: Set<number> };
+/** `'5 o más'` → 5, `'No sé'` → `null`. */
+function quantityValue(option: string) {
+  if (option === 'No sé') return null;
+  return option === '5 o más' ? 5 : Number(option);
+}
 
-/**
- * Flujo para que un ciudadano haga un reporte, con o sin sesión.
- * Sin sesión primero elige entre reportar de forma anónima o iniciar sesión.
- */
+/** Avance guardado para reintentar el envío. */
+type SendProgress = {
+  reportId?: string;
+  editToken?: string;
+  folio?: string;
+  accessKey?: string;
+  imageIds?: string[];
+  uploaded: Set<number>;
+};
+
+/** Reporte ciudadano con o sin sesión y seguimiento opcional por correo. */
 function NewReport() {
   const { user, isLoading } = useAuth();
   const [step, setStep] = useState(CHOICE);
@@ -62,11 +64,19 @@ function NewReport() {
   const [description, setDescription] = useState('');
   const [age, setAge] = useState('');
   const [workTypes, setWorkTypes] = useState<string[]>([]);
-  const [condition, setCondition] = useState('');
+  const [danger, setDanger] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [risk, setRisk] = useState('');
+  const [when, setWhen] = useState('');
+  const [sightingAt, setSightingAt] = useState('');
+  const [reference, setReference] = useState('');
+  const [followUp, setFollowUp] = useState(false);
+  const [contactEmail, setContactEmail] = useState('');
 
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [folio, setFolio] = useState<string | null>(null);
+  const [accessKey, setAccessKey] = useState<string | null>(null);
   const progress = useRef<SendProgress>({ uploaded: new Set() });
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -83,12 +93,12 @@ function NewReport() {
     };
   }, [location]);
 
-  // Si cambia algo después de un intento fallido, el siguiente envío crea un borrador nuevo.
+  // Los cambios invalidan el borrador del intento anterior.
   useEffect(() => {
     progress.current = { uploaded: new Set() };
-  }, [location, address, photos, description, age, workTypes, condition]);
+  }, [location, photos, description, age, workTypes, danger, quantity, risk, when, sightingAt, reference, followUp, contactEmail, user]);
 
-  // Lleva el foco al título de cada paso para lectores de pantalla y teclado.
+  // Enfoca el título al cambiar de paso.
   useEffect(() => {
     headingRef.current?.focus();
   }, [currentStep]);
@@ -108,22 +118,24 @@ function NewReport() {
 
     try {
       if (!p.reportId) {
-        const details = [description.trim()];
-        if (address) details.push(`Dirección: ${address}`);
-        details.push(`Condición: ${condition}`);
-
         const created = await api.createReport({
-          description: details.join('\n'),
+          description: description.trim(),
           latitude: location[1],
           longitude: location[0],
-          children_quantity: 1,
+          children_quantity: quantityValue(quantity),
           children_age: age,
           work_type: workTypes.join(', '),
-          sighting_time: localDateTime(),
+          sighting_time: when === 'Ahora mismo' ? localDateTime() : sightingAt,
+          risk: RISK_OPTIONS.find((option) => option.label === risk)!.value,
+          immediate_danger: danger === 'Sí',
+          neighborhood: cachedNeighborhood(location[1], location[0]),
+          reference: reference.trim(),
+          contact_email: followUp ? contactEmail.trim() : undefined,
         });
         p.reportId = created.reporte_id;
         p.editToken = created.edit_token;
         p.folio = created.folio;
+        p.accessKey = created.clave_consulta;
       }
 
       if (photos.length > 0 && !p.imageIds) {
@@ -137,6 +149,7 @@ function NewReport() {
 
       await api.submitReport(p.reportId, p.editToken);
       setFolio(p.folio ?? null);
+      setAccessKey(p.accessKey ?? null);
       progress.current = { uploaded: new Set() };
       setStep(DONE);
     } catch (error) {
@@ -157,268 +170,391 @@ function NewReport() {
     setDescription('');
     setAge('');
     setWorkTypes([]);
-    setCondition('');
+    setDanger('');
+    setQuantity('');
+    setRisk('');
+    setWhen('');
+    setSightingAt('');
+    setReference('');
+    setFollowUp(false);
+    setContactEmail('');
+    setFolio(null);
+    setAccessKey(null);
+    setSendError(null);
+    progress.current = { uploaded: new Set() };
     setReachedReview(false);
     setStep(user ? 0 : CHOICE);
   }
 
   if (isLoading) return <div className="rf-page" aria-busy="true" />;
 
-  const childComplete = age !== '' && workTypes.length > 0 && condition !== '';
+  const observedComplete =
+    danger !== '' &&
+    quantity !== '' &&
+    age !== '' &&
+    workTypes.length > 0 &&
+    risk !== '' &&
+    (when === 'Ahora mismo' || (when === 'En otro momento' && sightingAt !== ''));
   const descriptionLength = description.trim().length;
+  const contactValid = !followUp || EMAIL_PATTERN.test(contactEmail.trim());
 
   return (
-    <div className="rf-page">
-      <header className="rf-topbar">
-        <Link to="/inicio" aria-label="Ir al inicio">
-          <img src={sipinnaLogo} alt="SIPINNA" className="rf-logo" />
-        </Link>
-        {currentStep !== DONE && (
-          <Link to="/inicio" className="rf-exit">
-            Volver al inicio
-          </Link>
+    <PublicReportLayout showExit={currentStep !== DONE}>
+      <section className="rf-card sip-card" data-step={currentStep} aria-labelledby="rf-title">
+        {currentStep >= 0 && currentStep < DONE && (
+          <StepHeader step={currentStep} onBack={goBack} canGoBack={!sending && (currentStep > 0 || !user)} />
         )}
-      </header>
 
-      <main className="rf-main">
-        <section className="rf-card sip-card" data-step={currentStep} aria-labelledby="rf-title">
-          {currentStep >= 0 && currentStep < DONE && (
-            <StepHeader step={currentStep} onBack={goBack} canGoBack={!sending && (currentStep > 0 || !user)} />
-          )}
-
-          {currentStep === CHOICE && (
-            <>
-              <StepTitle headingRef={headingRef} title="Hacer un reporte">
-                Avísanos si viste a una niña, niño o adolescente trabajando. Te tomará unos 3 minutos.
-              </StepTitle>
-              <div className="rf-choices">
-                <button type="button" className="rf-choice" onClick={() => setStep(0)}>
-                  <span className="rf-choice-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z" />
-                    </svg>
-                  </span>
-                  <span>
-                    <strong>Reportar de forma anónima</strong>
-                    <span>No te pedimos nombre ni datos de contacto. No podrás dar seguimiento al reporte.</span>
-                  </span>
-                </button>
-                <Link to="/login?next=/reportar" className="rf-choice">
-                  <span className="rf-choice-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="8" r="4" />
-                      <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
-                    </svg>
-                  </span>
-                  <span>
-                    <strong>Iniciar sesión</strong>
-                    <span>El reporte queda en tu cuenta y puedes consultar su estado.</span>
-                  </span>
-                </Link>
-              </div>
-              <p className="rf-muted rf-center">
-                ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
-              </p>
-              <section className="rf-intro-guide" aria-labelledby="rf-intro-guide-title">
-                <h2 id="rf-intro-guide-title">Completa tu reporte en 5 pasos</h2>
-                <ol className="rf-intro-steps">
-                  {[
-                    ['Ubicación', 'Marca el lugar en el mapa.'],
-                    ['Fotos', 'Agrega imágenes si las tienes; es opcional.'],
-                    ['Descripción', 'Cuéntanos qué viste.'],
-                    ['Datos aproximados', 'Indica la edad, actividad y compañía.'],
-                    ['Revisión', 'Confirma los datos antes de enviar.'],
-                  ].map(([title, description], index) => (
-                    <li key={title}>
-                      <span className="rf-intro-step-number" aria-hidden="true">{index + 1}</span>
-                      <strong>{title}</strong>
-                      <p>{description}</p>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            </>
-          )}
-
-          {currentStep === 0 && (
-            <>
-              <StepTitle headingRef={headingRef} title="¿Dónde fue?">
-                Busca la dirección, usa tu ubicación o toca el mapa. Puedes arrastrar el pin para ajustarlo.
-              </StepTitle>
-              <LocationPicker value={location} onChange={setLocation} />
-              <p className="rf-address" aria-live="polite">
-                {location ? address ?? 'Buscando la dirección…' : 'Aún no has marcado el lugar.'}
-              </p>
-              <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={!location} onClick={goNext}>
-                Confirmar ubicación
+        {currentStep === CHOICE && (
+          <>
+            <StepTitle headingRef={headingRef} title="Hacer un reporte">
+              Avísanos si viste a una niña, niño o adolescente trabajando. Te tomará unos 3 minutos.
+            </StepTitle>
+            <div className="rf-choices">
+              <button
+                type="button"
+                className="rf-choice"
+                onClick={() => {
+                  setFollowUp(false);
+                  setStep(0);
+                }}
+              >
+                <span className="rf-choice-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z" />
+                  </svg>
+                </span>
+                <span>
+                  <strong>Reporte anónimo</strong>
+                  <span>No te pedimos nombre, teléfono ni correo. Al final te damos un folio y una clave para consultar el avance.</span>
+                </span>
               </button>
-            </>
-          )}
-
-          {currentStep === 1 && (
-            <>
-              <StepTitle headingRef={headingRef} title="Fotos del lugar">
-                Opcional. Una foto ayuda a confirmar el reporte y a atenderlo más rápido. Evita que se vea el
-                rostro del niño si no es necesario.
-              </StepTitle>
-              <PhotoPicker photos={photos} onChange={setPhotos} />
-              <button type="button" className="sip-btn sip-btn--primary sip-btn--block" onClick={goNext}>
-                {photos.length > 0 ? 'Siguiente' : 'Continuar sin fotos'}
+              <button
+                type="button"
+                className="rf-choice"
+                onClick={() => {
+                  setFollowUp(true);
+                  setStep(0);
+                }}
+              >
+                <span className="rf-choice-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                    <path d="m3 7 9 6 9-6" />
+                  </svg>
+                </span>
+                <span>
+                  <strong>Reporte con seguimiento</strong>
+                  <span>Solo te pedimos un correo para enviarte el folio y la clave para consultar avances.</span>
+                </span>
               </button>
-            </>
-          )}
+              <Link to="/login?next=/reportar" className="rf-choice">
+                <span className="rf-choice-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" />
+                  </svg>
+                </span>
+                <span>
+                  <strong>Iniciar sesión</strong>
+                  <span>Si ya tienes cuenta, el reporte queda guardado en ella.</span>
+                </span>
+              </Link>
+            </div>
+            <p className="rf-muted rf-center">
+              <Link to="/mis-reportes">Ver mis reportes</Link> o <Link to="/consultar-folio">consultar con folio y clave</Link>
+            </p>
+            <section className="rf-intro-guide" aria-labelledby="rf-intro-guide-title">
+              <h2 id="rf-intro-guide-title">Completa tu reporte en 5 pasos</h2>
+              <ol className="rf-intro-steps">
+                {[
+                  ['Ubicación', 'Marca el lugar en el mapa.'],
+                  ['Lo que viste', 'Cuántos eran, edad aproximada y qué hacían.'],
+                  ['Descripción', 'Cuéntanos brevemente qué observaste.'],
+                  ['Foto', 'Opcional, de preferencia del lugar.'],
+                  ['Revisión', 'Confirma los datos antes de enviar.'],
+                ].map(([title, description], index) => (
+                  <li key={title}>
+                    <span className="rf-intro-step-number" aria-hidden="true">{index + 1}</span>
+                    <strong>{title}</strong>
+                    <p>{description}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          </>
+        )}
 
-          {currentStep === 2 && (
-            <form
-              className="rf-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (descriptionLength >= MIN_DESCRIPTION) goNext();
-              }}
-            >
-              <StepTitle headingRef={headingRef} title="¿Qué pasó?">
-                Cuéntanos qué viste: qué estaba haciendo, a qué hora y cualquier detalle que ayude a encontrarlo.
-              </StepTitle>
-              <label className="rf-label" htmlFor="rf-description">
-                Descripción
-              </label>
-              <textarea
-                id="rf-description"
-                className="rf-textarea"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Ej. Vi a un niño de unos 8 años vendiendo dulces entre los coches del semáforo, cerca de las 7 p. m."
-                rows={6}
-                maxLength={1000}
-                aria-describedby="rf-description-hint"
+        {currentStep === 0 && (
+          <>
+            <StepTitle headingRef={headingRef} title="¿Dónde fue?">
+              Busca la dirección, usa tu ubicación o toca el mapa. Puedes arrastrar el pin para ajustarlo.
+            </StepTitle>
+            <LocationPicker value={location} onChange={setLocation} />
+            <p className="rf-address" aria-live="polite">
+              {location ? address ?? 'Buscando la dirección…' : 'Aún no has marcado el lugar.'}
+            </p>
+            <label className="rf-label" htmlFor="rf-reference">
+              Calle o punto de referencia (opcional)
+            </label>
+            <input
+              id="rf-reference"
+              className="rf-input"
+              value={reference}
+              onChange={(event) => setReference(event.target.value)}
+              placeholder="Ej. Semáforo frente a la tienda, esquina con Av. Juárez"
+              maxLength={300}
+            />
+            <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={!location} onClick={goNext}>
+              Confirmar ubicación
+            </button>
+          </>
+        )}
+
+        {currentStep === 1 && (
+          <>
+            <StepTitle headingRef={headingRef} title="¿Qué viste?">
+              Un aproximado está bien. Tú solo cuéntanos lo que observaste; la autoridad lo analiza.
+            </StepTitle>
+            <div className="rf-child-fields">
+              <ChipGroup
+                label="¿La niña, niño o adolescente se encuentra en peligro inmediato?"
+                options={YES_NO}
+                selected={[danger]}
+                onToggle={setDanger}
               />
-              <p id="rf-description-hint" className="rf-muted rf-hint">
-                {descriptionLength < MIN_DESCRIPTION
-                  ? `Escribe al menos ${MIN_DESCRIPTION} caracteres.`
-                  : `${description.length} / 1000`}
-              </p>
-              <button type="submit" className="sip-btn sip-btn--primary sip-btn--block" disabled={descriptionLength < MIN_DESCRIPTION}>
-                Siguiente
-              </button>
-            </form>
-          )}
-
-          {currentStep === 3 && (
-            <>
-              <StepTitle headingRef={headingRef} title="Sobre la niña o niño">
-                Responde lo que hayas visto; un aproximado está bien.
-              </StepTitle>
-              <div className="rf-child-fields">
-                <SelectQuestion label="¿Qué edad aproximada tiene?" options={AGE_OPTIONS} value={age} onChange={setAge} />
-                <ChipGroup
-                  label="¿Qué estaba haciendo?"
-                  hint="Puedes elegir más de una opción."
-                  options={WORK_OPTIONS}
-                  selected={workTypes}
-                  onToggle={(option) =>
-                    setWorkTypes((current) =>
-                      current.includes(option) ? current.filter((item) => item !== option) : [...current, option],
-                    )
-                  }
-                />
-                <SelectQuestion
-                  label="¿Con quién estaba?"
-                  options={CONDITION_OPTIONS}
-                  value={condition}
-                  onChange={setCondition}
-                />
-              </div>
-              <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={!childComplete} onClick={goNext}>
-                Revisar reporte
-              </button>
-            </>
-          )}
-
-          {currentStep === REVIEW && location && (
-            <>
-              <StepTitle headingRef={headingRef} title="Revisa tu reporte">
-                Confirma que todo esté bien antes de enviarlo.
-              </StepTitle>
-              <div className="rf-summary">
-                <SummaryRow title="Ubicación" onEdit={() => setStep(0)}>
-                  {MAPBOX_TOKEN && (
-                    <img
-                      className="rf-static-map"
-                      alt=""
-                      src={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+9b2247(${location[0]},${location[1]})/${location[0]},${location[1]},15,0/640x220@2x?access_token=${MAPBOX_TOKEN}`}
-                    />
-                  )}
-                  <p>{address ?? `${location[1].toFixed(5)}, ${location[0].toFixed(5)}`}</p>
-                </SummaryRow>
-                <SummaryRow title="Fotos" onEdit={() => setStep(1)}>
-                  {photos.length > 0 ? <PhotoThumbs photos={photos} /> : <p className="rf-muted">Sin fotos</p>}
-                </SummaryRow>
-                <SummaryRow title="Descripción" onEdit={() => setStep(2)}>
-                  <p className="rf-pre">{description.trim()}</p>
-                </SummaryRow>
-                <SummaryRow title="Niña o niño" onEdit={() => setStep(3)}>
-                  <dl className="rf-facts">
-                    <dt>Edad</dt>
-                    <dd>{age}</dd>
-                    <dt>Actividad</dt>
-                    <dd>{workTypes.join(', ')}</dd>
-                    <dt>Con quién</dt>
-                    <dd>{condition}</dd>
-                  </dl>
-                </SummaryRow>
-              </div>
-              <p className="rf-muted rf-center">
-                {user ? `Se enviará a nombre de ${user.name}.` : 'Se enviará de forma anónima.'}
-              </p>
-              {sendError && (
-                <p className="rf-error" role="alert">
-                  {sendError}
-                </p>
-              )}
-              <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={sending} aria-busy={sending} onClick={handleSend}>
-                {sending ? 'Enviando…' : sendError ? 'Reintentar envío' : 'Enviar reporte'}
-              </button>
-            </>
-          )}
-
-          {currentStep === DONE && (
-            <div className="rf-done">
-              <span className="rf-done-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m5 12.5 4.5 4.5L19 7.5" />
-                </svg>
-              </span>
-              <StepTitle headingRef={headingRef} title="¡Gracias! Recibimos tu reporte">
-                El equipo de SIPINNA de la zona lo revisará para dar atención.
-              </StepTitle>
-              {folio && (
-                <div className="rf-folio">
-                  <span>Folio</span>
-                  <strong>{folio}</strong>
+              {danger === 'Sí' && (
+                <div className="rf-alert" role="alert">
+                  <strong>
+                    Llama ahora al <a href="tel:911">911</a>.
+                  </strong>
+                  <p>
+                    Este formulario no sustituye a los servicios de emergencia ni a los mecanismos formales de
+                    denuncia. Puedes continuar el reporte: se atenderá con prioridad alta.
+                  </p>
                 </div>
               )}
-              <p className="rf-muted rf-center">
-                {user
-                  ? 'Puedes consultar su estado desde tu cuenta.'
-                  : 'Guarda este folio: como el reporte es anónimo, es la única forma de referirte a él.'}
-              </p>
-              <div className="rf-done-actions">
-                <Link to="/inicio" className="sip-btn sip-btn--primary sip-btn--block">
-                  Volver al inicio
-                </Link>
-                <button type="button" className="sip-btn sip-btn--secondary sip-btn--block" onClick={restart}>
-                  Hacer otro reporte
-                </button>
-              </div>
+              <ChipGroup
+                label="¿Cuántas niñas, niños o adolescentes observaste?"
+                options={QUANTITY_OPTIONS}
+                selected={[quantity]}
+                onToggle={setQuantity}
+              />
+              <ChipGroup label="Edad aproximada" options={AGE_OPTIONS} selected={[age]} onToggle={setAge} />
+              <ChipGroup
+                label="¿Qué estaban haciendo?"
+                hint="Puedes elegir más de una opción."
+                options={WORK_OPTIONS}
+                selected={workTypes}
+                onToggle={(option) =>
+                  setWorkTypes((current) =>
+                    current.includes(option) ? current.filter((item) => item !== option) : [...current, option],
+                  )
+                }
+              />
+              <ChipGroup
+                label="¿Observaste alguna situación de riesgo?"
+                options={RISK_LABELS}
+                selected={[risk]}
+                onToggle={setRisk}
+              />
+              <ChipGroup label="¿Cuándo lo viste?" options={WHEN_OPTIONS} selected={[when]} onToggle={setWhen} />
+              {when === 'En otro momento' && (
+                <label className="rf-question">
+                  <span className="rf-label">Fecha y hora aproximada</span>
+                  <input
+                    type="datetime-local"
+                    className="rf-input"
+                    value={sightingAt}
+                    max={localDateTime()}
+                    onChange={(event) => setSightingAt(event.target.value)}
+                  />
+                </label>
+              )}
             </div>
-          )}
-        </section>
+            <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={!observedComplete} onClick={goNext}>
+              Siguiente
+            </button>
+          </>
+        )}
 
-        <p className="rf-emergency">
-          ¿Una niña o niño está en peligro en este momento? <a href="tel:911">Llama al 911</a>
-        </p>
-      </main>
-    </div>
+        {currentStep === 2 && (
+          <form
+            className="rf-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (descriptionLength >= MIN_DESCRIPTION) goNext();
+            }}
+          >
+            <StepTitle headingRef={headingRef} title="Cuéntanos brevemente qué observaste">
+              Cualquier detalle que ayude a encontrar a la niña, niño o adolescente.
+            </StepTitle>
+            <label className="rf-label" htmlFor="rf-description">
+              Descripción
+            </label>
+            <textarea
+              id="rf-description"
+              className="rf-textarea"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder="Ej. Vi a un niño de unos 8 años vendiendo dulces entre los coches del semáforo, cerca de las 7 p. m."
+              rows={6}
+              maxLength={1000}
+              aria-describedby="rf-description-hint"
+            />
+            <p id="rf-description-hint" className="rf-muted rf-hint">
+              {descriptionLength < MIN_DESCRIPTION
+                ? `Escribe al menos ${MIN_DESCRIPTION} caracteres.`
+                : `${description.length} / 1000`}
+            </p>
+            <button type="submit" className="sip-btn sip-btn--primary sip-btn--block" disabled={descriptionLength < MIN_DESCRIPTION}>
+              Siguiente
+            </button>
+          </form>
+        )}
+
+        {currentStep === 3 && (
+          <>
+            <StepTitle headingRef={headingRef} title="Foto o evidencia">
+              Opcional. De preferencia toma la foto del lugar o sitio donde viste a la niña, niño o adolescente,
+              para facilitar a las autoridades su localización.
+            </StepTitle>
+            <p className="rf-notice">
+              Evita tomar fotografías que pongan en riesgo a niñas, niños o adolescentes. No confrontes a las
+              personas involucradas ni te expongas para obtener evidencia.
+            </p>
+            <PhotoPicker photos={photos} onChange={setPhotos} />
+            <button type="button" className="sip-btn sip-btn--primary sip-btn--block" onClick={goNext}>
+              {photos.length > 0 ? 'Revisar reporte' : 'Continuar sin foto'}
+            </button>
+          </>
+        )}
+
+        {currentStep === REVIEW && location && (
+          <>
+            <StepTitle headingRef={headingRef} title="Revisa tu reporte">
+              Confirma que todo esté bien antes de enviarlo.
+            </StepTitle>
+            <div className="rf-summary">
+              <SummaryRow title="Ubicación" onEdit={() => setStep(0)}>
+                {MAPBOX_TOKEN && (
+                  <img
+                    className="rf-static-map"
+                    alt=""
+                    src={`https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+9b2247(${location[0]},${location[1]})/${location[0]},${location[1]},15,0/640x220@2x?access_token=${MAPBOX_TOKEN}`}
+                  />
+                )}
+                <p>{address ?? `${location[1].toFixed(5)}, ${location[0].toFixed(5)}`}</p>
+                {reference.trim() && <p className="rf-muted">Referencia: {reference.trim()}</p>}
+              </SummaryRow>
+              <SummaryRow title="Lo que viste" onEdit={() => setStep(1)}>
+                <dl className="rf-facts">
+                  <dt>Peligro inmediato</dt>
+                  <dd>{danger}</dd>
+                  <dt>Cuántos</dt>
+                  <dd>{quantity}</dd>
+                  <dt>Edad</dt>
+                  <dd>{age}</dd>
+                  <dt>Actividad</dt>
+                  <dd>{workTypes.join(', ')}</dd>
+                  <dt>Riesgo</dt>
+                  <dd>{risk}</dd>
+                  <dt>Cuándo</dt>
+                  <dd>{when === 'Ahora mismo' ? 'Ahora mismo' : sightingAt.replace('T', ' ')}</dd>
+                </dl>
+              </SummaryRow>
+              <SummaryRow title="Descripción" onEdit={() => setStep(2)}>
+                <p className="rf-pre">{description.trim()}</p>
+              </SummaryRow>
+              <SummaryRow title="Foto" onEdit={() => setStep(3)}>
+                {photos.length > 0 ? <PhotoThumbs photos={photos} /> : <p className="rf-muted">Sin foto</p>}
+              </SummaryRow>
+            </div>
+            {followUp && !user && (
+              <div className="rf-question">
+                <label className="rf-label" htmlFor="rf-contact">
+                  Correo para recibir tu folio
+                </label>
+                <input
+                  id="rf-contact"
+                  type="email"
+                  className="rf-input"
+                  value={contactEmail}
+                  onChange={(event) => setContactEmail(event.target.value)}
+                  placeholder="tucorreo@ejemplo.com"
+                  autoComplete="email"
+                />
+                <p className="rf-muted rf-hint">Solo lo usaremos para enviarte el folio; se borra al cerrar el reporte.</p>
+              </div>
+            )}
+            <p className="rf-muted rf-center">
+              {user
+                ? `Se enviará a nombre de ${user.name}.`
+                : followUp
+                  ? 'No se enviará tu nombre; solo el correo para el seguimiento.'
+                  : 'Se enviará de forma anónima.'}{' '}
+              Consulta el <Link to="/aviso-privacidad">aviso de privacidad</Link>.
+            </p>
+            {sendError && (
+              <p className="rf-error" role="alert">
+                {sendError}
+              </p>
+            )}
+            <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={sending || !contactValid} aria-busy={sending} onClick={handleSend}>
+              {sending ? 'Enviando…' : sendError ? 'Reintentar envío' : 'Enviar reporte'}
+            </button>
+          </>
+        )}
+
+        {currentStep === DONE && (
+          <div className="rf-done">
+            <span className="rf-done-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m5 12.5 4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+            <StepTitle headingRef={headingRef} title="¡Gracias por ayudar a proteger los derechos de niñas, niños y adolescentes!">
+              Tu reporte fue recibido correctamente.
+            </StepTitle>
+            {folio && (
+              <div className="rf-folio">
+                <span>Folio</span>
+                <strong>{folio}</strong>
+              </div>
+            )}
+            {accessKey && (
+              <div className="rf-folio">
+                <span>Clave de consulta</span>
+                <strong className="rf-key">{accessKey}</strong>
+              </div>
+            )}
+            <p className="rf-muted rf-center">
+              {followUp && !user
+                ? 'También te los enviamos por correo. '
+                : 'Guarda el folio y la clave: con ellos consultas el avance de tu reporte. '}
+              {user ? <Link to="/mis-reportes">Ver mis reportes</Link> : folio && accessKey && (
+                <Link to={`/consultar-folio?folio=${encodeURIComponent(folio)}&clave=${encodeURIComponent(accessKey)}`}>
+                  Consultar avance
+                </Link>
+              )}
+            </p>
+            <div className="rf-done-actions">
+              <Link to="/inicio" className="sip-btn sip-btn--primary sip-btn--block">
+                Volver al inicio
+              </Link>
+              <button type="button" className="sip-btn sip-btn--secondary sip-btn--block" onClick={restart}>
+                Hacer otro reporte
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <p className="rf-emergency">
+        ¿Una niña o niño está en peligro en este momento? <a href="tel:911">Llama al 911</a>. Este formulario no
+        sustituye a los servicios de emergencia ni a los mecanismos formales de denuncia.
+      </p>
+    </PublicReportLayout>
   );
 }
 
@@ -476,7 +612,7 @@ function StepTitle({
   );
 }
 
-/** Mapa con buscador, botón de "mi ubicación" y un pin que se mueve con clic o arrastrándolo. */
+/** Selector de ubicación con búsqueda y pin móvil. */
 function LocationPicker({ value, onChange }: { value: LngLat | null; onChange: (value: LngLat) => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -668,52 +804,41 @@ function PhotoPicker({ photos, onChange }: { photos: File[]; onChange: (photos: 
   );
 }
 
-// ponytail: las URLs no se revocan; son a lo más 5 fotos por reporte y se liberan al salir de la página.
-const previewUrls = new WeakMap<File, string>();
-function previewUrl(file: File) {
-  let url = previewUrls.get(file);
-  if (!url) {
-    url = URL.createObjectURL(file);
-    previewUrls.set(file, url);
-  }
-  return url;
-}
-
 function PhotoThumbs({ photos, onRemove }: { photos: File[]; onRemove?: (index: number) => void }) {
-  const urls = photos.map(previewUrl);
-
   return (
     <ul className="rf-thumbs">
-      {urls.map((url, index) => (
-        <li key={url}>
-          <img src={url} alt={`Foto ${index + 1}`} />
-          {onRemove && (
-            <button type="button" onClick={() => onRemove(index)} aria-label={`Quitar foto ${index + 1}`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-                <path d="M6 6l12 12M18 6 6 18" />
-              </svg>
-            </button>
-          )}
-        </li>
+      {photos.map((file, index) => (
+        <PhotoThumbnail
+          key={`${file.name}-${file.lastModified}-${index}`}
+          file={file}
+          index={index}
+          onRemove={onRemove}
+        />
       ))}
     </ul>
   );
 }
 
-function SelectQuestion({ label, options, value, onChange }: {
-  label: string;
-  options: string[];
-  value: string;
-  onChange: (value: string) => void;
-}) {
+function PhotoThumbnail({ file, index, onRemove }: { file: File; index: number; onRemove?: (index: number) => void }) {
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    if (imageRef.current) imageRef.current.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
   return (
-    <label className="rf-question rf-select-question">
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        <option value="" disabled>Selecciona una opción</option>
-        {options.map((option) => <option key={option} value={option}>{option}</option>)}
-      </select>
-    </label>
+    <li>
+      <img ref={imageRef} alt={`Foto ${index + 1}`} />
+      {onRemove && (
+        <button type="button" onClick={() => onRemove(index)} aria-label={`Quitar foto ${index + 1}`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      )}
+    </li>
   );
 }
 

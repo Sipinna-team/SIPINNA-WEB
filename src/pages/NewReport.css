@@ -672,15 +672,13 @@
 @media (min-width: 800px) {
   .rf-choices {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 20px;
   }
 
   .rf-choice { padding: 24px; }
 
-  .rf-child-fields > :first-child .rf-chips { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .rf-child-fields > :nth-child(2) .rf-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .rf-child-fields > :last-child .rf-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rf-child-fields .rf-chips { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 
   .rf-summary {
     display: grid;
@@ -738,4 +736,69 @@
   .rf-page * {
     transition: none !important;
   }
+}
+
+/* Campos de texto, avisos y clave de consulta (RIETI) */
+.rf-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--sip-border);
+  border-radius: var(--sip-radius-control);
+  background: rgba(255,255,255,0.7);
+  color: inherit;
+  font: inherit;
+}
+.rf-input:focus {
+  border-color: var(--sip-primary);
+  box-shadow: var(--sip-focus);
+  outline: none;
+}
+.rf-alert {
+  padding: 12px 14px;
+  border-radius: var(--sip-radius-control);
+  background: var(--sip-danger-soft);
+  color: var(--sip-danger);
+}
+.rf-alert a { color: inherit; font-weight: 800; }
+.rf-alert p { margin: 4px 0 0; font-size: 14px; }
+.rf-notice {
+  padding: 10px 14px;
+  border-left: 3px solid var(--sip-pending, #9a5b00);
+  border-radius: var(--sip-radius-control);
+  background: var(--sip-surface);
+  font-size: 14px;
+}
+.rf-key {
+  font-size: 13px;
+  word-break: break-all;
+}
+.rf-track {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+.rf-track li {
+  padding: 8px 12px;
+  border-radius: var(--sip-radius-control);
+  background: var(--sip-surface);
+  color: rgba(89, 89, 89, 0.85);
+}
+.rf-track li.is-done {
+  background: var(--sip-primary-soft);
+  color: var(--sip-primary-dark);
+  font-weight: 700;
+}
+.rf-track li[aria-current='step'] {
+  outline: 2px solid var(--sip-primary);
+}
+.rf-legal h2 {
+  margin: 18px 0 6px;
+  font-size: 16px;
+}
+.rf-legal p {
+  margin: 0;
+  line-height: 1.55;
 }
