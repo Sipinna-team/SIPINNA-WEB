@@ -1447,3 +1447,6 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .audit-log__table th,
 .audit-log__table td { padding: 4px 6px; border-bottom: 1px solid var(--sip-border); text-align: left; vertical-align: top; }
 .audit-log__table code { word-break: break-all; }
+.audit-log__resource { overflow-wrap: anywhere; }
+.audit-log__table details { min-width: 130px; }
+.audit-log__table details p { margin: 6px 0; }
