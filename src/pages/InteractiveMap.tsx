@@ -292,7 +292,13 @@ function MapContainer({
       setZoom(map.getZoom())
     })
 
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapContainerRef.current?.clientWidth && mapContainerRef.current.clientHeight) map.resize()
+    })
+    resizeObserver.observe(mapContainerRef.current)
+
     return () => {
+      resizeObserver.disconnect()
       map.remove()
       mapRef.current = null
     }
@@ -947,6 +953,7 @@ function SidePanel({
         <input
           type="search"
           placeholder="Buscar por folio"
+          aria-label="Buscar reporte por folio"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -1187,6 +1194,8 @@ function FiltersPanel({
  * la zona del alimentador.
  */
 export default function InteractiveMap() {
+  const [searchParams] = useSearchParams()
+  const [mobileView, setMobileView] = useState<'map' | 'list'>(searchParams.get('folio') ? 'list' : 'map')
   const [reports, setReports] = useState<Report[]>([])
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -1199,7 +1208,6 @@ export default function InteractiveMap() {
   /** '' = todas las zonas (solo administrador). */
   const [selectedZoneId, setSelectedZoneId] = useState('')
   /** /map?folio=X (desde la página de reportes) abre ese reporte al cargar. */
-  const [searchParams] = useSearchParams()
   const pendingFolioRef = useRef(searchParams.get('folio')?.trim().toUpperCase() || null)
 
   useEffect(() => {
@@ -1384,19 +1392,24 @@ export default function InteractiveMap() {
   }
 
   return (
-    <main className="interactive-map-layout">
-      <section className="map-panel">
+    <main className="interactive-map-layout" data-mobile-view={mobileView}>
+      <nav className="map-mobile-nav" aria-label="Vista de reportes">
+        <Link to="/dashboard" className="map-mobile-back">Panel</Link>
+        <button type="button" aria-controls="map-view" aria-pressed={mobileView === 'map'} onClick={() => setMobileView('map')}>Mapa</button>
+        <button type="button" aria-controls="report-list-view" aria-pressed={mobileView === 'list'} onClick={() => setMobileView('list')}>Lista</button>
+      </nav>
+      <section id="map-view" className="map-panel" aria-label="Mapa de reportes">
         <MapContainer
           reports={filteredReports}
           hotspots={hotspots}
           selectedReport={selectedReport}
-          onSelectReport={setSelectedReportId}
+          onSelectReport={(folio) => { setSelectedReportId(folio); if (folio) setMobileView('list') }}
           zone={zonesLoaded ? selectedZone : undefined}
           zoneControl={zoneControl}
         />
       </section>
 
-      <aside className="information-panel">
+      <aside id="report-list-view" className="information-panel" aria-label="Lista y detalle de reportes">
         <SidePanel
           reports={filteredReports}
           filters={<FiltersPanel filters={filters} onChange={setFilters} shown={filteredReports.length} total={reports.length} />}

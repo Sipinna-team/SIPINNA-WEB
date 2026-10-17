@@ -18,7 +18,7 @@ export default function MyReports() {
   if (user && user.userType !== 'citizen') return <Navigate to={homePathFor(user)} replace />;
 
   return (
-    <PublicReportLayout>
+    <PublicReportLayout variant="reading">
       <section className="rf-card sip-card my-reports" aria-labelledby="my-reports-title">
         <div className="rf-title">
           <span className="my-reports__eyebrow">Seguimiento ciudadano</span>

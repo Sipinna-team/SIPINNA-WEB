@@ -8,6 +8,7 @@ type PublicReportLayoutProps = {
   showExit?: boolean;
   exitTo?: string;
   exitLabel?: string;
+  variant?: 'flow' | 'form' | 'reading';
 };
 
 /** Estructura compartida de reporte, consulta de folio y aviso de privacidad. */
@@ -16,9 +17,10 @@ export default function PublicReportLayout({
   showExit = true,
   exitTo = '/inicio',
   exitLabel = 'Volver al inicio',
+  variant = 'flow',
 }: PublicReportLayoutProps) {
   return (
-    <div className="rf-page">
+    <div className={`rf-page rf-page--${variant}`}>
       <header className="rf-topbar">
         <Link to="/inicio" aria-label="Ir al inicio">
           <img src={sipinnaLogo} alt="SIPINNA" className="rf-logo" />

@@ -7,7 +7,7 @@ import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
 import type { Report, UserType } from '../lib/api';
 import type { ZoneCount } from '../lib/dashboardStats';
-import {MONTHS,STATES,computeDashboardStats,computeHotspots,formatDuration,formatRelativeDate,normalizeState,quantityLabel,stateLabel,workTypeLabel,} from '../lib/dashboardStats';
+import {MONTHS,computeDashboardStats,computeHotspots,computeStaffStateSummary,formatDuration,formatRelativeDate,normalizeState,quantityLabel,stateLabel,workTypeLabels,} from '../lib/dashboardStats';
 import {AnimatedNumber,ColumnChart,DonutChart,HorizontalBarChart,LineChart,} from '../components/DashboardCharts';
 import { KpiCarousel } from '../components/KpiCarousel';
 import { ReportMapLink } from '../components/ReportAddress';
@@ -96,6 +96,7 @@ function Dashboard() {
   }, []);
 
   const stats = useMemo(() => computeDashboardStats(reports), [reports]);
+  const staffStates = useMemo(() => computeStaffStateSummary(stats.byState), [stats.byState]);
   const hotspots = useMemo(() => computeHotspots(reports), [reports]);
   const placeholder = loading ? '…' : '—';
 
@@ -246,6 +247,7 @@ function Dashboard() {
 
         <ZoomablePanel
           className="dashboard-profile"
+          label="Información de tu cuenta"
           zoomClassName={`dashboard-profile-zoom${isAdmin ? " dashboard-profile-zoom--admin" : ""}`}
           aria-label="Usuario"
           zoomContent={
@@ -293,33 +295,29 @@ function Dashboard() {
           </span>
         </Link>
 
-        <ZoomablePanel className="dashboard-panel--overview" aria-labelledby="kpi-states">
+        <ZoomablePanel className="dashboard-panel--overview" label="Reportes por estado" aria-labelledby="kpi-states">
           <h2 id="kpi-states" className="dashboard-title">Reportes por estado</h2>
           <DonutChart
-            segments={STATES.map((state) => ({
-              label: state.label,
-              value: stats.byState[state.key],
-              color: state.color,
-            }))}
-            centerValue={stats.byState.concluido}
-            centerLabel="concluidos"
+            segments={staffStates.segments}
+            centerValue={staffStates.total}
+            centerLabel="reportes"
           />
         </ZoomablePanel>
 
-        <ZoomablePanel className="dashboard-panel--types" aria-labelledby="kpi-types">
+        <ZoomablePanel className="dashboard-panel--types" label="Reportes por tipo" aria-labelledby="kpi-types">
           <h2 id="kpi-types" className="dashboard-subtitle">Reportes por tipo</h2>
           <span className="dashboard-muted">Un reporte puede tener varios tipos</span>
           {!loading && stats.byType.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
           <HorizontalBarChart items={stats.byType.slice(0, 6)} />
         </ZoomablePanel>
 
-        <ZoomablePanel className="dashboard-panel--ages" aria-labelledby="kpi-ages">
+        <ZoomablePanel className="dashboard-panel--ages" label="Edades en los reportes" aria-labelledby="kpi-ages">
           <h2 id="kpi-ages" className="dashboard-subtitle">Edades de niñas, niños y adolescentes en los reportes</h2>
           <HorizontalBarChart items={loading ? [] : stats.byAge} />
         </ZoomablePanel>
 
         {showZones && (
-          <ZoomablePanel className="dashboard-panel--zones" aria-labelledby="kpi-zones">
+          <ZoomablePanel className="dashboard-panel--zones" label="Reportes por zona" aria-labelledby="kpi-zones">
             <h2 id="kpi-zones" className="dashboard-subtitle">Zonas con más y menos reportes</h2>
             {!loading && stats.byZone.length === 0 && <p className="dashboard-muted">Sin datos todavía.</p>}
             <div className="dashboard-zones">
@@ -337,7 +335,7 @@ function Dashboard() {
           </ZoomablePanel>
         )}
 
-        <ZoomablePanel className="dashboard-panel--recent" aria-labelledby="kpi-recent">
+        <ZoomablePanel className="dashboard-panel--recent" label="Reportes recientes" aria-labelledby="kpi-recent">
           <div className="dashboard-panel-header">
             <h2 id="kpi-recent" className="dashboard-subtitle">Reportes recientes</h2>
             <Link
@@ -375,7 +373,7 @@ function Dashboard() {
                   </span>
                   <span className="dashboard-muted">{report.citizen_name || 'Anónimo'} · {formatRelativeDate(report.created_at)}</span>
                   <span className="dashboard-recent-type">
-                    {(report.work_type ?? '').split(',').map(workTypeLabel).filter(Boolean).join(' · ') || 'Tipo sin especificar'}
+                    {workTypeLabels(report.work_type).join(' · ') || 'Tipo sin especificar'}
                   </span>
                   <span className="dashboard-muted">
                     {`NNA: ${quantityLabel(report.children_quantity)}`}
@@ -396,7 +394,7 @@ function Dashboard() {
           </ul>
         </ZoomablePanel>
 
-        <ZoomablePanel className="dashboard-panel--featured dashboard-charts" aria-label="Tendencias del año">
+        <ZoomablePanel className="dashboard-panel--featured dashboard-charts" label="Tendencias del año" aria-label="Tendencias del año">
           <div>
             <h2 className="dashboard-subtitle">Número de reportes por mes</h2>
             <ColumnChart

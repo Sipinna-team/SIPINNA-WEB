@@ -22,13 +22,23 @@ function Register() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const phoneInvalid = phone !== '' && !/^(?:[0-9]{10}|\+[1-9][0-9]{1,14})$/.test(phone);
 
  const handleSubmit = async (
   event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
+    if (isSubmitting) return;
 
     setErrorMessage(null);
+    if (!name.trim() || !lastName.trim() || !gender || !age || (!phone.trim() && !email.trim())) {
+      setErrorMessage('Completa tus datos e ingresa al menos un correo electrónico o número telefónico.');
+      return;
+    }
+    if (phoneInvalid) {
+      document.getElementById('phone')?.focus();
+      return;
+    }
     const validationError = passwordError(password);
     if (validationError) {
       setErrorMessage(validationError);
@@ -85,14 +95,12 @@ function Register() {
     <main className="register-page">
       <div className="register-card">
         <section className="register-left">
-          <img
-            src={sipinnaLogo}
-            alt="Sipinna"
-            className="register-logo"
-          />
+          <Link to="/inicio" className="auth-home-logo" aria-label="Ir al inicio">
+            <img src={sipinnaLogo} alt="SIPINNA" className="register-logo" />
+          </Link>
 
           <h1>
-            ¡Gracias por registrarte!
+            Te damos la bienvenida
           </h1>
 
           <p>
@@ -126,6 +134,8 @@ function Register() {
                 <input
                   id="name"
                   type="text"
+                  required
+                  autoComplete="given-name"
                   placeholder="Ingresa tu nombre"
                   value={name}
                   onChange={(event) =>
@@ -144,6 +154,8 @@ function Register() {
                 <input
                   id="lastName"
                   type="text"
+                  required
+                  autoComplete="family-name"
                   placeholder="Ingresa tu apellido"
                   value={lastName}
                   onChange={(event) =>
@@ -163,6 +175,7 @@ function Register() {
 
                 <select
                   id="gender"
+                  required
                   value={gender}
                   onChange={(event) =>
                     setGender(
@@ -200,6 +213,8 @@ function Register() {
                 <input
                   id="age"
                   type="number"
+                  required
+                  inputMode="numeric"
                   min="10"
                   max="120"
                   placeholder="Ingresa tu edad"
@@ -217,13 +232,16 @@ function Register() {
               <div className="contact-row">
                 <div className="form-group">
                   <label htmlFor="phone">
-                    Número
+                    Número telefónico
                   </label>
 
                   <input
                     id="phone"
                     type="tel"
-                    placeholder="Ej. 300 123 4567"
+                    autoComplete="tel"
+                    aria-invalid={phoneInvalid}
+                    aria-describedby={phoneInvalid ? 'register-phone-error' : undefined}
+                    placeholder="Ej. 5512345678"
                     value={phone}
                     onChange={(event) =>
                       setPhone(
@@ -234,7 +252,7 @@ function Register() {
                 </div>
 
                 <span className="contact-or">
-                  ó
+                  o
                 </span>
 
                 <div className="form-group">
@@ -245,6 +263,7 @@ function Register() {
                   <input
                     id="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="ejemplo@correo.com"
                     value={email}
                     onChange={(event) =>
@@ -256,8 +275,14 @@ function Register() {
                 </div>
               </div>
 
+              {phoneInvalid && (
+                <p id="register-phone-error" className="register-phone-error" role="alert">
+                  El número telefónico no es correcto.
+                </p>
+              )}
+
               <p className="contact-help">
-                Puedes ingresar tu número,
+                Puedes ingresar tu número telefónico,
                 tu correo o ambos.
               </p>
             </div>
@@ -320,6 +345,7 @@ function Register() {
               className="register-button"
               type="submit"
               disabled={isSubmitting}
+              aria-busy={isSubmitting}
             >
               {isSubmitting ? (
                 <span className="register-loading">
@@ -338,6 +364,7 @@ function Register() {
               Inicia sesión
             </Link>
           </p>
+          <Link to="/inicio" className="auth-back">Volver al inicio</Link>
         </section>
       </div>
     </main>

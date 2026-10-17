@@ -36,6 +36,28 @@ export const STATES: { key: StateKey; value: string; label: string; color: strin
   { key: 'duplicado', value: 'duplicado', label: 'Duplicado', color: '#7a7a7a' },
 ];
 
+/** Estados que se muestran en la gráfica del dashboard */
+const DASHBOARD_STATES: { key: StateKey; label: string; color: string }[] = [
+  { key: 'registrado', label: 'Registrado', color: '#9a5b00' },
+  { key: 'revision', label: 'En revisión', color: '#5b4a9e' },
+  { key: 'seguimiento', label: 'En seguimiento', color: '#65418d' },
+  { key: 'canalizado', label: 'Canalizado', color: '#24658e' },
+  { key: 'concluido', label: 'Concluido', color: '#167247' },
+  { key: 'archivado', label: 'Archivado', color: '#595959' },
+  { key: 'cancelado', label: 'Cancelado', color: '#b42332' },
+  { key: 'reincidente', label: 'Reincidente', color: '#b21e70' },
+];
+
+export function computeStaffStateSummary(byState: Record<StateKey, number>) {
+  const segments = DASHBOARD_STATES.map((state) => ({
+    label: state.label,
+    color: state.color,
+    value: byState[state.key],
+  }));
+  const total = segments.reduce((sum, segment) => sum + segment.value, 0);
+  return { segments, total };
+}
+
 /** Estados de reportes verificados. */
 const VERIFIED_STATES: StateKey[] = ['validado', 'confirmado', 'canalizado', 'atencion', 'seguimiento', 'concluido', 'reincidente'];
 /** Estados de casos identificados. */
@@ -197,6 +219,11 @@ export function workTypeLabel(type: string) {
   if (!text) return null;
   const modality = WORK_MODALITIES.find((m) => text.includes(m.match));
   return modality?.label ?? type.trim();
+}
+
+/** Etiquetas de las modalidades separadas por coma; omite entradas vacías. */
+export function workTypeLabels(types: string | null | undefined): string[] {
+  return (types ?? '').split(',').map(workTypeLabel).filter((label): label is string => label !== null);
 }
 
 /** Promedio de los valores finitos y no negativos; `null` si no hay ninguno. */

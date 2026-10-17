@@ -27,11 +27,12 @@
 }
 
 .login-card h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
+  margin: 0 0 12px;
+  font-size: clamp(24px, 3vw, 28px);
   font-family: var(--font-heading);
   text-align: center;
-  color: var(--sip-primary);
+  color: var(--sip-text);
+  font-weight: 400;
 }
 
 /* Logo de SIPINNA */
@@ -74,7 +75,7 @@
   min-height: var(--sip-control-height);
   padding: 9px 12px;
   border-radius: var(--sip-radius-control);
-  border: 1.2px solid var(--sip-border);
+  border: 1.2px solid var(--sip-input-border);
   color: var(--sip-text);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -231,12 +232,6 @@
   font-family: var(--font-body);
 }
 
-.login-options label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* Enlaces del login */
 .login-options a,
 .login-card p a {
@@ -257,6 +252,23 @@
   font-size: 14px;
   font-family: var(--font-body);
 }
+
+.login-card .auth-required { margin: 0 0 20px; color: var(--sip-text-muted); font-size: 13px; }
+.auth-password { display: flex; align-items: stretch; position: relative; min-width: 0; }
+.login-card .auth-password input { padding-right: 88px; }
+.login-card .auth-password-toggle {
+  position: absolute;
+  inset: 0 0 0 auto;
+  min-height: var(--sip-control-height);
+  width: 80px;
+  padding: 8px;
+  background: transparent;
+  color: var(--sip-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+.login-card .auth-password-toggle:hover { background: var(--sip-primary-soft); transform: none; }
+.login-card button:focus-visible { outline: 2px solid var(--sip-primary); outline-offset: 3px; }
 
 .register-link {
   border: none;

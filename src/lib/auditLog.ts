@@ -1,6 +1,6 @@
 import type { LogEntry } from './api';
 
-/** Describe la operación solicitada; el resultado indica si pudo realizarse. */
+/** Describe la operación solicitada y el recurso sobre el que actúa. */
 export function describeAuditAction(entry: Pick<LogEntry, 'method' | 'path'>) {
   const method = entry.method.toUpperCase();
   const parts = entry.path.split('/').filter(Boolean);
@@ -51,17 +51,4 @@ export function describeAuditAction(entry: Pick<LogEntry, 'method' | 'path'>) {
 
   // Una ruta nueva no debe recibir una descripción que pueda ser incorrecta.
   return { action: 'Operación sin descripción disponible', resource: 'Consultar el detalle técnico' };
-}
-
-export function describeAuditResult(status: number, method: string) {
-  if (status >= 200 && status < 300) return method.toUpperCase() === 'GET' ? 'Consulta exitosa' : 'Operación realizada';
-  if (status === 401) return 'Sesión no válida';
-  if (status === 403) return 'Acceso denegado';
-  if (status === 404) return 'Recurso no encontrado';
-  if (status === 409) return 'Conflicto con los datos actuales';
-  if (status === 400 || status === 422) return 'Solicitud no válida';
-  if (status === 429) return 'Demasiadas solicitudes';
-  if (status >= 500) return 'Error del servidor';
-  if (status >= 300 && status < 400) return 'Redirección';
-  return 'Operación no completada';
 }

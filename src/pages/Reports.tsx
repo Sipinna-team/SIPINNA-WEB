@@ -12,7 +12,7 @@ import {
   normalizeState,
   quantityLabel,
   simplify,
-  workTypeLabel,
+  workTypeLabels,
 } from '../lib/dashboardStats';
 import {
   exportReportsCsv,
@@ -53,10 +53,6 @@ const EMPTY_FILTERS: Filters = {
   sort: 'recientes',
 };
 
-/** Modalidades de trabajo de un reporte (la app las manda separadas por coma). */
-const workTypes = (report: Report) =>
-  (report.work_type ?? '').split(',').map(workTypeLabel).filter((t): t is string => t !== null);
-
 /**
  * Convierte una fecha de `<input type="date">` ("YYYY-MM-DD", hora local) en milisegundos.
  * @param offsetDays - Días a sumar.
@@ -76,7 +72,7 @@ function applyFilters(reports: Report[], filters: Filters) {
   const result = reports.filter((report) => {
     if (filters.state && normalizeState(report.last_state) !== filters.state) return false;
     if (filters.zone && (report.zone_name || 'Sin zona') !== filters.zone) return false;
-    if (filters.type && !workTypes(report).includes(filters.type)) return false;
+    if (filters.type && !workTypeLabels(report.work_type).includes(filters.type)) return false;
     if (filters.priority && (report.priority || 'normal') !== filters.priority) return false;
     if (filters.veracity) {
       const isFalse = report.suspicius_level >= FALSE_REPORT_THRESHOLD;
@@ -170,7 +166,7 @@ function Reports() {
     [reports],
   );
   const typeOptions = useMemo(
-    () => [...new Set(reports.flatMap(workTypes))].sort((a, b) => a.localeCompare(b, 'es')),
+    () => [...new Set(reports.flatMap((report) => workTypeLabels(report.work_type)))].sort((a, b) => a.localeCompare(b, 'es')),
     [reports],
   );
 
@@ -363,6 +359,10 @@ function Reports() {
         </p>
 
         {pageReports.length > 0 && (
+          <>
+          <ul className="reports-mobile-list" aria-label="Reportes encontrados">
+            {pageReports.map((report) => <MobileReport key={report.folio} report={report} showZone={isAdmin} />)}
+          </ul>
           <div className="reports-table-wrap">
             <table className="reports-table">
               <thead>
@@ -397,7 +397,7 @@ function Reports() {
                       <td>
                         <span className="reports-description" title={report.description}>{report.description || '—'}</span>
                       </td>
-                      <td>{workTypes(report).join(', ') || '—'}</td>
+                      <td>{workTypeLabels(report.work_type).join(', ') || '—'}</td>
                       {isAdmin && <td>{report.zone_name || 'Sin zona'}</td>}
                       <td>{report.citizen_name || 'Anónimo'}</td>
                       <td className="reports-num">{quantityLabel(report.children_quantity)}</td>
@@ -421,6 +421,7 @@ function Reports() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {filtered.length > 0 && (
@@ -448,7 +449,6 @@ function Reports() {
                 onClick={() => changePage(currentPage - 1)}
                 aria-label="Página anterior"
               >
-                ‹
               </button>
               {pageItems(currentPage, totalPages).map((item, i) =>
                 item === '…' ? (
@@ -482,3 +482,28 @@ function Reports() {
 }
 
 export default Reports;
+
+function MobileReport({ report, showZone }: { report: Report; showZone: boolean }) {
+  const state = STATES.find((item) => item.key === normalizeState(report.last_state))!;
+  return (
+    <li className="reports-mobile-item">
+      <h2>{report.folio}</h2>
+      <p className="reports-state"><span className="reports-state-dot" style={{ background: state.color }} aria-hidden="true" />{state.label}</p>
+      <p className="dashboard-muted">{formatReportDate(report.created_at)}</p>
+      {report.priority === 'alta' && <p className="reports-urgent">Prioridad alta</p>}
+      <details>
+        <summary>Ver detalles del reporte</summary>
+        <p className="reports-mobile-description">{report.description || 'Sin descripción.'}</p>
+        <dl>
+          <div><dt>Tipo de trabajo</dt><dd>{workTypeLabels(report.work_type).join(', ') || 'Sin especificar'}</dd></div>
+          {showZone && <div><dt>Zona</dt><dd>{report.zone_name || 'Sin zona'}</dd></div>}
+          <div><dt>Reportado por</dt><dd>{report.citizen_name || 'Anónimo'}</dd></div>
+          <div><dt>Niñas, niños y adolescentes</dt><dd>{quantityLabel(report.children_quantity)}</dd></div>
+          <div><dt>Sospecha</dt><dd>{formatSuspicion(report.suspicius_level)}</dd></div>
+          {report.duplicate_of && <div><dt>Duplicado de</dt><dd>{report.duplicate_of}</dd></div>}
+        </dl>
+      </details>
+      <Link to={`/map?folio=${encodeURIComponent(report.folio)}`} className="sip-btn sip-btn--secondary">Ver en mapa</Link>
+    </li>
+  );
+}

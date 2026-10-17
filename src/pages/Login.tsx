@@ -15,6 +15,7 @@ function Login() {
   const { login } = useAuth();
   const [correoOTelefono, setCorreoOTelefono] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const location = useLocation();
@@ -28,6 +29,7 @@ function Login() {
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
+    if (isSubmitting) return;
 
     /** El backend acepta email o número (no ambos): el otro va explícitamente en null. */
     const identificador = correoOTelefono.trim();
@@ -77,13 +79,12 @@ function Login() {
   return (
     <main className="login-page">
       <div className="login-card">
-        <img
-          src={sipinnaLogo}
-          alt="Sipinna"
-          className="login-logo"
-        />
+        <Link to="/inicio" className="auth-home-logo" aria-label="Ir al inicio">
+          <img src={sipinnaLogo} alt="SIPINNA" className="login-logo" />
+        </Link>
 
-        <h2>Iniciar sesión</h2>
+        <h1>Iniciar sesión</h1>
+        <p className="auth-required">Los dos campos son obligatorios.</p>
         {passwordReset && (
           <p role="status">Tu contraseña se actualizó. Ya puedes iniciar sesión.</p>
         )}
@@ -95,6 +96,11 @@ function Login() {
           <input
             id="correoOTelefono"
             type="text"
+            name="username"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            required
             placeholder="Ingresa tu correo o número"
             value={correoOTelefono}
             onChange={(event) =>
@@ -106,15 +112,21 @@ function Login() {
             Contraseña
           </label>
 
-          <input
-            id="password"
-            type="password"
-            placeholder="Ingresa tu contraseña"
-            value={password}
-            onChange={(event) =>
-              setPassword(event.target.value)
-            }
-          />
+          <div className="auth-password">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              placeholder="Ingresa tu contraseña"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button type="button" className="auth-password-toggle" aria-controls="password" aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? 'Ocultar' : 'Mostrar'}
+            </button>
+          </div>
 
           <div className="login-options">
             <Link to="/forgot-password" viewTransition>
@@ -128,7 +140,7 @@ function Login() {
             </div>
           )}
 
-          <button type="submit" disabled={isSubmitting}>
+          <button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
             {isSubmitting ? (
               <span className="login-loading">
                 <span className="spinner" aria-hidden="true" />
@@ -163,6 +175,7 @@ function Login() {
             Regístrate
           </Link>
         </p>
+        <Link to="/inicio" className="auth-back">Volver al inicio</Link>
       </div>
     </main>
   );

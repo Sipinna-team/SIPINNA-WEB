@@ -132,8 +132,8 @@ html:has(.dashboard-page) body {
   right: 8px;
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -544,7 +544,7 @@ html:has(.dashboard-page) body {
   flex-wrap: wrap;
 }
 
-.donut-svg { width: min(150px, 42%); height: auto; }
+.donut-svg { flex-shrink: 0; width: min(150px, 42%); height: auto; }
 .donut-svg circle { transition: opacity 0.15s ease; }
 .donut-svg circle[stroke-dasharray]:hover { opacity: 0.8; }
 .donut-value { fill: var(--sip-text); font-size: 20px; font-weight: 700; }
@@ -646,10 +646,11 @@ html:has(.dashboard-page) body {
   }
 
   .donut-svg {
-    flex: 1 1 0;
-    width: auto;
+    flex: 0 0 auto;
+    width: clamp(96px, 12vh, 160px);
+    height: auto;
     max-width: 100%;
-    min-height: 0;
+    min-height: 96px;
   }
 
   .donut-legend {
@@ -829,7 +830,9 @@ html:has(.dashboard-page) body {
 .dashboard-zoom-button svg { width: 16px; height: 16px; }
 .dashboard-zoom-close svg { width: 20px; height: 20px; }
 
-.dashboard-zoom-button { opacity: 0.45; }
+.dashboard-zoom-button { opacity: 1; }
+.dashboard-panel--zoomable > :is(.dashboard-title, .dashboard-subtitle, .dashboard-panel-header),
+.dashboard-zoom-panel > :is(.dashboard-title, .dashboard-subtitle, .dashboard-panel-header) { padding-right: 36px; }
 .dashboard-panel--zoomable:hover .dashboard-zoom-button,
 .dashboard-zoom-button:focus-visible { opacity: 1; }
 
@@ -1138,7 +1141,7 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
   min-width: 0;
   min-height: var(--sip-control-height);
   padding: 7px 10px;
-  border: 1px solid var(--sip-border);
+  border: 1px solid var(--sip-input-border);
   border-radius: 8px;
   background: var(--sip-white);
   color: var(--sip-text);
@@ -1446,7 +1449,4 @@ html:has(.dashboard-zoom[open]) { overflow: hidden; }
 .audit-log__table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .audit-log__table th,
 .audit-log__table td { padding: 4px 6px; border-bottom: 1px solid var(--sip-border); text-align: left; vertical-align: top; }
-.audit-log__table code { word-break: break-all; }
 .audit-log__resource { overflow-wrap: anywhere; }
-.audit-log__table details { min-width: 130px; }
-.audit-log__table details p { margin: 6px 0; }

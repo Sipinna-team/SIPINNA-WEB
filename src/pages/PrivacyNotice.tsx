@@ -3,7 +3,7 @@ import PublicReportLayout from '../components/PublicReportLayout';
 /** Aviso de privacidad para reportes ciudadanos. */
 function PrivacyNotice() {
   return (
-    <PublicReportLayout exitTo="/reportar" exitLabel="Hacer un reporte">
+    <PublicReportLayout variant="reading" exitTo="/reportar" exitLabel="Hacer un reporte">
       <article className="rf-card sip-card rf-legal" aria-labelledby="privacy-title">
         <div className="rf-title">
           <h1 id="privacy-title">Aviso de privacidad simplificado</h1>

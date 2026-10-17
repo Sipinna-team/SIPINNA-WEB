@@ -7,6 +7,7 @@ import { api } from '../lib/api';
 import { AGE_OPTIONS, RISK_OPTIONS, WORK_OPTIONS } from '../lib/dashboardStats';
 import { cachedNeighborhood, forwardGeocode, reverseGeocode } from '../lib/geocoding';
 import PublicReportLayout from '../components/PublicReportLayout';
+import ReportExitGuard from '../components/ReportExitGuard';
 
 const QUANTITY_OPTIONS = ['1', '2', '3', '4', '5 o más', 'No sé'];
 const YES_NO = ['Sí', 'No'];
@@ -20,7 +21,7 @@ const REVIEW = 4;
 const DONE = 5;
 
 const MIN_DESCRIPTION = 10;
-const MAX_PHOTOS = 5;
+const MAX_PHOTOS = 2;
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
 const MAPBOX_TOKEN: string | undefined = import.meta.env.VITE_MAP_BOX_TOKEN;
@@ -98,9 +99,10 @@ function NewReport() {
     progress.current = { uploaded: new Set() };
   }, [location, photos, description, age, workTypes, danger, quantity, risk, when, sightingAt, reference, followUp, contactEmail, user]);
 
-  // Enfoca el título al cambiar de paso.
   useEffect(() => {
-    headingRef.current?.focus();
+    headingRef.current?.focus({ preventScroll: true });
+    headingRef.current?.closest('.rf-card')?.scrollTo(0, 0);
+    window.scrollTo(0, 0);
   }, [currentStep]);
 
   const goNext = () => {
@@ -197,9 +199,11 @@ function NewReport() {
     (when === 'Ahora mismo' || (when === 'En otro momento' && sightingAt !== ''));
   const descriptionLength = description.trim().length;
   const contactValid = !followUp || EMAIL_PATTERN.test(contactEmail.trim());
+  const hasProgress = currentStep !== DONE && (location !== null || description !== '' || photos.length > 0 || danger !== '' || reference !== '' || contactEmail !== '');
 
   return (
     <PublicReportLayout showExit={currentStep !== DONE}>
+      <ReportExitGuard active={hasProgress || sending} sending={sending} />
       <section className="rf-card sip-card" data-step={currentStep} aria-labelledby="rf-title">
         {currentStep >= 0 && currentStep < DONE && (
           <StepHeader step={currentStep} onBack={goBack} canGoBack={!sending && (currentStep > 0 || !user)} />
@@ -740,6 +744,7 @@ function PhotoPicker({ photos, onChange }: { photos: File[]; onChange: (photos: 
   const [error, setError] = useState<string | null>(null);
 
   function addFiles(list: FileList | null) {
+    if (!list?.length) return;
     const files = [...(list ?? [])];
     const valid = files.filter((file) => file.type.startsWith('image/') && file.size <= MAX_PHOTO_BYTES);
     const room = MAX_PHOTOS - photos.length;
@@ -757,11 +762,16 @@ function PhotoPicker({ photos, onChange }: { photos: File[]; onChange: (photos: 
 
   return (
     <div className="rf-photos">
+      <p id="rf-photo-help" className="rf-muted rf-hint">
+        Toma una foto o elige de tu galería. Máximo {MAX_PHOTOS} fotos, de 10 MB cada una.
+      </p>
       <div className="rf-photo-actions">
         <label className={`rf-upload${full ? ' is-disabled' : ''}`}>
           <input
             type="file"
             accept="image/*"
+            aria-label="Elegir fotos de la galería"
+            aria-describedby="rf-photo-help"
             multiple
             disabled={full}
             onChange={(event) => {
@@ -781,6 +791,8 @@ function PhotoPicker({ photos, onChange }: { photos: File[]; onChange: (photos: 
             type="file"
             accept="image/*"
             capture="environment"
+            aria-label="Tomar foto con la cámara"
+            aria-describedby="rf-photo-help"
             disabled={full}
             onChange={(event) => {
               addFiles(event.target.files);
@@ -795,11 +807,15 @@ function PhotoPicker({ photos, onChange }: { photos: File[]; onChange: (photos: 
         </label>
       </div>
       {photos.length > 0 && (
-        <PhotoThumbs photos={photos} onRemove={(index) => onChange(photos.filter((_, i) => i !== index))} />
+        <PhotoThumbs photos={photos} onRemove={(index) => {
+          setError(null);
+          onChange(photos.filter((_, i) => i !== index));
+        }} />
       )}
-      <p className="rf-muted rf-hint" role={error ? 'alert' : undefined}>
-        {error ?? `${photos.length} de ${MAX_PHOTOS} fotos`}
+      <p className="rf-muted rf-hint" role="status">
+        {photos.length} de {MAX_PHOTOS} fotos
       </p>
+      {error && <p className="rf-error" role="alert">{error}</p>}
     </div>
   );
 }

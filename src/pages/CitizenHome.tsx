@@ -31,13 +31,10 @@ const RIETI_AXES = ['Inspección', 'Detección', 'Atención', 'Registro de casos
 /** Rellena con cero a la izquierda a 2 dígitos. */
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/**
- * Página principal pública y de inicio para ciudadanos. Es solo informativa: no muestra datos
- * del usuario aunque haya sesión. Su acción principal es hacer un reporte; iniciar sesión es secundaria.
- * El menú marca la sección que ocupa la parte superior de la pantalla.
- */
+/*Página pública y de inicio para ciudadanos*/
 function CitizenHome() {
   const { user, logout } = useAuth();
+  const citizenName = user?.userType === 'citizen' ? user.name.trim().split(/\s+/)[0] : '';
   const [activeSection, setActiveSection] = useState(NAV_ITEMS[0].id);
 
   useEffect(() => {
@@ -74,7 +71,7 @@ function CitizenHome() {
     <div className="citizen-page">
       <header className="citizen-header">
         <div className="citizen-container citizen-header-inner">
-          <img src={sipinnaLogo} alt="SIPINNA" className="citizen-logo" />
+          <Link to="/inicio" className="citizen-brand" aria-label="Ir al inicio"><img src={sipinnaLogo} alt="SIPINNA" className="citizen-logo" /></Link>
 
           <nav className="citizen-nav" aria-label="Secciones">
             {NAV_ITEMS.map(({ id, label, shortLabel }) => (
@@ -124,12 +121,16 @@ function CitizenHome() {
         <section id="inicio" className="citizen-hero">
           <div className="citizen-container citizen-hero-inner">
             <div className="citizen-hero-copy">
-              <h1>Juntos protegemos <span className="citizen-hero-emphasis">a la niñez.</span></h1>
+              <h1>
+                {citizenName && <span className="citizen-greeting">Hola, {citizenName}.</span>}
+                Juntos protegemos <span className="citizen-hero-emphasis">a la niñez.</span>
+              </h1>
               <p className="citizen-hero-text">
                 Conoce cómo el Sistema de Protección Integral y la Ruta RIETI trabajan para que niñas,
                 niños y adolescentes vivan libres de violencia y de trabajo infantil.
               </p>
               <div className="citizen-hero-actions">
+                <Link to="/reportar" className="sip-btn sip-btn--primary citizen-hero-btn">Hacer un reporte</Link>
                 <a href="#sipinna" className="sip-btn sip-btn--secondary citizen-hero-btn">Conocer SIPINNA</a>
               </div>
             </div>

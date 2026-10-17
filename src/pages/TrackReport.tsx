@@ -48,7 +48,7 @@ function TrackReport() {
   const current = report ? PUBLIC_REPORT_STEPS.findIndex((step) => step.key === report.status) : -1;
 
   return (
-    <PublicReportLayout>
+    <PublicReportLayout variant="form">
       <section className="rf-card sip-card" aria-labelledby="track-title">
         <div className="rf-title">
           <h1 id="track-title">Consulta con folio y clave</h1>
@@ -68,6 +68,9 @@ function TrackReport() {
             onChange={(event) => setFolio(event.target.value)}
             placeholder="RIETI-ATZ-2026-000123"
             autoComplete="off"
+            required
+            autoCapitalize="characters"
+            spellCheck={false}
           />
           <label className="rf-label" htmlFor="track-clave">
             Clave de consulta
@@ -78,6 +81,9 @@ function TrackReport() {
             value={clave}
             onChange={(event) => setClave(event.target.value)}
             autoComplete="off"
+            required
+            autoCapitalize="none"
+            spellCheck={false}
           />
           <button
             type="submit"

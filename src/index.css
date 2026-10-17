@@ -28,6 +28,7 @@
   --sip-danger-soft: color-mix(in srgb, var(--sip-danger) 8%, var(--sip-white));
   --sip-danger-border: color-mix(in srgb, var(--sip-danger) 30%, var(--sip-white));
   --sip-border: var(--sip-gray);
+  --sip-input-border: #7b8e99;
   --sip-primary-soft: color-mix(in srgb, var(--sip-primary) 10%, var(--sip-white));
   --sip-focus: 0 0 0 3px rgb(0 126 135 / 18%);
   /* Forma común de toda la web: botones, campos y tarjetas usan estos valores. */
@@ -56,7 +57,7 @@
   --accent-foreground: var(--sip-hover);
   --destructive: var(--sip-danger);
   --border: var(--sip-border);
-  --input: var(--sip-border);
+  --input: var(--sip-input-border);
   --ring: var(--sip-primary);
   --chart-1: var(--sip-purple);
   --chart-2: var(--sip-detail);
