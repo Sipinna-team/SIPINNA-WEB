@@ -64,7 +64,19 @@ function CitizenHome() {
 
   const loginIcon = (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M10 5H5v14h5M14 8l4 4-4 4M9 12h12" />
+      <path d="M14 4h5v16h-5M10 8l4 4-4 4M14 12H3" />
+    </svg>
+  );
+
+  const logoutIcon = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 4H5v16h5M16 8l4 4-4 4M20 12H9" />
+    </svg>
+  );
+
+  const panelIcon = (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z" />
     </svg>
   );
 
@@ -105,12 +117,12 @@ function CitizenHome() {
               </Link>
             ) : user.userType === 'citizen' ? (
               <button type="button" className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" onClick={handleLogout} aria-label="Cerrar sesión">
-                {loginIcon}
+                {logoutIcon}
                 <span className="citizen-login-label">Cerrar sesión</span>
               </button>
             ) : (
               <Link to={homePathFor(user)} className="sip-btn sip-btn--secondary citizen-header-btn citizen-login" aria-label="Ir al panel">
-                {loginIcon}
+                {panelIcon}
                 <span className="citizen-login-label">Ir al panel</span>
               </Link>
             )}
