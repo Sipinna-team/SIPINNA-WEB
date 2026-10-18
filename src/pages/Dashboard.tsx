@@ -195,7 +195,7 @@ function Dashboard() {
             value={loading ? placeholder : <AnimatedNumber value={hotspots.length} />}
             hint={
               hotspots[0]
-                ? `${hotspots[0].count} reportes en ${hotspots[0].neighborhood || hotspots[0].zone}, ${hotspots[0].days} ${hotspots[0].hours}`
+                ? `${hotspots[0].count} reportes en ${hotspots[0].zone}, ${hotspots[0].days} ${hotspots[0].hours}`
                 : '3 o más reportes en el mismo punto en 90 días'
             }
             tone={hotspots.length > 0 ? 'warn' : undefined}

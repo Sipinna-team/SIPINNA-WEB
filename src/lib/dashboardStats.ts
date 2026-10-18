@@ -381,7 +381,6 @@ export type Hotspot = {
   longitude: number;
   count: number;
   zone: string;
-  neighborhood: string;
   /** Días más frecuentes. */
   days: string;
   /** Horario más frecuente. */
@@ -449,7 +448,6 @@ export function computeHotspots(reports: Report[], days = 90, minReports = 3, no
         longitude: group.reduce((sum, r) => sum + r.longitude, 0) / group.length,
         count: group.length,
         zone: latest.zone_name || 'Sin zona',
-        neighborhood: group.find((r) => r.neighborhood)?.neighborhood ?? '',
         days: topDays.join(' y '),
         hours: `${pad(bestStart)} a ${pad(bestStart + 4)}`,
         lastAt: latest.created_at,

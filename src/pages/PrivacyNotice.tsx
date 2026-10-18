@@ -14,13 +14,12 @@ function PrivacyNotice() {
         <p>
           La ubicación del lugar, la fecha y hora, la actividad observada, la cantidad y edad aproximada de las niñas,
           niños o adolescentes, si existe riesgo, tu descripción y, si decides agregarla, una fotografía. No pedimos
-          tu nombre ni teléfono. Si eliges el reporte con seguimiento, solo pedimos un correo electrónico.
+          tu nombre, teléfono ni correo electrónico.
         </p>
 
         <h2>¿Para qué los usamos?</h2>
         <p>
-          Para que la autoridad municipal competente verifique la situación, canalice y dé atención; para enviarte el
-          folio si nos diste un correo, y para generar estadísticas y mapas anonimizados que orienten acciones de
+          Para que la autoridad municipal competente verifique la situación, canalice y dé atención, y para generar estadísticas y mapas anonimizados que orienten acciones de
           prevención.
         </p>
 
@@ -33,7 +32,7 @@ function PrivacyNotice() {
         <h2>¿Cómo los protegemos?</h2>
         <p>
           Cada municipio solo accede a los reportes que le corresponden, se registra quién consulta o modifica la
-          información, y tu correo se borra al cerrar el reporte. Al consultar tu folio solo verás el estado general.
+          información. Al consultar tu folio solo verás el estado general.
         </p>
 
         <h2>Tus derechos</h2>

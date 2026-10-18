@@ -86,7 +86,6 @@ export type Report = {
   immediate_danger: boolean;
   priority: 'normal' | 'alta';
   sex: string;
-  neighborhood: string;
   /** Calle o referencia del lugar. */
   reference: string;
   /** Folio original; vacío si no es duplicado. */
@@ -175,7 +174,6 @@ export type ReportDetail = Report & CaseFile & {
 export type CaseFilePayload = Partial<CaseFile> & {
   priority?: 'normal' | 'alta';
   sex?: string;
-  neighborhood?: string;
   children_cared?: number;
   /** Folio del reporte original; vacío para quitar la marca de duplicado. */
   duplicate_of?: string;
@@ -233,10 +231,7 @@ export type CreateReportPayload = {
   sighting_time: string;
   risk: 'si' | 'no' | 'no_se';
   immediate_danger: boolean;
-  neighborhood: string;
   reference: string;
-  /** Correo opcional para recibir el folio sin cuenta. */
-  contact_email?: string;
 };
 
 const DEFAULT_TIMEOUT_MS = 8000;

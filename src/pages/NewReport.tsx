@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useAuth } from '../context/auth';
 import { api } from '../lib/api';
 import { AGE_OPTIONS, RISK_OPTIONS, WORK_OPTIONS } from '../lib/dashboardStats';
-import { cachedNeighborhood, forwardGeocode, reverseGeocode } from '../lib/geocoding';
+import { forwardGeocode, reverseGeocode } from '../lib/geocoding';
 import PublicReportLayout from '../components/PublicReportLayout';
 import ReportExitGuard from '../components/ReportExitGuard';
 
@@ -13,7 +13,6 @@ const QUANTITY_OPTIONS = ['1', '2', '3', '4', '5 o más', 'No sé'];
 const YES_NO = ['Sí', 'No'];
 const RISK_LABELS = RISK_OPTIONS.map((option) => option.label);
 const WHEN_OPTIONS = ['Ahora mismo', 'En otro momento'];
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const STEPS = ['Ubicación', 'Lo que viste', 'Descripción', 'Foto', 'Revisión'];
 const CHOICE = -1;
@@ -71,8 +70,6 @@ function NewReport() {
   const [when, setWhen] = useState('');
   const [sightingAt, setSightingAt] = useState('');
   const [reference, setReference] = useState('');
-  const [followUp, setFollowUp] = useState(false);
-  const [contactEmail, setContactEmail] = useState('');
 
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -97,7 +94,7 @@ function NewReport() {
   // Los cambios invalidan el borrador del intento anterior.
   useEffect(() => {
     progress.current = { uploaded: new Set() };
-  }, [location, photos, description, age, workTypes, danger, quantity, risk, when, sightingAt, reference, followUp, contactEmail, user]);
+  }, [location, photos, description, age, workTypes, danger, quantity, risk, when, sightingAt, reference, user]);
 
   useEffect(() => {
     headingRef.current?.focus({ preventScroll: true });
@@ -130,9 +127,7 @@ function NewReport() {
           sighting_time: when === 'Ahora mismo' ? localDateTime() : sightingAt,
           risk: RISK_OPTIONS.find((option) => option.label === risk)!.value,
           immediate_danger: danger === 'Sí',
-          neighborhood: cachedNeighborhood(location[1], location[0]),
           reference: reference.trim(),
-          contact_email: followUp ? contactEmail.trim() : undefined,
         });
         p.reportId = created.reporte_id;
         p.editToken = created.edit_token;
@@ -178,8 +173,6 @@ function NewReport() {
     setWhen('');
     setSightingAt('');
     setReference('');
-    setFollowUp(false);
-    setContactEmail('');
     setFolio(null);
     setAccessKey(null);
     setSendError(null);
@@ -198,8 +191,7 @@ function NewReport() {
     risk !== '' &&
     (when === 'Ahora mismo' || (when === 'En otro momento' && sightingAt !== ''));
   const descriptionLength = description.trim().length;
-  const contactValid = !followUp || EMAIL_PATTERN.test(contactEmail.trim());
-  const hasProgress = currentStep !== DONE && (location !== null || description !== '' || photos.length > 0 || danger !== '' || reference !== '' || contactEmail !== '');
+  const hasProgress = currentStep !== DONE && (location !== null || description !== '' || photos.length > 0 || danger !== '' || reference !== '');
 
   return (
     <PublicReportLayout showExit={currentStep !== DONE}>
@@ -218,10 +210,7 @@ function NewReport() {
               <button
                 type="button"
                 className="rf-choice"
-                onClick={() => {
-                  setFollowUp(false);
-                  setStep(0);
-                }}
+                onClick={() => setStep(0)}
               >
                 <span className="rf-choice-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -231,25 +220,6 @@ function NewReport() {
                 <span>
                   <strong>Reporte anónimo</strong>
                   <span>No te pedimos nombre, teléfono ni correo. Al final te damos un folio y una clave para consultar el avance.</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                className="rf-choice"
-                onClick={() => {
-                  setFollowUp(true);
-                  setStep(0);
-                }}
-              >
-                <span className="rf-choice-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="5" width="18" height="14" rx="2" />
-                    <path d="m3 7 9 6 9-6" />
-                  </svg>
-                </span>
-                <span>
-                  <strong>Reporte con seguimiento</strong>
-                  <span>Solo te pedimos un correo para enviarte el folio y la clave para consultar avances.</span>
                 </span>
               </button>
               <Link to="/login?next=/reportar" className="rf-choice">
@@ -474,29 +444,8 @@ function NewReport() {
                 {photos.length > 0 ? <PhotoThumbs photos={photos} /> : <p className="rf-muted">Sin foto</p>}
               </SummaryRow>
             </div>
-            {followUp && !user && (
-              <div className="rf-question">
-                <label className="rf-label" htmlFor="rf-contact">
-                  Correo para recibir tu folio
-                </label>
-                <input
-                  id="rf-contact"
-                  type="email"
-                  className="rf-input"
-                  value={contactEmail}
-                  onChange={(event) => setContactEmail(event.target.value)}
-                  placeholder="tucorreo@ejemplo.com"
-                  autoComplete="email"
-                />
-                <p className="rf-muted rf-hint">Solo lo usaremos para enviarte el folio; se borra al cerrar el reporte.</p>
-              </div>
-            )}
             <p className="rf-muted rf-center">
-              {user
-                ? `Se enviará a nombre de ${user.name}.`
-                : followUp
-                  ? 'No se enviará tu nombre; solo el correo para el seguimiento.'
-                  : 'Se enviará de forma anónima.'}{' '}
+              {user ? `Se enviará a nombre de ${user.name}.` : 'Se enviará de forma anónima.'}{' '}
               Consulta el <Link to="/aviso-privacidad">aviso de privacidad</Link>.
             </p>
             {sendError && (
@@ -504,7 +453,7 @@ function NewReport() {
                 {sendError}
               </p>
             )}
-            <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={sending || !contactValid} aria-busy={sending} onClick={handleSend}>
+            <button type="button" className="sip-btn sip-btn--primary sip-btn--block" disabled={sending} aria-busy={sending} onClick={handleSend}>
               {sending ? 'Enviando…' : sendError ? 'Reintentar envío' : 'Enviar reporte'}
             </button>
           </>
@@ -533,9 +482,7 @@ function NewReport() {
               </div>
             )}
             <p className="rf-muted rf-center">
-              {followUp && !user
-                ? 'También te los enviamos por correo. '
-                : 'Guarda el folio y la clave: con ellos consultas el avance de tu reporte. '}
+              Guarda el folio y la clave: con ellos consultas el avance de tu reporte.{' '}
               {user ? <Link to="/mis-reportes">Ver mis reportes</Link> : folio && accessKey && (
                 <Link to={`/consultar-folio?folio=${encodeURIComponent(folio)}&clave=${encodeURIComponent(accessKey)}`}>
                   Consultar avance

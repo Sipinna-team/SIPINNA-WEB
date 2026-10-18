@@ -33,7 +33,6 @@ const COLUMNS: Column[] = [
   { header: 'NNA', value: (r) => quantityLabel(r.children_quantity) },
   { header: 'Prioridad', value: (r) => (r.priority === 'alta' ? 'Alta' : 'Normal') },
   { header: 'Riesgo', value: (r) => riskLabel(r.risk) },
-  { header: 'Colonia', value: (r) => r.neighborhood },
   { header: 'Posible duplicado de', value: (r) => r.duplicate_of },
   { header: 'Edades', value: (r) => r.children_age },
   { header: 'Sospecha', value: (r) => formatSuspicion(r.suspicius_level) },

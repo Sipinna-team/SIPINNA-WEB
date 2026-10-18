@@ -185,7 +185,8 @@
   border-color: var(--sip-danger);
 }
 
-.register-phone-error {
+.register-phone-error,
+.register-email-error {
   margin: 8px 0 0;
   color: var(--sip-danger);
   font-size: 12px;

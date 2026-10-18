@@ -224,7 +224,7 @@
   gap: 0.5rem;
 }
 
-.report-card__heading strong { min-width: 0; overflow-wrap: anywhere; }
+.report-card__heading strong { min-width: 0; overflow-wrap: anywhere; user-select: text; cursor: text; }
 .report-card__heading > span { flex-shrink: 0; }
 .report-card__description,
 .report-card__meta { overflow-wrap: anywhere; }

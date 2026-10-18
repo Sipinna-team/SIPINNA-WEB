@@ -23,6 +23,39 @@ function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const phoneInvalid = phone !== '' && !/^(?:[0-9]{10}|\+[1-9][0-9]{1,14})$/.test(phone);
+  const emailInvalid = email !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const contactRequired = !phone.trim() && !email.trim();
+
+  const handleInvalid = (
+    event: FormEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const field = event.currentTarget;
+    const { validity } = field;
+    if (validity.valueMissing) {
+      field.setCustomValidity(
+        field.id === 'phone' || field.id === 'email'
+          ? 'Por favor, ingresa tu número telefónico o tu correo electrónico.'
+          : 'Por favor, rellena este campo.'
+      );
+    } else if (validity.typeMismatch && field.id === 'email') {
+      field.setCustomValidity('El correo electrónico no es correcto.');
+    } else if (validity.tooShort) {
+      field.setCustomValidity(`Debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`);
+    } else if (validity.rangeUnderflow || validity.rangeOverflow) {
+      field.setCustomValidity('Ingresa una edad válida (entre 10 y 120 años).');
+    }
+  };
+
+  const clearValidity = (
+    event: FormEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    event.currentTarget.setCustomValidity('');
+  };
+
+  const clearContactValidity = () => {
+    (document.getElementById('phone') as HTMLInputElement | null)?.setCustomValidity('');
+    (document.getElementById('email') as HTMLInputElement | null)?.setCustomValidity('');
+  };
 
  const handleSubmit = async (
   event: FormEvent<HTMLFormElement>
@@ -37,6 +70,10 @@ function Register() {
     }
     if (phoneInvalid) {
       document.getElementById('phone')?.focus();
+      return;
+    }
+    if (emailInvalid) {
+      document.getElementById('email')?.focus();
       return;
     }
     const validationError = passwordError(password);
@@ -135,6 +172,8 @@ function Register() {
                   id="name"
                   type="text"
                   required
+                  onInvalid={handleInvalid}
+                  onInput={clearValidity}
                   autoComplete="given-name"
                   placeholder="Ingresa tu nombre"
                   value={name}
@@ -155,6 +194,8 @@ function Register() {
                   id="lastName"
                   type="text"
                   required
+                  onInvalid={handleInvalid}
+                  onInput={clearValidity}
                   autoComplete="family-name"
                   placeholder="Ingresa tu apellido"
                   value={lastName}
@@ -176,6 +217,8 @@ function Register() {
                 <select
                   id="gender"
                   required
+                  onInvalid={handleInvalid}
+                  onInput={clearValidity}
                   value={gender}
                   onChange={(event) =>
                     setGender(
@@ -214,6 +257,8 @@ function Register() {
                   id="age"
                   type="number"
                   required
+                  onInvalid={handleInvalid}
+                  onInput={clearValidity}
                   inputMode="numeric"
                   min="10"
                   max="120"
@@ -239,6 +284,9 @@ function Register() {
                     id="phone"
                     type="tel"
                     autoComplete="tel"
+                    required={contactRequired}
+                    onInvalid={handleInvalid}
+                    onInput={clearContactValidity}
                     aria-invalid={phoneInvalid}
                     aria-describedby={phoneInvalid ? 'register-phone-error' : undefined}
                     placeholder="Ej. 5512345678"
@@ -264,6 +312,11 @@ function Register() {
                     id="email"
                     type="email"
                     autoComplete="email"
+                    required={contactRequired}
+                    onInvalid={handleInvalid}
+                    onInput={clearContactValidity}
+                    aria-invalid={emailInvalid}
+                    aria-describedby={emailInvalid ? 'register-email-error' : undefined}
                     placeholder="ejemplo@correo.com"
                     value={email}
                     onChange={(event) =>
@@ -278,6 +331,12 @@ function Register() {
               {phoneInvalid && (
                 <p id="register-phone-error" className="register-phone-error" role="alert">
                   El número telefónico no es correcto.
+                </p>
+              )}
+
+              {emailInvalid && (
+                <p id="register-email-error" className="register-email-error" role="alert">
+                  El correo electrónico no es correcto.
                 </p>
               )}
 
@@ -297,6 +356,8 @@ function Register() {
                   id="password"
                   type="password"
                   required
+                  onInvalid={handleInvalid}
+                  onInput={clearValidity}
                   minLength={PASSWORD_MIN_LENGTH}
                   autoComplete="new-password"
                   aria-describedby="register-password-requirements"
@@ -319,6 +380,8 @@ function Register() {
                   id="confirmPassword"
                   type="password"
                   required
+                  onInvalid={handleInvalid}
+                  onInput={clearValidity}
                   minLength={PASSWORD_MIN_LENGTH}
                   autoComplete="new-password"
                   aria-describedby="register-password-requirements"

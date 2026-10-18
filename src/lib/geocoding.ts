@@ -20,20 +20,6 @@ type GeocodingResponse = {
 };
 
 const addressCache = new Map<string, Promise<string | null>>();
-/** Colonia por coordenada; usa la misma llave que `addressCache`. */
-const neighborhoodCache = new Map<string, string>();
-
-/** Colonia o localidad del primer resultado. */
-function neighborhoodOf(data: GeocodingResponse) {
-  const context = data.features?.[0]?.properties?.context ?? {};
-  return context.neighborhood?.name ?? context.locality?.name ?? '';
-}
-
-/** Colonia ya resuelta por `reverseGeocode`; vacío si falta. */
-export function cachedNeighborhood(latitude: number, longitude: number) {
-  return neighborhoodCache.get(`${latitude.toFixed(5)},${longitude.toFixed(5)}`) ?? '';
-}
-
 /**
  * Arma "calle, colonia, municipio" a partir de la respuesta de Mapbox.
  * @returns La dirección, `full_address` si no hay partes, o `null` sin resultados.
@@ -81,10 +67,7 @@ export function reverseGeocode(latitude: number, longitude: number): Promise<str
         if (!response.ok) throw new Error(`Mapbox respondió ${response.status}`);
         return response.json() as Promise<GeocodingResponse>;
       })
-      .then((data) => {
-        neighborhoodCache.set(key, neighborhoodOf(data));
-        return formatAddress(data);
-      })
+      .then(formatAddress)
       .catch((error) => {
         addressCache.delete(key);
         console.error('No se pudo obtener la dirección', error);

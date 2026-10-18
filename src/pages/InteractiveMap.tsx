@@ -17,7 +17,6 @@ import {
   normalizeState,
   quantityLabel,
   riskLabel,
-  simplify,
   stateLabel,
 } from '../lib/dashboardStats'
 import type { Hotspot } from '../lib/dashboardStats'
@@ -83,8 +82,6 @@ const URGENT_COLOR = '#d0021b'
 const EMPTY_COLLECTION = { type: 'FeatureCollection' as const, features: [] }
 const REPORT_COLOR = '#9b2247'
 const SELECTED_REPORT_COLOR = '#a57f2c'
-/** Color de los reportes que ya están en un caso, para distinguirlos de los pendientes de agrupar. */
-const CASE_REPORT_COLOR = '#1e5b4f'
 /**
  * Escala de calor
  */
@@ -115,7 +112,6 @@ function reportsToGeoJSON(reports: Report[]) {
         folio: report.folio,
         description: report.description,
         suspiciousLevel: report.suspicius_level,
-        inCase: Boolean(report.case_id),
         urgent: report.priority === 'alta',
       },
       geometry: {
@@ -134,7 +130,7 @@ function hotspotsToGeoJSON(hotspots: Hotspot[]) {
       type: 'Feature' as const,
       properties: {
         count: hotspot.count,
-        text: `${hotspot.count} reportes en los últimos 90 días${hotspot.neighborhood ? ` en ${hotspot.neighborhood}` : ''}, principalmente ${hotspot.days} entre ${hotspot.hours} h.`,
+        text: `${hotspot.count} reportes en los últimos 90 días, principalmente ${hotspot.days} entre ${hotspot.hours} h.`,
       },
       geometry: {
         type: 'Point' as const,
@@ -248,7 +244,7 @@ function MapContainer({
         minzoom: 13,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 5, 20, 9],
-          'circle-color': ['case', ['get', 'inCase'], CASE_REPORT_COLOR, REPORT_COLOR],
+          'circle-color': REPORT_COLOR,
           'circle-stroke-width': ['case', ['get', 'urgent'], 3, 2],
           'circle-stroke-color': ['case', ['get', 'urgent'], URGENT_COLOR, '#ffffff'],
         },
@@ -370,8 +366,6 @@ function MapContainer({
       'case',
       ['==', ['get', 'folio'], selectedReport?.folio ?? ''],
       SELECTED_REPORT_COLOR,
-      ['get', 'inCase'],
-      CASE_REPORT_COLOR,
       REPORT_COLOR,
     ])
     map.setPaintProperty(REPORTS_POINT_LAYER_ID, 'circle-radius', [
@@ -413,10 +407,7 @@ function MapContainer({
           <b style={{ background: `linear-gradient(to right, ${HEAT_STOPS.map(([, color]) => color).join(', ')})` }} />
           Más reportes
         </span>
-        <span><i style={{ background: REPORT_COLOR }} />Sin caso</span>
-        <span><i style={{ background: CASE_REPORT_COLOR }} />En un caso</span>
         <span><i style={{ background: REPORT_COLOR, borderColor: URGENT_COLOR }} />Peligro inmediato</span>
-        <span><i style={{ background: 'transparent', borderColor: URGENT_COLOR }} />Punto recurrente</span>
       </div>
     </>
   )
@@ -841,7 +832,6 @@ function ReportDetails({
     ['Horario de avistamiento', report.sighting_time ? formatDate(report.sighting_time) : '—'],
     ['Tipo de trabajo', report.work_type || '—'],
     ['Zona', report.zone_name || 'Zona sin especificar'],
-    ['Colonia', report.neighborhood || '—'],
     ['Referencia', report.reference || '—'],
     ['Niñas, niños o adolescentes', quantityLabel(report.children_quantity)],
     ['Edades', report.children_age || '—'],
@@ -998,7 +988,10 @@ function SidePanel({
                   : 'report-card'
               }
               aria-expanded={report.folio === selectedReportId}
-              onClick={() => onSelectReport(report.folio)}
+              onClick={() => {
+                if (window.getSelection()?.toString()) return
+                onSelectReport(report.folio)
+              }}
             >
               <span className="report-card__heading">
                 <strong>{report.folio}</strong>
@@ -1047,7 +1040,6 @@ type MapFilters = {
   /** 'manana' | 'tarde' | 'noche' según la hora del avistamiento. */
   time: string
   sex: string
-  neighborhood: string
   /** Solo reportes que están en un punto recurrente. */
   recurrent: boolean
 }
@@ -1061,7 +1053,6 @@ const EMPTY_FILTERS: MapFilters = {
   priority: '',
   time: '',
   sex: '',
-  neighborhood: '',
   recurrent: false,
 }
 
@@ -1077,7 +1068,6 @@ const cellKey = (report: Pick<Report, 'latitude' | 'longitude'>) =>
 
 function applyMapFilters(reports: Report[], filters: MapFilters, recurrentCells: Set<string>) {
   const since = filters.period ? Date.now() - Number(filters.period) * 86_400_000 : -Infinity
-  const neighborhood = simplify(filters.neighborhood)
   const time = TIME_RANGES.find((range) => range.value === filters.time)
 
   return reports.filter((report) => {
@@ -1088,7 +1078,6 @@ function applyMapFilters(reports: Report[], filters: MapFilters, recurrentCells:
     if (filters.risk && report.risk !== filters.risk) return false
     if (filters.priority && (report.priority || 'normal') !== filters.priority) return false
     if (filters.sex && report.sex !== filters.sex) return false
-    if (neighborhood && !simplify(report.neighborhood).includes(neighborhood)) return false
     if (time) {
       const hour = sightingDate(report).getHours()
       const shifted = hour < 6 ? hour + 24 : hour
@@ -1180,10 +1169,6 @@ function FiltersPanel({
             <option value="">Todos</option>
             {SEX_OPTIONS.filter(Boolean).map((sex) => <option key={sex} value={sex}>{sex}</option>)}
           </select>
-        </label>
-        <label>
-          Colonia
-          <input type="text" value={filters.neighborhood} onChange={set('neighborhood')} />
         </label>
         <label className="map-filters__check">
           <input type="checkbox" checked={filters.recurrent} onChange={set('recurrent')} />
