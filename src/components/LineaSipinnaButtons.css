@@ -1,0 +1,96 @@
+/* Botones flotantes de LineaSipinna */
+.linea-sipinna {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.linea-sipinna__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--sip-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.linea-sipinna__label {
+  padding: 5px 10px;
+  border-radius: var(--sip-radius-card);
+  background: var(--sip-white);
+  box-shadow: 0 2px 8px rgba(16, 42, 67, 0.14);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.linea-sipinna__fab {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: var(--sip-white);
+  box-shadow: 0 4px 14px rgba(16, 42, 67, 0.22);
+  transition: transform 160ms var(--ease-out-soft), box-shadow 160ms var(--ease-out-soft);
+}
+
+.linea-sipinna__fab svg {
+  width: 24px;
+  height: 24px;
+}
+
+.linea-sipinna__fab--whatsapp {
+  background: #1f9e4f;
+}
+
+.linea-sipinna__fab--call {
+  background: var(--sip-primary);
+}
+
+@media (hover: hover) {
+  .linea-sipinna__item:hover .linea-sipinna__fab {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(16, 42, 67, 0.28);
+  }
+}
+
+.linea-sipinna__item:active .linea-sipinna__fab {
+  transform: scale(0.96);
+}
+
+.linea-sipinna__item:focus-visible {
+  outline: none;
+}
+
+.linea-sipinna__item:focus-visible .linea-sipinna__fab {
+  box-shadow: var(--sip-focus), 0 4px 14px rgba(16, 42, 67, 0.22);
+}
+
+@media (max-width: 480px) {
+  .linea-sipinna__label {
+    display: none;
+  }
+
+  .linea-sipinna__fab {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linea-sipinna__fab {
+    transition: none;
+  }
+}
+
+@media print {
+  .linea-sipinna {
+    display: none;
+  }
+}

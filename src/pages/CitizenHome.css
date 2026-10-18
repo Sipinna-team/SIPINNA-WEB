@@ -415,6 +415,10 @@ html:has(.citizen-page) body {
     font-size: 15px;
   }
 
+  .citizen-container.citizen-footer-inner {
+    padding-right: 80px;
+  }
+
   .citizen-container {
     padding-inline: 16px;
   }

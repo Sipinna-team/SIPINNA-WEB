@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { homePathFor, useAuth } from '../context/auth';
 import sipinnaLogo from '../assets/sipinna.svg';
+import LineaSipinnaButtons from '../components/LineaSipinnaButtons';
 import './CitizenHome.css';
 
 const NAV_ITEMS = [
@@ -281,6 +282,7 @@ function CitizenHome() {
           <Link to="/aviso-privacidad">Aviso de privacidad</Link>
         </div>
       </footer>
+      <LineaSipinnaButtons />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import PublicReportLayout from '../components/PublicReportLayout';
+import LineaSipinnaButtons from '../components/LineaSipinnaButtons';
 import { homePathFor, useAuth } from '../context/auth';
 import { api, type CitizenReport } from '../lib/api';
 import { filterCitizenReports, prepareCitizenReports, PUBLIC_REPORT_STEPS, publicStatusLabel } from '../lib/citizenReports';
@@ -39,6 +40,7 @@ export default function MyReports() {
           <Link to="/consultar-folio">Consultar con folio y clave <span aria-hidden="true">→</span></Link>
         </aside>
       </section>
+      <LineaSipinnaButtons />
     </PublicReportLayout>
   );
 }
