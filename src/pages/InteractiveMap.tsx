@@ -85,6 +85,17 @@ const REPORT_COLOR = '#9b2247'
 const SELECTED_REPORT_COLOR = '#a57f2c'
 /** Color de los reportes que ya están en un caso, para distinguirlos de los pendientes de agrupar. */
 const CASE_REPORT_COLOR = '#1e5b4f'
+/**
+ * Escala de calor
+ */
+const HEAT_STOPS: Array<[number, string]> = [
+  [0.1, 'rgb(69,117,180)'],
+  [0.3, 'rgb(145,191,219)'],
+  [0.5, 'rgb(254,224,144)'],
+  [0.7, 'rgb(252,141,89)'],
+  [0.85, 'rgb(215,48,39)'],
+  [1, 'rgb(165,0,38)'],
+]
 
 /** Nombre de la zona para el selector, con el municipio si es distinto. */
 function zoneLabel(zone: Zone) {
@@ -210,23 +221,20 @@ function MapContainer({
         source: REPORTS_SOURCE_ID,
         maxzoom: 17,
         paint: {
+          // Un reporte de peligro inmediato calienta más; uno que parece falso, menos.
+          'heatmap-weight': [
+            '*',
+            ['case', ['get', 'urgent'], 1.5, 1],
+            ['-', 1, ['*', 0.7, ['coalesce', ['get', 'suspiciousLevel'], 0]]],
+          ],
           'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, 9, 2, 15, 7],
           'heatmap-color': [
             'interpolate',
             ['linear'],
             ['heatmap-density'],
             0,
-            'rgba(250,246,236,0)',
-            0.2,
-            'rgb(236,214,160)',
-            0.4,
-            'rgb(165,127,44)',
-            0.6,
-            'rgb(196,90,110)',
-            0.8,
-            'rgb(155,34,71)',
-            1,
-            'rgb(97,18,50)',
+            'rgba(69,117,180,0)',
+            ...HEAT_STOPS.flat(),
           ],
           'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 10, 15, 17, 35],
           'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 14, 1, 17, 0],
@@ -400,6 +408,11 @@ function MapContainer({
       </div>
       <div id="map-container" ref={mapContainerRef} />
       <div className="map-legend" aria-label="Simbología">
+        <span className="map-legend-heat">
+          Menos
+          <b style={{ background: `linear-gradient(to right, ${HEAT_STOPS.map(([, color]) => color).join(', ')})` }} />
+          Más reportes
+        </span>
         <span><i style={{ background: REPORT_COLOR }} />Sin caso</span>
         <span><i style={{ background: CASE_REPORT_COLOR }} />En un caso</span>
         <span><i style={{ background: REPORT_COLOR, borderColor: URGENT_COLOR }} />Peligro inmediato</span>
