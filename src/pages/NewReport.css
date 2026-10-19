@@ -672,11 +672,11 @@
 @media (min-width: 800px) {
   .rf-choices {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
   }
 
-  .rf-choice { padding: 24px; }
+  .rf-choice { align-items: flex-start; padding: 24px; }
 
   .rf-child-fields .rf-chips { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 
