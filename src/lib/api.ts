@@ -72,6 +72,7 @@ export type Report = {
   suspicius_level: number;
   children_age: string;
   zone_name: string;
+  zone_municipio?: string;
   citizen_name: string;
   last_state: string;
   state_changed_at: string;

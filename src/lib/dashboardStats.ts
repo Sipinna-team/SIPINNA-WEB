@@ -302,7 +302,7 @@ export function computeDashboardStats(reports: Report[], now = new Date()): Dash
       openUrgent += 1;
     }
 
-    const zoneName = report.zone_name || 'Sin zona';
+    const zoneName = report.zone_municipio || report.zone_name || 'Sin zona';
     zones.set(zoneName, (zones.get(zoneName) ?? 0) + 1);
 
     const createdAt = new Date(report.created_at);
