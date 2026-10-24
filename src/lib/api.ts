@@ -242,6 +242,16 @@ const editTokenHeader = (editToken?: string): Record<string, string> =>
   editToken ? { 'X-Edit-Token': editToken } : {};
 type RequestOptions = RequestInit & { timeoutMs?: number };
 
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 /**
  * Hace una petición JSON al backend con la cookie de sesión.
  *
@@ -276,7 +286,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      throw new Error(data?.error ?? data?.message ?? `Error ${response.status}`);
+      throw new ApiError(data?.error ?? data?.message ?? `Error ${response.status}`, response.status);
     }
 
     return data as T;

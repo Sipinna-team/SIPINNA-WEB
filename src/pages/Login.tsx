@@ -5,6 +5,7 @@ import sipinnaLogo from '../assets/sipinna.svg';
 import { NEXT_PATH_KEY, postLoginPath, useAuth } from '../context/auth';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../lib/supabase';
+import { ApiError } from '../lib/api';
 
 /**
  * Página de inicio de sesión con correo o teléfono, o con Google.
@@ -48,7 +49,9 @@ function Login() {
     } catch (error) {
       console.error('Credenciales incorrectas:', error);
       setErrorMessage(
-        error instanceof TypeError
+        error instanceof ApiError && error.status === 429
+          ? 'Demasiados intentos de inicio de sesión. Espera 15 minutos e inténtalo de nuevo.'
+          : error instanceof TypeError
           ? 'No se pudo conectar con el servidor. Inténtalo de nuevo.'
           : 'No se pudo iniciar sesión. Verifica tus credenciales e inténtalo de nuevo.'
       );
