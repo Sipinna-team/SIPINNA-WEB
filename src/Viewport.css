@@ -130,16 +130,7 @@
 }
 
 .account-intro { margin-bottom: 16px; }
-.account-fields { gap: 12px; }
-.account-help { margin: 0; }
 .account-danger { margin-top: 20px; padding-top: 16px; }
-
-@media (min-width: 760px) {
-  .account-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .account-fields > .account-row,
-  .account-fields > .account-help,
-  .account-fields > button { grid-column: 1 / -1; }
-}
 
 .dashboard-grid > .dashboard-panel {
   min-height: 0;
@@ -444,8 +435,7 @@
   .rf-search input,
   .form-group input,
   .form-group select,
-  .account-fields input,
-  .account-fields select,
+  .account-card input,
   .reports-field input,
   .reports-field select,
   .reports-page-size select,

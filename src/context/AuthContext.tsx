@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
-import type { LoginPayload, SessionResponse, UpdateProfilePayload } from '../lib/api';
+import type { LoginPayload, SessionResponse } from '../lib/api';
 import { AuthContext } from './auth';
 import type { SessionUser } from './auth';
 
@@ -64,11 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return sessionUser;
   }, []);
 
-  const updateProfile = useCallback(async (payload: UpdateProfilePayload) => {
-    const profile = await api.updateProfile(payload);
-    setUser({ name: profile.nombre, userType: profile.user_type, zoneName: profile.zone_name });
-  }, []);
-
   const deleteAccount = useCallback(async (confirmation: string) => {
     await api.deleteAccount(confirmation);
     setUser(null);
@@ -83,8 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, isLoading, login, loginWithGoogle, acceptInvitation, updateProfile, deleteAccount, logout }),
-    [user, isLoading, login, loginWithGoogle, acceptInvitation, updateProfile, deleteAccount, logout],
+    () => ({ user, isLoading, login, loginWithGoogle, acceptInvitation, deleteAccount, logout }),
+    [user, isLoading, login, loginWithGoogle, acceptInvitation, deleteAccount, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

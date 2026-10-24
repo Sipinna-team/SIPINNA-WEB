@@ -33,8 +33,6 @@ export type AccountProfile = {
   has_password: boolean;
 };
 
-export type UpdateProfilePayload = Omit<RegisterCitizenPayload, 'password'>;
-
 /** Solicitud de código de recuperación. Igual que en login: solo uno de `email`/`number` va lleno, el otro en `null`. */
 export type ForgotPasswordPayload = {
   email: string | null;
@@ -334,10 +332,6 @@ export const api = {
 
   getProfile(signal?: AbortSignal) {
     return request<AccountProfile>('/account', { signal });
-  },
-
-  updateProfile(payload: UpdateProfilePayload) {
-    return request<AccountProfile>('/account', { method: 'PUT', body: JSON.stringify(payload) });
   },
 
   deleteAccount(confirmation: string) {
