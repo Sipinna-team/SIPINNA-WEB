@@ -61,9 +61,14 @@ function downloadBlob(blob: Blob, name: string) {
   URL.revokeObjectURL(url);
 }
 
-/** Escapa una celda CSV (comillas, comas y saltos de línea). */
+/**
+ * Escapa una celda CSV (comillas, comas y saltos de línea). Un texto que empieza con `=`, `+`, `-`, `@`,
+ * tabulador o retorno lleva `'` al inicio para que Excel no lo ejecute como fórmula (CSV injection).
+ * Los números, como las coordenadas negativas, no se tocan.
+ */
 function csvCell(value: string | number) {
-  const text = String(value ?? '');
+  let text = String(value ?? '');
+  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 

@@ -100,13 +100,16 @@ function Dashboard() {
   const hotspots = useMemo(() => computeHotspots(reports), [reports]);
   const placeholder = loading ? '…' : '—';
 
+  /**
+   * Primero sale del dashboard y después cierra la sesión: al revés, la ruta protegida manda a
+   * `/login` antes de llegar a `/inicio`. Sin viewTransition, porque retrasa el cambio de ruta.
+   */
   async function handleLogout() {
+    await navigate('/inicio', { replace: true });
     try {
       await logout();
     } catch (err) {
       console.error('Error al cerrar sesión', err);
-    } finally {
-      navigate('/inicio', { replace: true, viewTransition: true });
     }
   }
 

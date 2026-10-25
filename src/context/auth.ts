@@ -20,6 +20,9 @@ type AuthContextValue = {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Roles del personal de SIPINNA: administrador y alimentador. */
+export const STAFF_ROLES: UserType[] = ['administrador', 'alimentador'];
+
 /** Ruta de inicio del usuario: los ciudadanos van a la página de inicio y el personal, al dashboard. */
 export function homePathFor(user: SessionUser): string {
   return user.userType === 'citizen' ? '/inicio' : '/dashboard';

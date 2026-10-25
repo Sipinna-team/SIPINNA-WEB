@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import { createBrowserRouter, createRoutesFromElements, Outlet, Route, RouterProvider } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
+import { STAFF_ROLES } from './context/auth'
 import RootRedirect from './components/RootRedirect'
 import ForgotPassword from './pages/ForgotPassword'
 import NotFound from './pages/NotFound'
@@ -28,7 +29,7 @@ const Account = lazy(() => import('./pages/Account'))
 const router = createBrowserRouter(createRoutesFromElements(
   <Route element={<Suspense fallback={<main className="sip-loading" role="status">Cargando pantalla…</main>}><Outlet /></Suspense>}>
     <Route path="/" element={<RootRedirect />} />
-    <Route path="/map" element={<ProtectedRoute><InteractiveMap /></ProtectedRoute>} />
+    <Route path="/map" element={<ProtectedRoute roles={STAFF_ROLES}><InteractiveMap /></ProtectedRoute>} />
     <Route path="/login" element={<Login />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/register" element={<Register />} />
@@ -40,8 +41,8 @@ const router = createBrowserRouter(createRoutesFromElements(
     <Route path="/consultar-folio" element={<TrackReport />} />
     <Route path="/aviso-privacidad" element={<PrivacyNotice />} />
     <Route path="/mi-cuenta" element={<ProtectedRoute><Account /></ProtectedRoute>} />
-    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-    <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+    <Route path="/dashboard" element={<ProtectedRoute roles={STAFF_ROLES}><Dashboard /></ProtectedRoute>} />
+    <Route path="/reports" element={<ProtectedRoute roles={STAFF_ROLES}><Reports /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />
   </Route>,
 ))
